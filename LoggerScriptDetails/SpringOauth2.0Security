@@ -1,0 +1,114 @@
+$ npm install
+$ npm run serve
+You can also build the project for production use using this command:
+
+$ npm run build
+
+https://github.com/dhughes/tiy-developer-designer-crashcourse
+######################################################################
+n order to access protected resources, we need to first request an access token from the authorization server:
+
+curl http://localhost:8080/oauth/token -X POST -u client:fucksecurity -d "grant_type=password&username=shawn&password=fucksecurity"
+The authorization server verifies our client and user information, and after the verification is successful, we send the token information we need back as a response:
+
+{
+    " access_token " : " ca741611-a30e-4504-b84e-fdf9cec0da9a " ,
+    " token_type " : " bearer " ,
+    " refresh_token " : " 1a1fb46e-8ab4-4a3b-84c4-e70892eaa570 " ,
+    " expires_in " : 43199 ,
+    " scope " : " read write "  
+}
+Next, we can use the last request returned to access_tokenoperate the protected resource:
+
+curl http://localhost:8080/books/1 -X DELETE -H "Authorization: Bearer ca741611-a30e-4504-b84e-fdf9cec0da9a"
+In response to a successful return, in order to verify that the book with ID 1 is indeed deleted, we try to get the book information with ID 1:
+
+curl http://localhost:8080/books/1
+The HTTP status code for the response is 404 and the following JSON string is returned, which means that the book with ID 1 has indeed been deleted:
+
+{
+    " code " : 1003 ,
+    " message " : " Book with id 1 is not found. "  
+}
+Finally, it access_tokenwill expire as time passes (43199 seconds in this project) . He had returned when requesting access token can be used refresh_tokento get a new one access_token:
+
+curl http://localhost:8080/oauth/token -X POST -u client:fucksecurity -d "grant_type=refresh_token&refresh_token=1a1fb46e-8ab4-4a3b-84c4-e70892eaa570"
+
+######################################################################
+Resource Owner Password Credentials Grant Type
+
+import javax.net.ssl.HttpsURLConnection;
+import java.io.*;
+import java.net.URL;
+import java.util.Base64;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+private static final Pattern pat = Pattern.compile(".*\"access_token\"\\s*:\\s*\"([^\"]+)\".*");
+private static final String clientId = "";//clientId
+private static final String clientSecret = "";//client secret
+private static final String tokenUrl = "https://api.byu.edu/token";
+private static final String auth = clientId + ":" + clientSecret;
+private static final String authentication = Base64.getEncoder().encodeToString(auth.getBytes());
+//Username is netId for the person making the call and the password is there password
+private static String getResourceCredentials(String userName, String password) {
+
+
+    String content = "grant_type=password&username=" + userName + "&password=" + password;
+    BufferedReader reader = null;
+    HttpsURLConnection connection = null;
+    String returnValue = "";
+    try {
+        URL url = new URL(tokenUrl);
+        connection = (HttpsURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Authorization", "Basic " + authentication);
+        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        connection.setRequestProperty("Accept", "application/json");
+        PrintStream os = new PrintStream(connection.getOutputStream());
+        os.print(content);
+        os.close();
+        reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String line = null;
+        StringWriter out = new StringWriter(connection.getContentLength() > 0 ? connection.getContentLength() : 2048);
+        while ((line = reader.readLine()) != null) {
+            out.append(line);
+        }
+        String response = out.toString();
+        Matcher matcher = pat.matcher(response);
+        if (matcher.matches() && matcher.groupCount() > 0) {
+            returnValue = matcher.group(1);
+        }
+    } catch (Exception e) {
+        System.out.println("Error : " + e.getMessage());
+    } finally {
+        if (reader != null) {
+            try {
+                reader.close();
+            } catch (IOException e) {
+            }
+        }
+        connection.disconnect();
+    }
+    return returnValue;
+}
+private static void usePersonSummary(String resourceOwner, String netId) {
+    BufferedReader reader = null;
+    try {
+        URL url = new URL("https://api.byu.edu:443/domains/legacy/identity/person/personsummary/v1/" + netId);
+        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+        connection.setRequestProperty("Authorization", "Bearer " + resourceOwner);
+        connection.setDoOutput(true);
+        connection.setRequestMethod("GET");
+        reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String line = null;
+        StringWriter out = new StringWriter(connection.getContentLength() > 0 ? connection.getContentLength() : 2048);
+        while ((line = reader.readLine()) != null) {
+            out.append(line);
+        }
+        String response = out.toString();
+        System.out.println(response);
+    } catch (Exception e) {
+
+    }
+}

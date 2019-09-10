@@ -1,0 +1,60 @@
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+		
+		
+log4j.properties
+log4j.appender.rollingFile=org.apache.log4j.RollingFileAppender
+log4j.appender.rollingFile.File=${LOG_DIR}/application.log
+log4j.appender.rollingFile.layout=org.apache.log4j.PatternLayout
+log4j.appender.rollingFile.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n
+log4j.appender.rollingFile.MaxFileSize=10MB
+log4j.appender.rollingFile.MaxBackupIndex=5
+log4j.appender.rollingFile.append=true
+ 
+log4j.rootCategory=ALL, rollingFile
+
+<appender name="rollingFile" class="org.apache.log4j.rolling.RollingFileAppender">
+    <rollingPolicy
+        class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
+        <param name="ActiveFileName" value="${LOG_DIR}/application.log" />
+        <param name="FileNamePattern" value="${LOG_DIR}/application.%d{dd-MMM}.log.gz" />
+    </rollingPolicy>
+    <triggeringPolicy
+        class="org.apache.log4j.rolling.SizeBasedTriggeringPolicy">
+        <param name="MaxFileSize" value="10MB" />
+    </triggeringPolicy>
+    <layout class="org.apache.log4j.PatternLayout">
+        <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} %-5p - %m%n" />
+    </layout>
+</appender>
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM 
+          "http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+    <appender name="Appender1" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-7p %d [%t] %c %x - %m%n" />
+        </layout>
+    </appender>
+    <appender name="Appender2" class="org.apache.log4j.FileAppender">
+        <param name="File" value="./Log4jSpringMvcEx/logs/springmvc.log" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-7p %d [%t] %c %x - %m%n" />
+        </layout>
+    </appender>
+    <root>
+        <level value="INFO" />
+        <appender-ref ref="Appender1" />
+        <appender-ref ref="Appender2" />
+    </root>
+</log4j:configuration>
+
+
+e.g. to use log4j in your project, you will have to include below given jar files:
+
+slf4j-log4j12-1.7.12.jar
+log4j-1.2.17.jar

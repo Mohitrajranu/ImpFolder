@@ -1,0 +1,16 @@
+# ❯❯❯ history
+   72  ssh -v
+   73  vim ~/.ssh/authorized_keys
+   74  cd ~/.ssh
+   75  pwd
+   76  sshd -t
+   77  /etc/init.d/sshd reload
+   78  chmod 600 authorized_keys
+   79  la
+   80  cd ..
+   81  la .ssh
+   82  chmod 700 .ssh
+   83  la | grep .ssh
+   85  vim /etc/ssh/ssh_config
+   86  vim /etc/ssh/sshd_config
+   87  /etc/init.d/sshd restart

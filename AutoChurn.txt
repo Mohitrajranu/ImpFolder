@@ -1,0 +1,30 @@
+Step1:Make the following directory listed below on the path: Go to the path:cd /home/mbas/BackEndProcess and enter the below command
+mkdir AutoChurnDir
+
+Step2:Go to the path:cd /home/mbas/BackEndProcess/config and edit the Property file Constants.properties and add the below listed parameter inside the property file and save the file.
+deleteProcessServiceType =Z0014#(Single Service at a time )
+deleteProcessFileWrite =1#(0 or 1,in case of delete without writing file enter 0 and in case of delete with file writing of the that service type enter 1)
+deleteProcessRecLimit =20
+deleteProcessTableName =T_SUB_SERVICE_INFO#configurable
+deleteProcessOrderOfLogging =MSISDN,CONTENT_ID,SERVICE_TYPE,PLAN_ID#configurable and should only the column name of the configured table
+deleteProcessCustStatus =C
+deleteProcessModeOfApplication =C(For continous Mode i.e., to run script continously type:C, or in order to run onetime type:E)
+deleteProcessBatchSize =20
+deleteProcessSleepTime =12000
+deleteProcessSleepTimeMultiplier =2
+deleteProcessChurnFileDir =/home/mbas/BackEndProcess/AutoChurnDir/
+deleteProcessChurnFileName =AUTOCHURNFILE
+
+Step 3:Upload the  java file:SEConstantsI.java on the following location:cd /home/mbas/BackEndProcess/src/com/btsl/util/common
+Now Go to this path: cd /home/mbas/BackEndProcess/src and compile the java files by entering the below commands:
+javac -d ../classes/ com/btsl/util/common/SEConstantsI.java
+
+
+Step4:Upload the 2 java files:DeleteChurnVo.java and DeleteChurnProcess.java on the following location:cd /home/mbas/BackEndProcess/src/com/btsl/process
+Now Go to this path: cd /home/mbas/BackEndProcess/src and compile the java files by entering the below commands:
+javac -d ../classes/ com/btsl/process/DeleteChurnVo.java
+javac -d ../classes/ com/btsl/process/DeleteChurnProcess.java
+
+Step5:Upload the script file DeleteChurnProcess.sh on the following location  /home/mbas/BackEndProcess/cronjobs and provide permission to the script chmod +x DeleteChurnProcess.sh
+
+Step6:Go to the path cd /home/mbas/BackEndProcess/cronjobs and run the script DeleteChurnProcess.sh by just entering ./DeleteChurnProcess.sh don't schedule the script on a crontab.

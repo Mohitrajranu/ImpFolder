@@ -1,0 +1,41 @@
+#!/bin/bash
+
+#Script -Purpose:Backup script
+# Exits with zero if no error.
+
+
+# Step -1 Function to archieve file using date and time
+
+date=`/bin/date "+%Y.%m.%d.%H.%M.%S"`
+
+
+# Step -2 Function to create folder on /root/logs with Timestamp
+
+mkdir -p /root/logs/$date
+
+# Step -3 Function to find & move logs from /data to /root/logs 
+
+
+find /data/ -type f -iname *.logs -mtime +30 -print | xargs -I {} mv {} /root/logs/$date
+
+#Step -4 Function to compress the log Backup Content
+
+tar -cvzf /root/log/$date /root/logarchive/$date.tar.gz
+
+#Step -5 Function to remove the Log 
+
+
+rm -rf /root/log/*
+
+
+#Step -4 Function to Print the logs Backup status
+
+echo "$(date) log Backuped successfully ">>/root/logs/logbackup-status-$date.log
+
+#Step -5 Function to call the Mail trigger to user
+
+mailid= $@gmail.com
+
+#Step -5 Function to trigger mail after log backup status
+
+mail -s '$(date) Logs Moved Successfully $(hostname) - Successful' $mailid

@@ -1,0 +1,105 @@
+    1  ls
+    2  pwd
+    3  nano /etc/ssh/ssh_config
+    4  vi /etc/ssh/ssh_config
+    5  sudo passwd centos
+    6  cd /etc/ssh
+    7  ls
+    8  vi sshd_config
+    9  vi sshd_config
+   10  vi sshd_config
+   11  ssh restart
+   12  cd /ce
+   13  cd /home/
+   14  ssh restart
+   15  ssh -v localhost
+   16  ssh restart
+   17  sudo service ssh restart
+   18  sudo /etc/init.d/networking restart
+   19  df -TH
+   20  lsblk
+   21  free -m
+   22  lscpu
+   23  sudo ssh restart
+   24  service ssh restart
+   
+   
+   25  vi /etc/host/hosts
+   26  vi /etc/hosts
+   27  netstat -tnlp
+   28  service postfix stop
+   29  yum remove postfix
+   30  vi /etc/hostname
+   31  vi /etc/hostname
+   32  vi /etc/hosts
+   33  ip a
+   34  vi /etc/hosts
+   35  hostname mail.bizlem.com
+   36  hostname
+   37  ping mail.bizlem.com
+   38  hostnamectl set-hostname mail.bizlem.com
+   39  yum install unzip net-tools sysstat openssh-clients perl-core libaio nmap-ncat libstdc++.so.6 wget -y
+   40  yum update
+   41  yum install unzip net-tools sysstat wget
+   42  wget https://files.zimbra.com/downloads/8.8.15_GA/zcs-8.8.15_GA_3829.RHEL7_64.20190718141144.tgz
+   43  tar zxpvf zcs-8.8.15_GA_3829.RHEL7_64.20190718141144.tgz
+   44  cd zcs-8.8.15_GA_3829.RHEL7_64.20190718141144
+   45  yum install screen
+   46  screen
+   47  cd ..
+   48  ll
+   49  df -TH
+   50  du -sch zcs-8.8.15_GA_3829.RHEL7_64.20190718141144.tgz
+   51  rm zcs-8.8.15_GA_3829.RHEL7_64.20190718141144.tgz
+   52  screen -r
+   53  less /tmp/zmsetup.20190728-122427.log
+   54  ip a
+   55  vim /etc/hosts
+   56  vi /etc/hosts
+   57  vi /etc/hosts
+   58  vi /etc/selinux/config
+   59  sestatus
+   60  sudo setenforce 0
+   61  sestatus
+   62  sestatus
+   63  echo 0 > /sys/fs/selinux/enforce
+   64  sestatus
+   65  setenforce 0
+   66  sestatus
+   67  screen -r
+   68  vim /etc/hosts
+   69  vi /etc/hosts
+   70  screen -r
+   71  less /tmp/zmsetup.20190728-130341.log
+   72  reboot
+   73  ./install.sh
+   74  yum install openssh-clients perl-core libaio nmap-ncat libstdc++.so.6
+   75  ./install.sh
+   76  sestatus
+   77  /opt/zimbra/libexec/zmsetup.pl
+   78  /opt/zimbra/libexec/zmsetup.pl
+   79  less /tmp/zmsetup.20190729-084242.log
+   80  netstat -tnlp
+   81  ps -aux | grep 111
+   82  ps -aux | grep systemd
+   83  ip a
+   84  vi /etc/hosts
+   85  ping mail.bizlem.com
+   86  ifconfig -a | grep inet6
+   87  vi /etc/sysctl.conf
+   88  sysctl -p
+   89  systemctl restart sshd
+   90  ifconfig -a | grep inet6
+   91  screen -r
+   92  screen
+   93  screen -r
+   94  su - zimbra
+   95  tail -f /var/log/maillog
+   96  top -c
+   97  ll  /opt/zimbra/data/spamassassin/
+   98  ll  /opt/zimbra/data/
+   99  ll  /opt/zimbra/data/spamassassin/
+  100  ll  /opt/zimbra/data/spamassassin/localrules/
+  101  ll  /opt/zimbra/data/spamassassin/rules/
+  102  vim /opt/zimbra/data/spamassassin/rules/20_dnsbl_tests.cf
+  103  vi /opt/zimbra/data/spamassassin/rules/20_dnsbl_tests.cf

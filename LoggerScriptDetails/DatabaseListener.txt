@@ -1,0 +1,30 @@
+<context-param>
+    <param-name>MONGO_HOST</param-name>
+    <param-value>localhost</param-value>
+  </context-param>
+  <context-param>
+    <param-name>MONGO_PORT</param-name>
+    <param-value>27017</param-value>
+  </context-param>
+  @WebListener
+public class MongoDBListener implements ServletContextListener {
+
+	@Override
+	public void contextDestroyed(ServletContextEvent sce) {
+		MongoClient mongo = (MongoClient) sce.getServletContext().getAttribute("MONG0_CLIENT");
+		mongo.close();
+		
+	}
+
+	@Override
+	public void contextInitialized(ServletContextEvent sce) {
+		
+		ServletContext ctx = sce.getServletContext();
+		MongoClient mongo = new MongoClient(ctx.getInitParameter("MONGO_HOST"), Integer.parseInt(ctx.getInitParameter("MONGO_PORT")));
+		sce.getServletContext().setAttribute("MONGO_CLIENT", mongo);
+	}
+
+}
+
+  
+  https://www.javatpoint.com/ServletContextEvent

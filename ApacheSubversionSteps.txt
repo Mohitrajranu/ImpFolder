@@ -1,0 +1,42 @@
+###################################^^^^^^^^^^^^^^^^^^^^^^^^^^^^^&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Apache Subversion Steps:-
+
+Step1]:- svnserve -d -r /home/ubuntu/svnproject/repos
+svnadmin create projectRepo1
+cd projectRepo1
+cd conf/
+vim svnserve.conf and uncomment these lines anon-access = read and auth-access = write,  password-db = passwd,.
+vim passwd and add users bizlemdev = password.
+
+#############################################################################################################
+ifconfig | grep "inet"
+svn info svn://172.31.0.43/projectRepo1
+Path: projectRepo1
+URL: svn://172.31.0.43/projectRepo1
+Relative URL: ^/
+Repository Root: svn://172.31.0.43/projectRepo1
+Repository UUID: d405cfba-b1d0-4b34-b9f7-a6eda50e2a77
+Revision: 0
+Node Kind: directory
+Last Changed Rev: 0
+Last Changed Date: 2018-10-22 04:03:08 +0000 (Mon, 22 Oct 2018)
+
+To stop svnserver
+killall svnserve
+################################################################################################################
+http://35.186.185.236/projectRepo1
+Step2]:- Install eclipse plugin, using subversive Svn Team Provider, go to Windows--Preferences and Team -->Svn-->svn connectors.
+choose Svnkit 1.8.14 as an option.
+
+Step3]:- Right click on the project and select option ->Team ->Share Project->SVN->
+
+
+http://35.186.185.236/svn/MailTangyRepo/
+
+username = tejal
+password = tejal
+
+################################################################################################################
+
+While configuring svn url, Go to team ->Share Project->svn->configure url and select advance option.

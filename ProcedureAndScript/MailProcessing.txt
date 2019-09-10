@@ -1,0 +1,23 @@
+#!/bin/bash
+#This script will be used to process MailProcessing script.
+cd ~
+. .bash_profile
+df_date=`date`
+today=`date +%Y-%m-%d`
+HOME=/home/ubuntu/BackEndJavaProcess/
+cd $HOME/cronjobs/
+
+ MailProcess =`ps -ef |  grep -i "MailProcess_Running.jar" |grep -v "grep" | awk '{print $2}' | wc -l`
+    if [ $MailProcess -ge 1 ]
+    then
+    echo "MailProcess is already running cannot start it."
+  else
+   echo "MailProcess is not running, Start it."
+   echo MailProcess Started at $df_date
+   java -jar MailProcess_Running.jar 1>>$HOME/log/MailProcess_out.log.$today 2>>$HOME/log/MailProcess_err.log.$today
+   fi
+   
+   
+   /home/ubuntu/BackEndJavaProcess/cronjobs/MailProcessing.sh
+   
+   0 * * * * /home/ubuntu/BackEndJavaProcess/cronjobs/MailProcessing.sh >> /home/ubuntu/`date +\%Y\%m\%d\%H\%M\%S`-GmailDataParsedScript.log 2>&1

@@ -1,0 +1,181 @@
+Mysql has its EVENT functionality for avoiding complicated cron interactions when much of what you are scheduling is sql related, and less file related. See the Manual page here. Hopefully the below reads as a quick overview of the important steps and things to consider, and verifiable testing too.
+
+show variables where variable_name='event_scheduler';
++-----------------+-------+
+| Variable_name   | Value |
++-----------------+-------+
+| event_scheduler | OFF   |
++-----------------+-------+
+ooops, the event scheduler is not turned on. Nothing will trigger.
+
+SET GLOBAL event_scheduler = ON;  -- turn her on and confirm below
+
+show variables where variable_name='event_scheduler';
++-----------------+-------+
+| Variable_name   | Value |
++-----------------+-------+
+| event_scheduler | ON    |
++-----------------+-------+
+Schema for testing
+create table theMessages
+(   id int auto_increment primary key,
+    userId int not null,
+    message varchar(255) not null,
+    updateDt datetime not null,
+    key(updateDt)
+    -- FK's not shown
+);
+-- it is currently 2015-09-10 13:12:00
+-- truncate table theMessages;
+insert theMessages(userId,message,updateDt) values (1,'I need to go now, no followup questions','2015-08-24 11:10:09');
+insert theMessages(userId,message,updateDt) values (7,'You always say that ... just hiding','2015-08-29');
+insert theMessages(userId,message,updateDt) values (1,'7 day test1','2015-09-03 12:00:00');
+insert theMessages(userId,message,updateDt) values (1,'7 day test2','2015-09-03 14:00:00');
+Create 2 events, 1st runs daily, 2nd runs every 10 minutes
+Ignore what they are actually doing (playing against one another). The point is on time difference approaches and scheduling.
+
+DELIMITER $$
+CREATE EVENT `delete7DayOldMessages`
+  ON SCHEDULE EVERY 1 DAY STARTS '2015-09-01 00:00:00'
+  ON COMPLETION PRESERVE
+DO BEGIN
+   delete from theMessages 
+   where datediff(now(),updateDt)>6; -- not terribly exact, yesterday but <24hrs is still 1 day
+   -- etc etc all your stuff in here
+END;$$
+DELIMITER ;
+...
+
+DELIMITER $$
+CREATE EVENT `Every_10_Minutes_Cleanup`
+  ON SCHEDULE EVERY 10 MINUTE STARTS '2015-09-01 00:00:00'
+  ON COMPLETION PRESERVE
+DO BEGIN
+   delete from theMessages 
+   where TIMESTAMPDIFF(HOUR, updateDt, now())>168; -- messages over 1 week old (168 hours)
+   -- etc etc all your stuff in here
+END;$$
+DELIMITER ;
+Show event statuses (different approaches)
+show events from so_gibberish; -- list all events by schema name (db name)
+show events; -- <--------- from workbench / sqlyog
+show events\G;` -- <--------- I like this one from mysql> prompt
+
+*************************** 1. row ***************************
+                  Db: so_gibberish
+                Name: delete7DayOldMessages
+             Definer: root@localhost
+           Time zone: SYSTEM
+                Type: RECURRING
+          Execute at: NULL
+      Interval value: 1
+      Interval field: DAY
+              Starts: 2015-09-01 00:00:00
+                Ends: NULL
+              Status: ENABLED
+          Originator: 1
+character_set_client: utf8
+collation_connection: utf8_general_ci
+  Database Collation: utf8_general_ci
+*************************** 2. row ***************************
+                  Db: so_gibberish
+                Name: Every_10_Minutes_Cleanup
+             Definer: root@localhost
+           Time zone: SYSTEM
+                Type: RECURRING
+          Execute at: NULL
+      Interval value: 10
+      Interval field: MINUTE
+              Starts: 2015-09-01 00:00:00
+                Ends: NULL
+              Status: ENABLED
+          Originator: 1
+character_set_client: utf8
+collation_connection: utf8_general_ci
+  Database Collation: utf8_general_ci
+2 rows in set (0.06 sec)
+Random stuff to consider
+drop event someEventName; -- <----- a good thing to know about
+
+can't alias datediff and use in where clause in 1 line, so
+
+select id,DATEDIFF(now(),updateDt) from theMessages where datediff(now(),updateDt)>6;
+get more exact, 168 hours for 1 week old
+
+select id,TIMESTAMPDIFF(HOUR, updateDt, now()) as `difference` FROM theMessages;
++----+------------+
+| id | difference |
++----+------------+
+|  1 |        410 |
+|  2 |        301 |
+|  3 |        169 |
+|  4 |        167 |
++----+------------+
+The link to the Manual Page shows quite a bit of flexibilty with interval choices, shown below:
+
+interval:
+
+quantity {YEAR | QUARTER | MONTH | DAY | HOUR | MINUTE |
+          WEEK | SECOND | YEAR_MONTH | DAY_HOUR | DAY_MINUTE |
+          DAY_SECOND | HOUR_MINUTE | HOUR_SECOND | MINUTE_SECOND}
+Concurrency
+Embed any concurrency measures necessary that multiple events (or multiple firings of the same event) don't cause data to run amok.
+
+Set and Forget
+Remember, for now, because you are going to forget it, that these events just keep firing. So build in solid code that will just keep running, even when you forget. Which you most likely will.
+
+Your particular requirements
+You need to determine which rows need to be deleted first by table, such that it honors Primary Key constraints. Just lump them all in proper order inside of the obvious area via the CREATE EVENT statement, which can be massive.
+
+shareimprove this answer
+answered Sep 10 '15 at 18:11
+
+Drew
+22k83259
+Wao! thank you for this example. I will try during this weekend and let you know if works for me or not :) But thank you for the example. If it goes well, I will confirm it :) – Kein-Wai Sep 11 '15 at 10:50
+add a comment
+
+up vote
+1
+down vote
+You can use below stored procedure and either schedule it by crontab or through events.
+
+Note: Just change mydb with your Database, which database tables data you want to delete and test first in testing environment.
+
+DELIMITER $$
+
+USE `mydb`$$
+
+DROP PROCEDURE IF EXISTS `sp_delete`$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_delete`()
+BEGIN
+DECLARE done INT(1) DEFAULT 0;
+DECLARE _tbl VARCHAR(100) DEFAULT '';
+DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' SET done=done;
+
+DECLARE cur1 CURSOR FOR SELECT table_name FROM information_schema.tables WHERE table_schema='mydb' AND table_type='base table';
+DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' SET done=done;
+OPEN cur1;
+
+REPEAT
+FETCH cur1 INTO _tbl;
+IF _db = '' THEN
+    SET done = 1;
+END IF;
+            IF (done<>1) THEN
+
+                             SET @str=CONCAT("delete from ",_tbl," where updateon < SUBDATE(CURDATE(),INTERVAL 7 DAY)");
+                 PREPARE stmt FROM @str;
+                 EXECUTE stmt;
+                 DEALLOCATE PREPARE stmt;
+
+            END IF;
+
+UNTIL done
+END REPEAT;
+     CLOSE cur1;
+     SELECT 'done';
+
+
+END$$

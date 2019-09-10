@@ -1,0 +1,21 @@
+curl -O https://bootstrap.pypa.io/get-pip.py
+sudo python3 get-pip.py
+sudo python3.6 get-pip.py
+ pip3.6 install flask beautifulsoup4 pandas lxml requests
+ pip3.6 install mammoth bs4 xlrd wheel pandas html5Lib html2text pywin32
+ pip3.6 install bs4
+ pip3.6 install xlrd
+ pip3 install wheel
+ pip3 install pandas
+ pip3 install html5Lib
+ pip3 install html2text
+ 
+ google.cloud.vision
+ google.protobuf.json_format
+ 
+ "0.0.0.0"
+ https://www.tecmint.com/install-python-in-linux/
+ 
+ /home/ubuntu/pyscript/EssarFME_MailBody_Parsing/uploads
+ 
+ pip install pywin32

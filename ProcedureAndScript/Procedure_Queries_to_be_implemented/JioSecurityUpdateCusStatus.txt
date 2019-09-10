@@ -1,0 +1,34 @@
+Step1: Create a procedure
+
+create or replace PROCEDURE updateJioSecurityCus
+/*
+ *  Copyright(c) 2017, Mahindra Comviva Pvt. Ltd.
+ *  All Rights Reserved
+ *  Procedure to update Jio security Customer present in success table to A in Info table.
+ *  -----------------------------------------------------------------------------
+ *  Author              Date            History
+ *  -----------------------------------------------------------------------------
+ *  Mohit Raj       15/06/2017         Update Customer Status from I to A
+ *  -----------------------------------------------------------------------------
+ */
+AS
+  cnt number := 0;
+  CURSOR updt_subId IS
+    select A1.CRM_ID FROM t_sub_service_info A1 INNER JOIN T_SUB_JIO_SECURITY_SUCCESS A2 on  A1.CRM_ID=A2.CRM_ID and A1.service_type = 'Z0031' and A1.CUST_STATUS = 'I';
+    sub_id updt_subId%rowtype;
+    BEGIN
+        FOR sub_id IN updt_subId
+        LOOP
+          update T_SUB_SERVICE_INFO set CUST_STATUS ='A',OPERATION ='SN' where CRM_ID = sub_id.crm_id;
+          cnt := cnt + 1;
+        IF cnt = 11421 THEN        
+         commit;
+         cnt := 0;
+        END IF;
+        END LOOP;
+    END;
+    /
+	
+Step 2:Execute the Procedure
+
+EXECUTE UPDATEJIOSECURITYCUS;

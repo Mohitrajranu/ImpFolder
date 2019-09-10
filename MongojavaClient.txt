@@ -1,0 +1,95 @@
+public static void jsonExmple(){
+  String jsonString = "{'Name' : 'James Smith', 'Age' : 29," +
+    "'Address' : {'area' : 'Area', 'city' : 'New York', 'country' : 'USA'} }";
+ 
+  MongoClient mongoClient = null;
+  try {
+   mongoClient = new MongoClient( "localhost" , 27017 );
+  } catch (UnknownHostException e) {
+   e.printStackTrace();
+  }
+  DB db = mongoClient.getDB( "testJson" );
+  DBCollection json = db.getCollection("json");
+  DBObject dbObject = (DBObject)JSON.parse(jsonString);
+ 
+  json.insert(dbObject);
+ DBCollection db= db.getCollection("user");
+ BasicDBObject searchQuery = new BasicDBObject(); 
+ searchQuery.put("firstName", "Dharmendra"); 
+ DBCursor cursor = db.find(searchQuery);
+ while (cursor.hasNext()) { System.out.println(cursor.next()); }
+  DBCursor jsonDoc = json.find();
+  while (jsonDoc.hasNext()) {
+   System.out.println(jsonDoc.next());
+  }
+ }
+ 
+ db.rajesh.shukla3100_gmail.com.createIndex( { "agent_id__c":1 } );
+ 
+ 
+ //E:\ExcelData
+ 
+ ##########################################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%***********************************
+import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
+import com.mongodb.WriteConcern;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+import com.mongodb.DBCursor;
+import com.mongodb.ServerAddress;
+import java.util.Arrays;
+
+public class MongoDBCollection
+{
+
+public static void main(String args[])
+{
+try
+{
+//Connect to Database
+MongoClient mongoClient=ConnectionFactory.CONNECTION.getClient();;
+DB db=mongoClient.getDB("analytics");
+System.out.println("Your connection to DB is ready for Use::"+db);
+
+//Create Collection
+
+DBCollection linked=db.createCollection("LinkedIn",new BasicDBObject()); 
+System.out.println("Collection created successfully");
+
+}
+
+catch(Exception e)
+{
+System.out.println(e.getClass().getName()+":"+e.getMessage());
+
+}
+
+}
+
+
+}
+ 
+ #################
+ MongoClient client = ConnectionFactory.CONNECTION.getClient();
+
+ #################
+ public enum ConnectionFactory {
+    CONNECTION;
+    private MongoClient client = null;
+
+    private ConnectionFactory() {
+        try {
+            client = new MongoClient();
+        } catch (Exception e) {
+            // Log it.
+        }
+    }
+
+    public MongoClient getClient() {
+        if (client == null)
+            throw new RuntimeException();
+        return client;
+    }
+}

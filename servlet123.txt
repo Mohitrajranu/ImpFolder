@@ -1,0 +1,92 @@
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.PrintWriter;
+import java.io.IOException;
+
+public class demolet extends HttpServlet implements SingleThreadModel
+{
+  private static final String CONTENT_TYPE = "text/html; charset=windows-1252";
+
+  public void init(ServletConfig config) throws ServletException
+  {
+    super.init(config);
+  }
+
+  /**
+   * Process the HTTP doGet request.
+   */
+  public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+  {
+    String var0show = "";
+    try
+    {
+      var0show = request.getParameter("showthis");
+    }
+    catch(Exception e)
+    {
+      e.printStackTrace();
+    }
+
+    response.setContentType(CONTENT_TYPE);
+    PrintWriter out = response.getWriter();
+    out.println("<html>");
+    out.println("<head><title>demolet</title></head>");
+    out.println("<body>");
+    out.println("<p>The servlet has received a GET. This is the reply.</p>");
+    out.println("</body></html>");
+    out.close();
+  }
+
+  /**
+   * Process the HTTP doPost request.
+   */
+  public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+  {
+    String var0show = "";
+    try
+    {
+      var0show = request.getParameter("showthis");
+    }
+    catch(Exception e)
+    {
+      e.printStackTrace();
+    }
+
+    response.setContentType(CONTENT_TYPE);
+    PrintWriter out = response.getWriter();
+    out.println("<html>");
+    out.println("<head><title>demolet</title></head>");
+    out.println("<body>");
+    out.println("<p>The servlet has received a POST. This is the reply.</p>");
+    out.println("</body></html>");
+    out.close();
+  }
+}
+
+
+
+web.xml
+
+<web-app>  
+  
+<servlet>  
+<servlet-name>s1</servlet-name>  
+<servlet-class>FirstServlet</servlet-class>  
+</servlet>  
+  
+<servlet-mapping>  
+<servlet-name>s1</servlet-name>  
+<url-pattern>/servlet1</url-pattern>  
+</servlet-mapping>  
+  
+<servlet>  
+<servlet-name>s2</servlet-name>  
+<servlet-class>SecondServlet</servlet-class>  
+</servlet>  
+  
+<servlet-mapping>  
+<servlet-name>s2</servlet-name>  
+<url-pattern>/servlet2</url-pattern>  
+</servlet-mapping>  
+  
+</web-app>

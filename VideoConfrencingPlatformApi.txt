@@ -1,0 +1,32 @@
+Create Api
+{"message": "Admin user successfully created.", "success": true}
+Http Status Response Code Returned is =200
+
+
+
+{"ACCOUNT_STATUS": false, "BL_CUSTOMER_ID": "9619591584", "USER_COUNT": 1, "LICENSE_COUNT": 5, "ADMIN_EMAIL_ID": "arun.appu@ril.com"}
+Http Status Response Code Returned is =200
+org.json.JSONException: JSONObject["account_details"] not found.
+	at org.json.JSONObject.get(JSONObject.java:283)
+	at org.json.JSONObject.getJSONObject(JSONObject.java:376)
+	at com.btsl.process.Send_HTTP_Post_Request.call_me(Send_HTTP_Post_Request.java:64)
+	at com.btsl.process.Send_HTTP_Post_Request.main(Send_HTTP_Post_Request.java:18)
+
+
+	
+Fetch Details Api
+{"ACCOUNT_STATUS": false, "BL_CUSTOMER_ID": "9619591584", "USER_COUNT": 1, "LICENSE_COUNT": 5, "ADMIN_EMAIL_ID": "arun.appu@ril.com"}
+Http Status Response Code Returned is =200
+BL_CUSTOMER_ID- 9619591584
+ADMIN_EMAIL_ID- arun.appu@ril.com
+LICENSE_COUNT- 5
+USER_COUNT- 1
+ACCOUNT_STATUS -false
+
+Update Api
+{"message": "Admin detail updated successfully.", "success": true}
+Http Status Response Code Returned is =200
+
+Delete Api
+{"message": "Accounts related to admin and users under admin have been successfully deleted.", "success": true}
+Http Status Response Code Returned is =200

@@ -1,0 +1,4 @@
+ sshpass -p "$webServerPasswd"  scp -r  $NAME.PART mbas@10.135.25.55:"$destinationWebdir"
+ 
+https://api-st.ril.com:7443/v1/partners/subscriptions/jioedx
+{"offerID": "RB414","PlanId": "JB414","subscriptionIdentifier": "175311910503151000024779105312","orderReferenceNumber": "SR000000RA8710","curSEStatusStartDateTime": "20170531000000","curSEStatusEndDateTime": "20170531000000","idamId": "2efaca7d-a83a-40eb-aa60-40593b26de15545","crmId": "1000024779","discoveryBearer": "20","circle": "MU","subSubscriptionStatus":"C"}

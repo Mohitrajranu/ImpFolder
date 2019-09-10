@@ -1,0 +1,142 @@
+[main]
+casFilter = org.apache.shiro.cas.CasFilter
+casFilter.failureUrl = /error.jsp
+
+casRealm = org.apache.shiro.cas.CasRealm
+#casRealm.defaultRoles = realmA
+casRealm.defaultRoles = USER
+casRealm.casServerUrlPrefix = http://35.221.160.146:8180/cas2/
+casRealm.casService = http://35.221.160.146:8082/portal/shiro-cas
+
+#user.loginUrl = http://184.72.240.222:8180/cas2/login?service=http://184.72.240.222:8082/portal/sling/servlet/default.shiro
+casSubjectFactory = org.apache.shiro.cas.CasSubjectFactory
+securityManager.subjectFactory = $casSubjectFactory
+
+authc.loginUrl = /login.jsp
+
+realmA=org.apache.shiro.realm.jdbc.JdbcRealm
+
+realmA.userRolesQuery=select rm.ROLE_NAME from role_master rm,user_role_assignment urs where rm.role_pk_id=urs.role_id and rm.is_active='0' and user_name=?
+
+ds =com.mysql.jdbc.jdbc2.optional.MysqlDataSource
+ds.serverName = localhost
+ds.user = root
+ds.password = password
+ds.databaseName = auctions
+realmA.dataSource = $ds
+
+[urls]
+/shiro-cas = casFilter
+#/servlet/group/show.addedGroup = authc
+/content/user/info = authc
+/servlet/group/show.viewGroup= authc
+/servlet/service/event.userevent = authc
+#/servlet/service/page.servicelist = authc,roles[customer]
+/servlet/company/show.view = authc
+/content/gallaries.redirectToService**=authc
+/content/gallaries/.redirectLeftMenu**=authc
+#/gallaries.redirectToService=authc
+/gallaries/*.AddNormalProduct=authc
+/servlet/security/verify.mailNumb = authc
+/content/user/info = authc
+/servlet/group/show.viewGroup= authc
+/servlet/company/show.view = authc
+/servlet/gallery/show.photoView = authc
+/servlet/gallery/show.addPhoto = authc
+/servlet/gallery/show.videoGallery = authc
+/servlet/blogger/view.home = authc
+/content/category.viewRfqDetail**=authc
+#/servlet/**=authc
+#/index.html/**=authc
+#/content/gallaries/.redirectToService**=authc
+#/gallaries/**=authc
+#/content/category/16/**=authc
+#/content/category/36/**=authc
+#/content/category/37/**=authc
+#/content/category/36/41/92/90/JindalSteelAndPower.allVendorCatalogInfo/**==authc
+#/ecommerce=authc
+#/viewServiceDetails.jsp/**=authc
+#/gallaries.redirectToService=authc
+#/gallaries/*.AddNormalProduct=authc
+#/servlet/friend/show.visitor = authc,roles[user]
+#/servlet/group/show.addedGroup = authc,roles[user]
+#/servlet/friend/show.view = authc,roles[admin]
+#Clause
+http://35.221.183.246:8082/portal/servlet/service/DTANewSaveParentClses.compose = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/SaveChildClases = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/DTANewGetClauseList = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/EditParentClses = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/EditChildClses = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/DTANewSaveParentClses.sfobj = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/DTANewSaveParentClses.exparam = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/uploadcheckfile = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/DelelteClause.parent = authc,roles[Admin,Setup,User]
+#Workflows
+http://35.221.183.246:8082/portal/servlet/service/GetRulenWorkflow.workflows = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/addWFApprover = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/EditWFApprover = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/workflowinfo = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/approvetask = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/CheckApproval = authc,roles[Admin,Setup,User]
+http://35.188.243.203:8080/kie-server/services/rest/server/containers/com.biz:business-process:6.0/processes/WFBIZApproval/instances = authc,roles[Admin,Setup,User]
+http://35.188.243.203:8080/kie-server/services/rest/server/queries/tasks/instances/pot-owners?status=Ready&status=Reserved&status=InProgress&groups=&page=0&pageSize=10&sortOrder=true = authc,roles[Admin,Setup,User]
+http://35.188.243.203:8080/kie-server/services/rest/server/containers/com.biz:business-process:6.0/tasks/4/states/started = authc,roles[Admin,Setup,User]
+http://35.188.243.203:8080/kie-server/services/rest/server/containers/com.biz:business-process:6.0/tasks/4/states/completed = authc,roles[Admin,Setup,User]
+http://35.188.243.203:8080/jbpm-users/user/add = authc,roles[Admin,Setup,User]
+http://35.188.243.203:8080/jbpm-users/user/group/map = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/addWFApprover = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/EditWFApprover = authc,roles[Admin,Setup,User]
+#Rule
+http://35.221.183.246:8082/portal/servlet/service/GetRulenWorkflow.rules = authc,roles[Admin,Setup,User]
+#Template
+http://35.221.183.246:8082/portal/servlet/service/SaveTemplate.SFObj = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/SaveTemplate.ExternalParameter = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/uploadcheckfile = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/SaveTemplate.Basic = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/SaveTemplate.Compose = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/TemplateList = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/DeleteTemplate = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/EditTemplate = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/GetParentClauseList = authc,roles[Admin,Setup,User]
+#MailTemplate
+http://35.221.183.246:8082/portal/servlet/service/DTAMailTemp.sfobj = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/DTAMailTemp.exparam = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/uploadcheckfile = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/DTAMailTemp.basic = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/DTAMailTemp.compose = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/getMailTemplateList = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/EditMailTemplate = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/DeleteMailTemplate = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/SaveSMSTemplate.Basic = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/SaveSMSTemplate.Compose = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/DeleteSMSTemplate = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/SaveSMSTemplate.SFObj = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/SaveSMSTemplate.ExternalParameter = authc,roles[Admin,Setup,User]
+#DynamicTemplates
+http://35.221.183.246:8082/portal/servlet/service/SaveAdvancedTemplate = authc,roles[Admin,Setup,User]
+ http://35.221.183.246:8082/portal/servlet/service/GetTemplates = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/GetAdvancedTemplates = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/EditAdvancedTemplate = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/DeleteAdvancedTemplate = authc,roles[Admin,Setup,User]
+#Event
+http://35.221.183.246:8082/portal/servlet/service/GetEventList = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/GetDTATemplateList = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/GetDTASMSTempList = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/GetDTAMailTempList = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/GetCallingList = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/DTASaveEvent = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/EditEventList = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/DeleteEvent = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/SaveRecipientIntegration = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/SaveRequestResponse = authc,roles[Admin,Setup,User]
+http://35.221.183.246:8082/portal/servlet/service/GetPrimaryKey = authc,roles[Admin,Setup,User]
+#Document Generation
+http://35.221.183.246:8082/portal/servlet/service/dDependency = authc,roles[Admin,Setup,User]
+#Sf-UI
+https://doctiger.ap4.visual.force.com/apex/Clause_Library = authc,roles[Admin,Setup,User]
+https://doctiger.ap4.visual.force.com/apex/DT_TemplateLibrary = authc,roles[Admin,Setup,User]
+https://doctiger.ap4.visual.force.com/apex/DT_MailTemplate = authc,roles[Admin,Setup,User]
+https://doctiger.ap4.visual.force.com/apex/DT_Comm_Communication = authc,roles[Admin,Setup,User]
+https://doctiger.ap4.visual.force.com/apex/DT_Workflow = authc,roles[Admin,Setup,User]
+https://doctiger.ap4.visual.force.com/apex/DT_DymanicDocument = authc,roles[Admin,Setup,User]
+https://doctiger.ap4.visual.force.com/apex/CarrotRule__Carrot_Rule = authc,roles[Admin,Setup,User]

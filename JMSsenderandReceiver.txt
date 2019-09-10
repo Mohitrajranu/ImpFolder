@@ -1,0 +1,475 @@
+PLAN_SPEC_DETAILS
+t_d_cnf_validity_details
+https://jioapps2.ril.com/Citrix/jioapps2Web/
+
+CREATE TABLE T_SUB_JIO_SECURITY_SUCCESS(   
+CRM_ID VARCHAR2(50),
+PRIMARY KEY (CRM_ID))
+PARTITION BY HASH (CRM_ID)
+   PARTITIONS 64;
+ 
+ Create publisher class: JMSQueuePublisher.java:
+JMSQueuePublisher.java
+
+package com.javahonk;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.Properties;
+
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+import javax.naming.Context;
+
+public class JMSQueuePublisher {
+	
+	String destinationName = "javahonk/queue";
+	Context ic = null;
+	ConnectionFactory cf = null;
+	Connection connection = null;
+	Queue queue = null;
+	Session session = null;
+	MessageProducer publisher = null;
+
+	public static void main(String[] args) throws Exception {
+		
+		try {
+			
+			JMSQueuePublisher jBossJMSTopicPublisher = new JMSQueuePublisher();
+			jBossJMSTopicPublisher.initializeConnection();
+
+			// Read from command line
+			BufferedReader commandLine = new java.io.BufferedReader(new InputStreamReader(System.in));
+
+			// Loop until the word "exit" is typed
+			while (true) {
+				String s = commandLine.readLine();
+				if (s.equalsIgnoreCase("exit")) {
+					jBossJMSTopicPublisher.close(); // close down connection
+					System.exit(0);// exit program
+				} else{
+					jBossJMSTopicPublisher.sendJMSMessageOnTopic(s);					
+				}	
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static Context getInitialContext() throws javax.naming.NamingException {
+
+		Properties p = new Properties();
+		p.put(Context.INITIAL_CONTEXT_FACTORY, "org.jnp.interfaces.NamingContextFactory");
+		p.put(Context.URL_PKG_PREFIXES, " org.jboss.naming:org.jnp.interfaces");
+		p.put(Context.PROVIDER_URL, "jnp://localhost:1099");
+		return new javax.naming.InitialContext(p);
+	}
+	
+	public void initializeConnection() throws Exception {
+		
+		ic = getInitialContext();
+		cf = (ConnectionFactory) ic.lookup("/ConnectionFactory");
+		queue = (Queue) ic.lookup(destinationName);
+		connection = cf.createConnection();	
+		session = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
+		publisher = session.createProducer(queue);
+		connection.start();
+		
+	}
+
+	public void sendJMSMessageOnTopic(String s) throws Exception {
+		
+		TextMessage message = session.createTextMessage(s);
+		publisher.send(message);		
+	}
+	
+	/* Close the JMS connection */
+	public void close() throws Exception {
+		try {
+			connection.close();
+		} finally {
+			if (ic != null) {
+				try {
+					ic.close();
+				} catch (Exception e) {
+					throw e;
+				}
+			}
+
+			try {
+				if (connection != null) {
+					connection.close();
+				}
+			} catch (JMSException jmse) {
+				System.out.println("Could not close connection " + connection + " exception was " + jmse);
+			}
+		}
+	}
+
+}
+
+package com.javahonk;
+ 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.Properties;
+ 
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+import javax.naming.Context;
+ 
+public class JMSQueuePublisher {
+	
+	String destinationName = "javahonk/queue";
+	Context ic = null;
+	ConnectionFactory cf = null;
+	Connection connection = null;
+	Queue queue = null;
+	Session session = null;
+	MessageProducer publisher = null;
+ 
+	public static void main(String[] args) throws Exception {
+		
+		try {
+			
+			JMSQueuePublisher jBossJMSTopicPublisher = new JMSQueuePublisher();
+			jBossJMSTopicPublisher.initializeConnection();
+ 
+			// Read from command line
+			BufferedReader commandLine = new java.io.BufferedReader(new InputStreamReader(System.in));
+ 
+			// Loop until the word "exit" is typed
+			while (true) {
+				String s = commandLine.readLine();
+				if (s.equalsIgnoreCase("exit")) {
+					jBossJMSTopicPublisher.close(); // close down connection
+					System.exit(0);// exit program
+				} else{
+					jBossJMSTopicPublisher.sendJMSMessageOnTopic(s);					
+				}	
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+ 
+	public static Context getInitialContext() throws javax.naming.NamingException {
+ 
+		Properties p = new Properties();
+		p.put(Context.INITIAL_CONTEXT_FACTORY, "org.jnp.interfaces.NamingContextFactory");
+		p.put(Context.URL_PKG_PREFIXES, " org.jboss.naming:org.jnp.interfaces");
+		p.put(Context.PROVIDER_URL, "jnp://localhost:1099");
+		return new javax.naming.InitialContext(p);
+	}
+	
+	public void initializeConnection() throws Exception {
+		
+		ic = getInitialContext();
+		cf = (ConnectionFactory) ic.lookup("/ConnectionFactory");
+		queue = (Queue) ic.lookup(destinationName);
+		connection = cf.createConnection();	
+		session = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
+		publisher = session.createProducer(queue);
+		connection.start();
+		
+	}
+ 
+	public void sendJMSMessageOnTopic(String s) throws Exception {
+		
+		TextMessage message = session.createTextMessage(s);
+		publisher.send(message);		
+	}
+	
+	/* Close the JMS connection */
+	public void close() throws Exception {
+		try {
+			connection.close();
+		} finally {
+			if (ic != null) {
+				try {
+					ic.close();
+				} catch (Exception e) {
+					throw e;
+				}
+			}
+ 
+			try {
+				if (connection != null) {
+					connection.close();
+				}
+			} catch (JMSException jmse) {
+				System.out.println("Could not close connection " + connection + " exception was " + jmse);
+			}
+		}
+	}
+ 
+}
+Create queue subscriber class: JMSQueueSubscriber.java:
+JMSQueueSubscriber.java
+
+package com.javahonk;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Properties;
+import java.util.Scanner;
+
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+import javax.naming.Context;
+
+public class JMSQueueSubscriber implements MessageListener {
+	
+	String destinationName = "javahonk/queue";
+	Context ic = null;
+	ConnectionFactory cf = null;
+	Connection connection = null;
+	Queue queue = null;
+	Session session = null;
+	MessageProducer publisher = null;
+	
+	public static void main(String[] args) throws Exception {
+		
+		try {
+			
+			JMSQueueSubscriber jBossJMSTopicSubscriber = new JMSQueueSubscriber();
+			jBossJMSTopicSubscriber.initializeConnection();
+
+			// Read from command line
+			BufferedReader commandLine = new java.io.BufferedReader(new InputStreamReader(System.in));
+
+			// Loop until the word "exit" is typed
+			while (true) {
+				String s = commandLine.readLine();
+				if (s.equalsIgnoreCase("exit")) {
+					jBossJMSTopicSubscriber.close(); // close down connection
+					System.exit(0);// exit program
+				}	
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static Context getInitialContext() throws javax.naming.NamingException {
+
+		Properties p = new Properties();
+		p.put(Context.INITIAL_CONTEXT_FACTORY, "org.jnp.interfaces.NamingContextFactory");
+		p.put(Context.URL_PKG_PREFIXES, " org.jboss.naming:org.jnp.interfaces");
+		p.put(Context.PROVIDER_URL, "jnp://localhost:1099");
+		return new javax.naming.InitialContext(p);
+	}
+	
+	public void initializeConnection() throws Exception {
+		
+		ic = getInitialContext();
+		cf = (ConnectionFactory) ic.lookup("/ConnectionFactory");
+		queue = (Queue) ic.lookup(destinationName);
+		connection = cf.createConnection();	
+		session = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
+		MessageConsumer subscriber = session.createConsumer(queue);
+		subscriber.setMessageListener(this);
+		connection.start();
+		
+	}
+	
+	/* Close the JMS connection */
+	public void close() throws Exception {
+		try {
+			connection.close();
+		} finally {
+			if (ic != null) {
+				try {
+					ic.close();
+				} catch (Exception e) {
+					throw e;
+				}
+			}
+
+			try {
+				if (connection != null) {
+					connection.close();
+				}
+			} catch (JMSException jmse) {
+				System.out.println("Could not close connection " + connection + " exception was " + jmse);
+			}
+		}
+	}
+
+	public synchronized void onMessage(Message message) {
+		TextMessage text = (TextMessage) message;
+		String filePath = null;
+		Charset ENCODING = StandardCharsets.UTF_8;
+		try {
+			if (null != text) {
+				filePath = text.getText();
+				System.out.println("\nMessage received: " + filePath+"\n");
+				//read file (Note it's XML file you want to parse and read XML please see this documentation
+				//http://javahonk.com/read-xml-xalan-java/ or http://javahonk.com/read-xml-file-using-dom-parser/
+				Path path = Paths.get(filePath);
+				Scanner scanner = new Scanner(path, ENCODING.name());
+				while (scanner.hasNextLine()) {
+					System.out.println(scanner.nextLine());
+				}
+				scanner.close();
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}	
+
+}
+package com.javahonk;
+ 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Properties;
+import java.util.Scanner;
+ 
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
+import javax.jms.Queue;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+import javax.naming.Context;
+ 
+public class JMSQueueSubscriber implements MessageListener {
+	
+	String destinationName = "javahonk/queue";
+	Context ic = null;
+	ConnectionFactory cf = null;
+	Connection connection = null;
+	Queue queue = null;
+	Session session = null;
+	MessageProducer publisher = null;
+	
+	public static void main(String[] args) throws Exception {
+		
+		try {
+			
+			JMSQueueSubscriber jBossJMSTopicSubscriber = new JMSQueueSubscriber();
+			jBossJMSTopicSubscriber.initializeConnection();
+ 
+			// Read from command line
+			BufferedReader commandLine = new java.io.BufferedReader(new InputStreamReader(System.in));
+ 
+			// Loop until the word "exit" is typed
+			while (true) {
+				String s = commandLine.readLine();
+				if (s.equalsIgnoreCase("exit")) {
+					jBossJMSTopicSubscriber.close(); // close down connection
+					System.exit(0);// exit program
+				}	
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+ 
+	public static Context getInitialContext() throws javax.naming.NamingException {
+ 
+		Properties p = new Properties();
+		p.put(Context.INITIAL_CONTEXT_FACTORY, "org.jnp.interfaces.NamingContextFactory");
+		p.put(Context.URL_PKG_PREFIXES, " org.jboss.naming:org.jnp.interfaces");
+		p.put(Context.PROVIDER_URL, "jnp://localhost:1099");
+		return new javax.naming.InitialContext(p);
+	}
+	
+	public void initializeConnection() throws Exception {
+		
+		ic = getInitialContext();
+		cf = (ConnectionFactory) ic.lookup("/ConnectionFactory");
+		queue = (Queue) ic.lookup(destinationName);
+		connection = cf.createConnection();	
+		session = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
+		MessageConsumer subscriber = session.createConsumer(queue);
+		subscriber.setMessageListener(this);
+		connection.start();
+		
+	}
+	
+	/* Close the JMS connection */
+	public void close() throws Exception {
+		try {
+			connection.close();
+		} finally {
+			if (ic != null) {
+				try {
+					ic.close();
+				} catch (Exception e) {
+					throw e;
+				}
+			}
+ 
+			try {
+				if (connection != null) {
+					connection.close();
+				}
+			} catch (JMSException jmse) {
+				System.out.println("Could not close connection " + connection + " exception was " + jmse);
+			}
+		}
+	}
+ 
+	public synchronized void onMessage(Message message) {
+		TextMessage text = (TextMessage) message;
+		String filePath = null;
+		Charset ENCODING = StandardCharsets.UTF_8;
+		try {
+			if (null != text) {
+				filePath = text.getText();
+				System.out.println("\nMessage received: " + filePath+"\n");
+				//read file (Note it's XML file you want to parse and read XML please see this documentation
+				//http://javahonk.com/read-xml-xalan-java/ or http://javahonk.com/read-xml-file-using-dom-parser/
+				Path path = Paths.get(filePath);
+				Scanner scanner = new Scanner(path, ENCODING.name());
+				while (scanner.hasNextLine()) {
+					System.out.println(scanner.nextLine());
+				}
+				scanner.close();
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}	
+ 
+}
+Configure JBoss application server in eclipse using this tutorial
+To include include all JBoss related jars to to class path: right click project –> properties –> Java build path –> on library tab click add library… –> Server runtime –> if you configured Jboss in eclipse you will see JBoss Runtime server choose it –> click finish.
+Start JBoss server: Go to %JBOSS_HOME%/bin –> Double click run.bat to start the server. Once server is started it will pick up configured topic automatically.
+Both class has main method start them separately as java application. Give file path name on publisher console and hit enter:

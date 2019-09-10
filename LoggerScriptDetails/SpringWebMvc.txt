@@ -1,0 +1,55 @@
+ //This is the first load of is valid, just in case the user gets back again with old inputs
+   //if all the required inputs are filled enable the button
+   var isValid = true;
+     $('input,textarea,select').filter('[required]:visible').each(function() {
+      if ( $(this).val() === '' )
+         isValid = false;
+    });
+    if( isValid ) {
+       $('#submitBtn').prop('disabled', false);
+    } else {
+       $('#submitBtn').prop('disabled', true);
+    };
+    $('#submitBtn').click(function() {
+        var isValid = true;
+         $('input,textarea,select').filter('[required]:visible').each(function() {
+          if ( $(this).val() === '' )
+             isValid = false;
+        });
+        if( isValid ) {
+           $("#myForm")[0].submit(); 
+       };
+
+    });
+    //When a input is changed check all the inputs and if all are filled, enable the button
+     $('input,textarea,select').change(function() {
+        var isValid = true;
+         $('input,textarea,select').filter('[required]:visible').each(function() {
+          if ( $(this).val() === '' )
+             isValid = false;
+        });
+        if( isValid ) {
+           $('#submitBtn').prop('disabled', false);
+        } else {
+           $('#submitBtn').prop('disabled', true);
+        };
+    });
+    //In case the user edits the button with firebug and removes disabled, check
+    $('#submitBtn').click(function() {
+         var isValid = true;
+         $('input,textarea,select').filter('[required]:visible').each(function() {
+          if ( $(this).val() === '' )
+             isValid = false;
+        });
+        if( isValid ) {
+           $("#myForm")[0].submit(); 
+       };
+    });
+	
+	https://o7planning.org/en/10305/simple-login-java-web-application-using-spring-mvc-spring-security-and-spring-jdbc
+	
+	https://examples.javacodegeeks.com/enterprise-java/spring/mvc/spring-mvc-login-example/
+	
+	https://www.codejava.net/java-ee/jsp/how-to-create-dynamic-drop-down-list-in-jsp-from-database
+	
+	https://krazytech.com/programs/a-login-application-in-java-using-model-view-controllermvc-design-pattern

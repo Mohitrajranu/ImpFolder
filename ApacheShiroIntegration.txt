@@ -1,0 +1,99 @@
+******************************************************Apache Shiro Integration***************************************************************************
+The simplest way to integrate Shiro into a web application is creating shiro.ini configuration file and register the listener and filter configuration which reads and handles this file in run-time through web.xml. 
+
+web.xml configuration
+<listener>
+    <listener-class>org.apache.shiro.web.env.EnvironmentLoaderListener</listener-class>
+</listener>
+<filter>
+    <filter-name>ShiroFilter</filter-name>
+    <filter-class>org.apache.shiro.web.servlet.ShiroFilter</filter-class>
+</filter>
+<filter-mapping>
+    <filter-name>ShiroFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher> 
+    <dispatcher>FORWARD</dispatcher> 
+    <dispatcher>INCLUDE</dispatcher> 
+    <dispatcher>ERROR</dispatcher>
+</filter-mapping>
+
+
+Shiro searches the configuration file shiro.ini as default under the WEB-INF directory or in the classpath directory. EnvironmentLoaderListener, which was registered in web.xml, initializes a Shiro WebEnvironment instance and makes it accessible in the ServletContext. Shiro WebEnvironment contains everything needed in the operation of Shiro, also including the Shiro SecurityManager.
+
+ShiroFilter will use this WebEnvironment in all security operations. I would like to state that Shiro WebEnvironment is customizable when needed. You can register the customized WebEnvironment through shiroEnvironmentClass context parameter.
+
+
+
+<context-param>
+    <param-name>shiroEnvironmentClass</param-name>
+    <param-value>com.kodcu.shiro.MyWebEnvironment</param-value>
+</context-param>
+
+
+If you want to change the location of Shiro configuration file, you must use the shiroConfigLocations context parameter.
+
+
+
+<context-param>
+    <param-name>shiroConfigLocations</param-name>
+    <param-value>MY_RESOURCE_LOCATION_HERE</param-value>
+</context-param>
+
+
+INI Based Configuration File
+Shiro configuration file is a text configuration file consisting of key/value pairs under the relevant sections. Shiro ini configuration is designed quite flexible and easy to learn. You can see an example of this below:
+
+
+
+[main]
+shiro.loginUrl = /login.xhtml
+[users]
+root  = 12345,admin
+guest = 12345,guest
+[roles]
+admin = *
+[urls]
+/index.xhtml = authc
+/login.xhtml = authc
+/info.xhtml  = anon
+/logout = logout
+/admin/** = authc, roles[admin]
+
+
+There are 4 sections called main, users, roles and urls in the configuration file, and in these sections you can see assignments of key/value pairs. The MAIN section is where the SecurityManager instance is configured; some instruments (such as encryption) Shiro provided are recorded; special objects are defined. Here you see the system login page is being registered for the authorized user. 
+
+In the users section, users are registered with their user name, password and roles. Please note that each line must be in this format: username = password, roleName. User’s password value must be after the equal (=) operation. Subsequent to password, names of roles assigned to the user can be registered as comma-delimited values optionally. If you don’t want user’s password in plain-text format, you can use algorithms such as MD5, Sha1, and Sha256. To do this, you have to register the relevant encryption tool in Main section. 
+
+
+
+[main]
+#Sha256 şifrelemesi
+sha256Matcher = org.apache.shiro.authc.credential.Sha256CredentialsMatcher
+
+
+The roles is a section where permissions associated with the users and their roles defined in users section. We see in the admin = * assignment that admin role has all permissions by star (*) as wildcard character. 
+
+Finally, we will examine the url section. In this section, roles which can access the application’s pages and directories are defined with filter chains that are triggered by the incoming requests made to these pages and directories. Specified path information is processed according to the HttpServletRequest.getContextPath () value. With the assignment of /admin/** = authc, roles[admin], Shiro’s FormAuthenticationFilter is associated with the requests made to admin directory and sub-directories. Users who have admin role are authorized to access these directories.
+
+Here is a list of the Shiro’s default filters and their names specified below:
+
+Filter Name	Class
+anon	org.apache.shiro.web.filter.authc.AnonymousFilter
+authc	org.apache.shiro.web.filter.authc.FormAuthenticationFilter
+authcBasic	org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter
+logout	org.apache.shiro.web.filter.authc.LogoutFilter
+noSessionCreation	org.apache.shiro.web.filter.session.NoSessionCreationFilter
+perms	org.apache.shiro.web.filter.authz.PermissionsAuthorizationFilter
+port	org.apache.shiro.web.filter.authz.PortFilter
+rest	org.apache.shiro.web.filter.authz.HttpMethodPermissionFilter
+roles	org.apache.shiro.web.filter.authz.RolesAuthorizationFilter
+ssl	org.apache.shiro.web.filter.authz.SslFilter
+user	org.apache.shiro.web.filter.authc.UserFilter
+
+
+*****************************************************************************************************************************************
+https://dev.bizlem.io:8082/account/login
+
+scorpioRIS
+$corpio&RIS*(System18!@

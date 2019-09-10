@@ -1,0 +1,30 @@
+On your pc , open docker desktop quickstartterminal.
+https://cloud.docker.com/u/dockdevmohit
+docker push dockdevmohit/quartzrepo
+--------> cd e:
+--------> cd DockerContWs/hello-docker
+
+-------->mvn clean install dockerfile:build
+grep -E '200' | grep -E | awk '{print $4 " IP " $4 " Response " $9}'| cut -d ' ' -f1|tr '\n' '#'|tr -d '[],'
+-------->docker login
+
+username------->dockdevmohit
+password------->B!z|e/\/\@d^^!n
+
+---------> docker build -t dockdevmohit/postgrestabledata .
+---------> docker push dockdevmohit/postgrestabledata
+################################################################################################################################
+Steps to be taken on bizlem.io server
+
+--------------->>docker ps -a
+CONTAINER ID        IMAGE                            COMMAND                CREATED             STATUS              PORTS                    NAMES
+7cac55968951        dockdevmohit/postgrestabledata   "sh -c 'java $JAVA_O   43 hours ago        Up 43 hours         0.0.0.0:8878->9078/tcp   hungry_pike
+--------------->>docker stop 7cac55968951
+here 7cac55968951 is the container_id.
+--------------->> docker rm $(docker ps -a -q)
+--------------->> docker login
+Username (dockdevmohit): dockdevmohit
+
+--------------->> docker pull dockdevmohit/postgrestabledata
+
+--------------->> docker run -d -p 8878:9078 dockdevmohit/postgrestabledata

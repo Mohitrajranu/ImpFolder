@@ -1,0 +1,175 @@
+﻿
+ldap.host=localhost
+ldap.rootdn=cn=admin,dc=portal,dc=com
+ldap.password=portal@99
+ldap.basedn=ou=People,dc=portal,dc=com
+
+ldapsearch -x -b "dc=portal,dc=com" -s sub "objectclass=*"
+netstat -anp | grep ':80 ' | grep CLOSE_WAIT | awk '{print $7}' | cut -d \/ -f1 | grep -oE "[[:digit:]]{1,}" | xargs kill
+
+ldapmodify -h localhost -x -W -D “cn=leadconvert,dc=portal,dc=com”
+
+dn: uid=leadautoconvert@gmail.com,ou=People,dc=portal,dc=com
+
+import java.util.Hashtable;
+import javax.naming.Context;
+import javax.naming.directory.BasicAttribute;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.InitialDirContext;
+import javax.naming.directory.ModificationItem;
+public class entryUpdateInLdap {
+private DirContext dirContext = null;
+ModificationItem[] modItemsOne = new ModificationItem[1];
+	public entryUpdateInLdap()
+	{
+    System.out.println("constructer called");
+		try
+		{
+       String url = "ldaps://development.bizlem.io:389";
+	   String conntype = "simple";
+  	 String AdminDn  = "cn=LDAP Administrator,dc=college,dc=org,dc=in";
+	   String password = "Password";
+        Hashtable<String, String> environment = new Hashtable<String, String>();
+ 
+		Hashtable<string, String> environmentVar = new Hashtable<string, String>();
+ 
+		environmentVar.put(Context.INITIAL_CONTEXT_FACTORY,"com.sun.jndi.ldap.LdapCtxFactory");
+		environmentVar.put(Context.PROVIDER_URL, url);
+		environmentVar.put(Context.SECURITY_AUTHENTICATION, conntype);
+		environmentVar.put(Context.SECURITY_PRINCIPAL,AdminDn);
+		environmentVar.put(Context.SECURITY_CREDENTIALS, password);
+ 
+		dirContext = new InitialDirContext(environmentVar);
+        System.out.println("context created");
+		}
+		catch(Exception ee)
+		{
+			ee.printStackTrace();
+		}
+	}
+ 
+	public static void main(String[] args) {
+		String userIdForDN = "142";
+		String StatusToUpdate = "L";
+		entryUpdateInLdap entryUpdateLdap = new entryUpdateInLdap();
+		if(entryUpdateLdap.updateStatus(userIdForDN,StatusToUpdate))
+		{
+		System.out.println("entry update completed");
+		}
+		else
+		{
+		System.out.println("entry update failed");	
+		}
+	}
+	public boolean updateStatus(String userId,String status )
+	{
+	boolean flag = false;
+	String entryDN = "uid="+userId.trim()+",ou=alzebra,dc=mathsdep,dc=college,dc=org,dc=in";
+                        //uid=142,ou=alzebra,dc=mathsdep,dc=college,dc=org,dc=in  
+	try
+	{
+		modItemsOne[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE,
+                                                      new BasicAttribute("jpjuserstatus",status));
+		dirContext.modifyAttributes(entryDN, modItemsOne);	
+	    flag = true;
+	}
+	catch(Exception exception)
+	{
+		exception.printStackTrace();	
+	}
+	return flag;
+}
+}
+ldapsearch   -x -h localhost -D "u420@portal.com" -W -b "ou=People,dc=portal,dc=com"
+
+ldap.host=localhost
+ldap.rootdn=cn=admin,dc=portal,dc=com
+ldap.password=portal@99
+ldap.basedn=ou=People,dc=portal,dc=com
+
+ldapsearch -x -b "dc=portal,dc=com" -s sub "objectclass=*"
+
+
+ldapmodify -h localhost -x -W -D “cn=leadconvert,dc=portal,dc=com”
+
+dn: uid=leadautoconvert@gmail.com,ou=People,dc=portal,dc=com
+
+
+replace: userPassword
+# vikitrip@gmail.com, People, portal.com
+dn: uid=vikitrip@gmail.com,ou=People,dc=portal,dc=com
+mail: vikitrip@gmail.com
+userPassword:: e1NIQX1RUnQvTTdQbVVVQ3M0YXFRYVFSVldNdU8xQzQ9
+uid: vikitrip@gmail.com
+objectClass: inetOrgPerson
+sn: viki trip
+title: u418
+cn: viki trip
+
+# codersworld18021994@gmail.com, People, portal.com
+dn: uid=codersworld18021994@gmail.com,ou=People,dc=portal,dc=com
+mail: codersworld18021994@gmail.com
+userPassword:: e1NIQX0wYVpVbjlWYkpHeFd3YW1FTjdKKzFNRmVmTlk9
+uid: codersworld18021994@gmail.com
+objectClass: inetOrgPerson
+sn: Coders World
+title: u419
+cn: Coders World
+
+# leadautoconvert@gmail.com, People, portal.com
+dn: uid=leadautoconvert@gmail.com,ou=People,dc=portal,dc=com
+mail: leadautoconvert@gmail.com
+userPassword:: e1NIQX0wYVpVbjlWYkpHeFd3YW1FTjdKKzFNRmVmTlk9
+uid: leadautoconvert@gmail.com
+objectClass: inetOrgPerson
+sn: leadconvert
+title: u420
+cn: leadconvert
+
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+        <title>Spring 4 MVC - File Upload Example</title>
+        <link type="text/css" href="<c:url value='/assets/css/bootstrap.min.css' />" rel="stylesheet" />
+        <script src="<c:url value='/assets/js/app.js' />" type="text/javascript"></script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>Spring 4 MVC - Static Resource Mapping</h1>
+                    <img src="<c:url value='/assets/img/teady.jpg' />" alt="..." class="img-thumbnail">
+                    <hr>
+                    <a href="#" class="btn btn-primary" role="button" onclick="message()">Click Me</a>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+
+ <div th:if="${successMessage}" class="alert alert-success"
+        role="alert" th:text=${successMessage}></div>
+
+      <div th:if="${errorMessage}" class="alert alert-danger"
+        role="alert" th:text=${errorMessage}></div>
+        
+      <div th:if="${invalidToken}" class="alert alert-danger"
+        role="alert" th:text=${invalidToken}></div>
+
+      <form th:if="!${invalidToken}" class="m-t" id="passwordForm" role="form" action="#"
+       th:object="${setPassword}" th:action="@{/confirm}" method="post">
+
+        <input type="hidden" name="token" th:value=${confirmationToken}  >
+
+<%@ page isELIgnored="false" %>
+
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://java.sun.com/xml/ns/javaee" 
+  xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_3_1.xsd"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/javaee  http://java.sun.com/xml/ns/javaee/web-app_3_1.xsd"
+  version="3.1">

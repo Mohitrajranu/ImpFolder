@@ -1,0 +1,411 @@
+http://34.74.243.55:8086/PO_Processing/GetDataSolr.Temp
+
+
+
+
+
+(http://34.80.26.185:8086/PO_Processing/GetDataSolr.Temp
+
+
+Configure the maven  pom.xml
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.springframework.samples</groupId>
+  <artifactId>spring-jms-activemq-send</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+   
+  <properties>    
+    <!-- Spring version -->
+    <spring-framework.version>4.1.0.RELEASE</spring-framework.version>    
+    <!-- ActiveMQ version -->
+    <activemq.version>5.10.0</activemq.version>
+  </properties>
+   
+  <dependencies>    
+    <!-- Spring aritifacts -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>${spring-framework.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jms</artifactId>
+      <version>${spring-framework.version}</version>
+    </dependency>  
+  
+    <!-- ActiveMQ Artifacts -->
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-spring</artifactId>
+      <version>${activemq.version}</version>
+    </dependency>
+  </dependencies> 
+    
+  <!-- Using JDK 1.7 for compiling -->
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.5.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+
+As you can see from the maven pom.xml file, we use 3 key artifacts in this example, spring-context, spring-jms and activemq-spring.  The first 2 belong to spring framework and the last one is ActiveMQ  implementation for jms.  The final part of the pom file specified the JDK version for compiling.
+
+
+
+3. Define the Java Class
+
+We are going to define 2 classes. The first one is a simple spring bean:
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+package com.shengwang.demo;
+  
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.Session;
+ 
+import org.apache.activemq.command.ActiveMQQueue;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessageCreator;
+import org.springframework.stereotype.Service;
+  
+@Service
+public class JmsMessageSender {
+  
+  @Autowired
+  private JmsTemplate jmsTemplate;
+    
+    
+  /**
+   * send text to default destination
+   * @param text
+   */
+  public void send(final String text) {
+      
+    this.jmsTemplate.send(new MessageCreator() {
+      @Override
+      public Message createMessage(Session session) throws JMSException {
+        Message message = session.createTextMessage(text);     
+        //set ReplyTo header of Message, pretty much like the concept of email.
+        message.setJMSReplyTo(new ActiveMQQueue("Recv2Send"));
+        return message;
+      }
+    });
+  }
+    
+  /**
+   * Simplify the send by using convertAndSend
+   * @param text
+   */
+  public void sendText(final String text) {
+    this.jmsTemplate.convertAndSend(text);
+  }
+    
+  /**
+   * Send text message to a specified destination
+   * @param text
+   */
+  public void send(final Destination dest,final String text) {
+      
+    this.jmsTemplate.send(dest,new MessageCreator() {
+      @Override
+      public Message createMessage(Session session) throws JMSException {
+        Message message = session.createTextMessage(text);
+        return message;
+      }
+    });
+  }
+}
+
+In the above JmsMessageSender Class, Spring's JmsTemplate is used to do the send message task. You can find out how this bean is defined in spring configuration file below.  There are 1 sendText method and 2 send methods in the class. The 2 send methods both take String parameter text as message payload to be sent. The different is the later send take one more Destination parameter to specify where to send the message. the first one will simply send the message to the default destination.  The sendText method simplify the send by using Spring JmsTemplate’s convertAndSend method which will automatically create the TextMessage object from the input String object and send it.  convertAndSend  can save you from creating the TextMessage object yourself.
+
+Next let’s see how to use the above JmsMessageSender class in the main class.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+package com.shengwang.demo;
+ 
+import javax.jms.Queue;
+ 
+import org.apache.activemq.command.ActiveMQQueue;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+ 
+ 
+public class DemoMain {
+ 
+  public static void main(String[] args) {
+    // init spring context
+    ApplicationContext ctx = new ClassPathXmlApplicationContext("app-context.xml");
+         
+    // get bean from context
+    JmsMessageSender jmsMessageSender = (JmsMessageSender)ctx.getBean("jmsMessageSender");
+         
+    // send to default destination 
+    jmsMessageSender.send("hello JMS");
+         
+    // send to a code specified destination
+    Queue queue = new ActiveMQQueue("AnotherDest");
+    jmsMessageSender.send(queue, "hello Another Message");
+   
+    // close spring application context
+    ((ClassPathXmlApplicationContext)ctx).close();
+  }
+ 
+}
+
+In the main, we send out 2 text message by using the JmsMessageSender bean we have defined.  One thing to notice is how to send out the second message. We create a ActiveMQQueue as destination. and send the second message to this queue. We use ActiveMQ as our JMS service provider. If we use another JMS service provider like OpenJMS, we may need to change ActiveMQQueue  to OpenJMS provided Queue implementation.
+
+Also we use ClassPathXmlApplicationContext to lookup all spring beans in spring configuration file called “app-context.xml”.  At main end, we close the spring context. 
+
+
+
+4. spring configuration
+
+Our spring configuration file is named “app-context.xml”. It stays in the man resource path /src/main/resources/ to store the spring configuration file. In the configuration file, we define beans in this order: 
+
+Connection Factory  bean (by jms provider ActiveMQ) –> cached Connection Factory  bean ( by Spring jms) –> JmsTemplate bean (by spring).
+
+The cached connection factory bean is necessary because the Spring JmsTemplate will open/close connection on every send or receive action.  So in practical there will always a cached connection factory bean beside the direct connection factory bean. 
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:beans="http://www.springframework.org/schema/beans"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans.xsd 
+    http://www.springframework.org/schema/context 
+    http://www.springframework.org/schema/context/spring-context.xsd">
+ 
+ 
+  <context:component-scan base-package="com.shengwang.demo" />
+ 
+ 
+  <!-- =============================================== -->
+  <!-- JMS Common, Define JMS connectionFactory       -->
+  <!-- =============================================== -->
+  <!-- Activemq connection factory -->
+  <bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+    <!-- brokerURL, You may have different IP or port -->
+    <constructor-arg index="0" value="tcp://192.168.203.143:61616" />
+  </bean>
+ 
+  <!-- Pooled Spring connection factory -->
+  <bean id="connectionFactory"
+    class="org.springframework.jms.connection.CachingConnectionFactory">
+    <constructor-arg ref="amqConnectionFactory" />
+  </bean>
+ 
+  <!-- ======================================================= -->
+  <!-- JMS Send, define default destination and JmsTemplate    -->
+  <!-- ======================================================= -->
+  <!-- Default Destination Queue Definition -->
+  <bean id="defaultDestination" class="org.apache.activemq.command.ActiveMQQueue">
+    <!-- name of the queue -->
+    <constructor-arg index="0" value="Send2Recv" />
+  </bean>
+ 
+  <!-- JmsTemplate Definition -->
+  <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+    <property name="connectionFactory" ref="connectionFactory" />
+    <property name="defaultDestination" ref="defaultDestination" />
+  </bean>
+ 
+</beans>

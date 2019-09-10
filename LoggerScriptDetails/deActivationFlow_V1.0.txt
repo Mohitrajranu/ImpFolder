@@ -1,0 +1,108 @@
+						Clean-Up API Flow
+						-----------------------
+
+1. get list of subscription based on below parameters to de-activate service.
+	
+	if (crmId != null)
+		then select Based on crmId
+	else if (custServiceId != null)
+		then select Based on custServiceId
+	else
+		return
+
+2. Along with above mandatory parameters below optional parameters/conditions are applied get de-activation list.
+
+	msisdn
+	serviceType
+	subscriptionId
+	planRefKey
+	
+	with order by serviceId in descending order.
+
+3. Process deactivation based on dynamic query list.
+
+   3.1 - In below scenarios application skips deactivation of subscriptions.
+	 a. In case of non regulatory base pack request, base pack won't de-activate.(Ex. Jio Drive Scenarios, where toneType=BS).
+	 b. In case of Jio Security plan change request if record present in source & Destination - no need to deactivate anything call service switching.
+	 c. In case of status is in churn state(C) with errorCode=3018, errorDescription="Dear subscriber, You have already unsubscribed this service".
+
+   3.1 - If current status is 'E' 
+	a. Delete from callback retry based on subscriptionId.
+	b. In case of CRBT service integration then delete from callback retry where parenet subscription id = subscriptionId.(delete linking service as TONE)
+
+   3.2 - If current status is 'I' 
+	Delete from callback retry JS based on subscriptionId.
+
+4. Below is the list of scenarios where application stop callback.
+
+   4.1 - If current status is 'I'
+   4.2 - If current operation is 'NPF'or jio drive planChange request
+   4.3 - if Same service switching request and service contain in configured service list
+
+5. Check Plan level deactMode = F(Future)/I(Immediate) in a Property File
+
+   5.1 - If Plan level deactMode = F(Future)
+
+	Stop renewal(autoRenew, modifiedOn, operation) 
+	Note : Optimization require(Instead of updating composite primary key update require based on subscriptionId).
+
+   5.2 - If Plan level deactMode = I(Immediate)
+
+	If churnImmediateDelete	= Y 
+		then delete records from service info.
+	else 
+		update service info with status as Churn(status, operation, modifiedOn, deactivationDate, modifiedBy, bearerId).
+
+   5.5 - Insert into hist//commented.
+
+6. Process package and link service un-subscription.
+
+	6.1 - In case of package/Combo
+		a. In case of CRBT integration delete from callback retry where parent subscription id = subscriptionId.(delete linking service as TONE)
+		b. De-Activate link service of combo.//commented.
+		   Follow step of 6.2-b
+		c. De-Activate Linked Service of child service.
+		   Follow step of 6.2-b
+		   		
+	6.2 - In case of Individual service.
+		a. In case of CRBT integration delete from callback retry where parent subscription id = subscriptionId.(delete linking service as TONE)
+		b. De-Activate link service of individual service.//commented.
+		   if deactMode = F(Future)
+			Stop renewal (autoRenew, modifiedOn, operation)
+		   else deactMode = I(Immediate)
+			If churnImmediateDelete	= Y 
+				then delete records from service info.
+			else 
+				update service info with status as Churn(status, operation, modifiedOn, deactivationDate, modifiedBy, bearerId).
+					
+7. Send Callback if not stop
+
+	7.1 - If callback not success then insert into callback retry for retry purpose.
+		Update Cust Status based on ServiceSwitchFlag(status, operation, modifiedOn, modifiedBy, bearerId).
+
+		a. if ServiceSwitchFlag = Sequential
+		   Update status = currentStatus, operation = currentOperation in service Info
+		   return with errorCode=50015, errorDesc = "Service Switing not allowded due to your previous de-activation request is pending on platform"
+		   No trxn log will print.//Need to check this scenarios.
+		b. else 
+		   Update status='D', operation = 'DPF' in service Info
+
+	7.2 - If callback success.
+	      a. If Integration Type is Jio Security
+		 	delete from Jio Security Success
+		 	delete from Jio Security retry table
+	      	 else if ServiceSwitchFlag is SEQUENTIAL(S)
+			Update Cust Status as C in service Info(status, operation, modifiedOn, deactivationDate, modifiedBy, bearerId).
+	      b. Delete from SubsCallbackRetry based on subscriptionId.
+		 
+8. Generate SDR
+	In case of process success generate SDR based on sdr generation approach(DB/File/Both DB and File).
+
+9. Create Trxn Log
+
+	9.1 - Create Sub Request Trxn Log
+	9.2 - Create Request Trxn Log after end of dynamic query deAct list
+
+10. Send Notification.
+	Send Email and SMS based on MSG_TYPE{SMS, Email, SMS_Email} configuration.
+	

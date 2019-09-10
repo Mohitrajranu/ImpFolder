@@ -1,0 +1,157 @@
+##################################################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+ubuntu@carrotrule-demo-26sep:~/apache-tomcat-8.5.31/bin$ grep ^cpu\\scores /proc/cpuinfo | uniq |  awk '{print $4}'
+1
+ubuntu@carrotrule-demo-26sep:~/apache-tomcat-8.5.31/bin$ nproc --all
+2
+ubuntu@carrotrule-demo-26sep:~/apache-tomcat-8.5.31/bin$ grep "^core id" /proc/cpuinfo | sort -u | wc -l
+1
+ubuntu@carrotrule-demo-26sep:~/apache-tomcat-8.5.31/bin$ grep ^cpu\\scores /proc/cpuinfo | uniq |  awk '{print $4}'
+
+
+##################################################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+ExecutorService es = Executors.newFixedThreadPool(MAX_THREADS);
+
+for (final Thing thing : things) {
+    es.submit(new Runnable {
+        @Override
+        void run() {
+            doSomething(thing);
+        }
+    });
+}
+
+es.shutdown();
+############################################*************************************************##################################################
+
+ExecutorService executor = Executors.newFixedThreadPool(5); 
+resultArray = new JSONArray();
+for (Branch branch : Branches) {
+    Future<Response> response = executor.submit(new Request(branch.getUrl(), 
+      branch.getUserName(), branch.getPassword()));
+    responseBody = response.get().getResponseBody();
+    resultArray.put(responseBody);
+}
+executor.shutdown();
+while(!executor.isTerminated()) {
+
+}
+return resultArray.toString();
+
+
+public class Request implements Callable<Response> {
+
+private HttpURLConnection con;
+private URL obj;
+private String response;
+
+private String url;
+private String username;
+private String password;
+
+public Request(String url, String username, String password) {
+    this.url = url;
+    this.username = username;
+    this.password = password;
+}
+
+@Override
+public Response call() {
+    try {
+        obj = new URL(url);
+        con = (HttpURLConnection) obj.openConnection();
+        String userCredentials = username + ":" + password;
+        String basicAuth = "Basic " + java.util.Base64.getEncoder().encodeToString(userCredentials.getBytes());
+        con.setRequestProperty ("Authorization", basicAuth);
+        con.setRequestMethod("GET");
+
+        int responseCode = con.getResponseCode();
+        if(responseCode == 200) {
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuffer stringBuffer = new StringBuffer();
+
+            while ((inputLine = in.readLine()) != null) {
+                stringBuffer.append(inputLine);
+            }
+            in.close();
+            response = stringBuffer.toString();
+            return new Response(responseCode, response);
+        }
+        else {
+            response = "{\"response\":\"some error occurred\"}";
+            return new Response(responseCode, response);
+        }
+
+    } catch (IOException e) {
+        response = "{\"output\":\"some error occurred\"}";
+        return new Response(404, response);
+    }
+}
+}
+
+public class Response {
+
+private String responseBody;
+private int responseCode;
+
+public Response(int responseCode, String responseBody) {
+    this.responseBody = responseBody;
+    this.responseCode = responseCode;
+}
+
+public int getResponseCode() {
+    return responseCode;
+}
+
+public String getResponseBody() {
+    return responseBody;
+}
+}
+java rest apache-httpasyncclient
+shareimprove this question
+asked May 15 at 8:49
+
+MUHAMMED IQBAL PA
+6717
+2
+You are not actually doing calls in parallel if you call get on the first callable before submitting the second one. You need to submit all of them and call get on the resulting list of Futures afterwards. – Thilo May 15 at 8:55
+1
+If you get different/wrong results when you concurrently hit the URL from multiple machines, then this sounds like a server-side problem, not a client-side issue. – Thilo May 15 at 8:57
+well, i am new to java, could you please suggest some reference for achieving my goal? – MUHAMMED IQBAL PA May 15 at 9:00
+I think you need to show the server-side code. – Thilo May 15 at 9:01
+this is only the server side code, i am calling rest apis (like railway api) and need do combine results from apis. means my app works as a middle-ware – MUHAMMED IQBAL PA May 15 at 9:04
+add a comment
+1 Answer
+active oldest votes
+up vote
+1
+down vote
+Please check this,
+
+Collection<Callable<Request>> tasks = new ArrayList<>();
+for (Branch branch : Branches) {
+    tasks.add(new Request(branch.getUrl(), branch.getUserName(), branch.getPassword()));
+}
+
+int numThreads = Branches.size() > 4 ? 4 : Branches.size();
+ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+List<Future<Response>> results = executor.invokeAll(tasks);
+for(Future<Response> response : results){
+    responseBody = response.get().getResponseBody();
+    resultArray.put(responseBody);
+}
+Java 7 onwards we you can try replace ExecutorService with ForkJoin Pool,
+
+Collection<Callable<Request>> tasks = new ArrayList<>();
+for (Branch branch : Branches) {
+    tasks.add(new Request(branch.getUrl(), branch.getUserName(), branch.getPassword()));
+}
+
+int numThreads = Branches.size() > 4 ? 4 : Branches.size();
+ForkJoinPool pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
+List<Future<Response>> results = pool.invokeAll(tasks);
+for(Future<Response> response : results){
+    responseBody = response.get().getResponseBody();
+    resultArray.put(responseBody);
+}

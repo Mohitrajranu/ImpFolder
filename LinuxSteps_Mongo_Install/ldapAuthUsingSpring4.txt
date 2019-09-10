@@ -1,0 +1,157 @@
+@Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+
+         auth.ldapAuthentication()
+          .contextSource()
+            .url("ldap://127.0.0.1:10389/dc=example,dc=com")
+//          .managerDn("")
+//          .managerPassword("")
+          .and()   
+            .userSearchBase("ou=people")
+            .userSearchFilter("(uid={0})")
+            .ldapAuthoritiesPopulator(myAuthPopulator);     
+    }ldap.host=localhost:389
+ldap.rootdn=cn=admin,dc=portal,dc=com
+ldap.password=portal@99
+ldap.basedn=ou=People,dc=portal,dc=com
+Working code to enter user,
+avinash.singhal@jindalsteel.com | 12345
+CREATE  TABLE users (
+  username VARCHAR(60) NOT NULL ,
+  password VARCHAR(255) NOT NULL ,
+  enabled TINYINT NOT NULL DEFAULT 1 ,
+  
+  
+  PRIMARY KEY (username));
+
+Table: users
+CREATE  TABLE users (
+  username VARCHAR(60) NOT NULL ,
+  password VARCHAR(60) NOT NULL ,
+  enabled TINYINT NOT NULL DEFAULT 1 ,
+  
+  
+  PRIMARY KEY (username));
+
+Table: user_roles
+CREATE TABLE user_roles (
+  user_role_id int(11) NOT NULL AUTO_INCREMENT,
+  username varchar(60) NOT NULL,
+  role varchar(60) NOT NULL,
+  PRIMARY KEY (user_role_id),
+  UNIQUE KEY uni_username_role (role,username),
+  KEY fk_username_idx (username),
+  CONSTRAINT fk_username FOREIGN KEY (username) REFERENCES users (username));
+
+
+here is insert script
+insert into users values('user','123456',1)
+insert into users values('apiuser','123456',1);
+insert into users values('admin','123456',1);
+insert into users values('viki@gmail.com','12345',1);
+
+insert into user_roles values('user','ROLE_USER');
+insert into user_roles values('admin','ROLE_USER');
+insert into user_roles values(3,'admin','ROLE_ADMIN');
+insert into user_roles values(4,'admin','ROLE_API');
+insert into user_roles values(5,'apiuser','ROLE_USER');
+insert into user_roles values(6,'apiuser','ROLE_API');
+insert into user_roles values(7,'viki@gmail.com','ROLE_ADMIN');
+STEP 16 :- Create a LDIF file in /WebContent/WEB-INF/conf/users.ldif file as below :- 
+version: 1
+
+dn: o=tutorialsdesk
+objectClass: organization
+objectClass: extensibleObject
+objectClass: top
+o: tutorialsdesk
+
+dn: ou=users,o=tutorialsdesk
+objectClass: extensibleObject
+objectClass: organizationalUnit
+objectClass: top
+ou: users
+
+dn: ou=groups,o=tutorialsdesk
+objectClass: extensibleObject
+objectClass: organizationalUnit
+objectClass: top
+ou: groups
+
+dn: cn=User,ou=groups,o=tutorialsdesk
+objectClass: groupOfUniqueNames
+objectClass: top
+cn: User
+uniqueMember: cn=Normal User,ou=users,o=tutorialsdesk
+uniqueMember: cn=Api User,ou=users,o=tutorialsdesk
+uniqueMember: cn=Admin User,ou=users,o=tutorialsdesk
+
+dn: cn=Admin,ou=groups,o=tutorialsdesk
+objectClass: groupOfUniqueNames
+objectClass: top
+cn: Admin
+uniqueMember: cn=Admin User,ou=users,o=tutorialsdesk
+
+dn: cn=Api,ou=groups,o=tutorialsdesk
+objectClass: groupOfUniqueNames
+objectClass: top
+cn: Api
+uniqueMember: cn=Api User,ou=users,o=tutorialsdesk
+uniqueMember: cn=Admin User,ou=users,o=tutorialsdesk
+
+dn: cn=Normal User,ou=users,o=tutorialsdesk
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+cn: Normal User
+sn: Normal
+uid: user
+userPassword:: cGFzcw==
+
+dn: cn=Admin User,ou=users,o=tutorialsdesk
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+cn: Admin User
+sn: Admin
+uid: adminuser
+userPassword:: cGFzcw==
+
+dn: cn=Api User,ou=users,o=tutorialsdesk
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+cn: Api User
+sn: Api
+uid: apiuser
+userPassword:: cGFzcw==
+
+
+private String encryptLdapPassword(String algorithm, String _password) {
+		String sEncrypted = _password;
+		if ((_password != null) && (_password.length() > 0)) {
+			boolean bMD5 = algorithm.equalsIgnoreCase("MD5");
+			boolean bSHA = algorithm.equalsIgnoreCase("SHA")
+					|| algorithm.equalsIgnoreCase("SHA1")
+					|| algorithm.equalsIgnoreCase("SHA-1");
+			if (bSHA || bMD5) {
+				String sAlgorithm = "MD5";
+				if (bSHA) {
+					sAlgorithm = "SHA";
+				}
+				try {
+					MessageDigest md = MessageDigest.getInstance(sAlgorithm);
+					md.update(_password.getBytes("UTF-8"));
+					sEncrypted = "{" + sAlgorithm + "}"
+							+ (new BASE64Encoder()).encode(md.digest());
+				} catch (Exception e) {
+					sEncrypted = null;
+					logger.error(e, e);
+				}
+			}
+		}
+		return sEncrypted;
+	}

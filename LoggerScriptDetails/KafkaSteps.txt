@@ -1,0 +1,128 @@
+https://www.cloudera.com/documentation/kafka/latest/topics/kafka_using.html
+
+Kafka------ Run on linux server.
+
+Download Kafka from https://www.apache.org/dyn/closer.cgi?path=/kafka/2.3.0/kafka-2.3.0-src.tgz
+ http://mirrors.estointernet.in/apache/kafka/2.2.0/kafka_2.11-2.2.0.tgz
+ 
+extract tar file in the directory say kafka.
+cd kafka
+
+nohup bin/zookeeper-server-start.sh  config/zookeeper.properties &
+
+
+nohup bin/kafka-server-start.sh config/server.properties &
+in config/server,properties
+
+add this line listeners = PLAINTEXT://0.0.0.0:9092
+
+
+//for seeing logs
+bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic myTopic
+
+
+If you want to access from LAN, change following 2 files-
+
+In config/server.properties:
+
+advertised.listeners=PLAINTEXT://server.ip.in.lan:9092
+In config/producer.properties:
+
+bootstrap.servers=server.ip.in.lan:9092
+In my case, the server.ip.in.lan value was 192.168.15.150
+
+# Docker for Mac >= 1.12, Linux, Docker for Windows 10
+docker run --rm -it \
+           -p 2181:2181 -p 3030:3030 -p 8081:8081 \
+           -p 8082:8082 -p 8083:8083 -p 9092:9092 \
+           -e ADV_HOST=127.0.0.1 \
+           landoop/fast-data-dev
+
+# Docker toolbox
+docker run --rm -it \
+          -p 2181:2181 -p 3030:3030 -p 8081:8081 \
+          -p 8082:8082 -p 8083:8083 -p 9092:9092 \
+          -e ADV_HOST=192.168.99.100 \
+          landoop/fast-data-dev
+
+# Kafka command lines tools
+docker run --rm -it --net=host landoop/fast-data-dev bash
+
+# Short instructions for Mac / Linux
+# download NiFi at: https://nifi.apache.org/download.html
+# Terminal 1:
+bin/nifi.sh run
+# install docker for mac / docker for linux
+# Terminal 2:
+docker run -it --rm -p 2181:2181 -p 3030:3030 -p 8081:8081 -p 8082:8082 -p 8083:8083 -p 9092:9092 -e ADV_HOST=127.0.0.1 -e RUNTESTS=0 landoop/fast-data-dev
+# Terminal 3:
+docker run -it --net=host landoop/fast-data-dev bash
+kafka-topics --create --topic nifi-topic --zookeeper 127.0.0.1:2181 --partitions 3 --replication-factor 1
+kafka-console-consumer --topic nifi-topic --bootstrap-server 127.0.0.1:9092
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Configuring High Availability and Consistency for Apache Kafka
+To achieve high availability and consistency targets, adjust the following parameters to meet your requirements:
+
+Replication Factor
+Preferred Leader Election
+Unclean Leader Election
+Acknowledgements
+Minimum In-sync Replicas
+Kafka MirrorMaker
+Replication Factor
+The default replication factor for new topics is one. For high availability production systems, Cloudera recommends setting the replication factor to at least three. This requires at least three Kafka brokers.
+
+To change the replication factor, navigate to Kafka Service > Configuration > Service-Wide. Set Replication factor to 3, click Save Changes, and restart the Kafka service.
+
+Preferred Leader Election
+Kafka is designed with failure in mind. At some point in time, web communications or storage resources fail. When a broker goes offline, one of the replicas becomes the new leader for the partition. When the broker comes back online, it has no leader partitions. Kafka keeps track of which machine is configured to be the leader. Once the original broker is back up and in a good state, Kafka restores the information it missed in the interim and makes it the partition leader once more.
+
+Preferred Leader Election is enabled by default, and should occur automatically unless you actively disable the feature. Typically, the leader is restored within five minutes of coming back online. If the preferred leader is offline for a very long time, though, it might need additional time to restore its required information from the replica.
+
+There is a small possibility that some messages might be lost when switching back to the preferred leader. You can minimize the chance of lost data by setting the acks property on the Producer to all. See Acknowledgements.
+
+Unclean Leader Election
+Enable unclean leader election to allow an out-of-sync replica to become the leader and preserve the availability of the partition. With unclean leader election, messages that were not synced to the new leader are lost. This provides balance between consistency (guaranteed message delivery) and availability. With unclean leader election disabled, if a broker containing the leader replica for a partition becomes unavailable, and no in-sync replica exists to replace it, the partition becomes unavailable until the leader replica or another in-sync replica is back online.
+
+To enable unclean leader election, navigate to Kafka Service > Configuration > Service-Wide. Check the box labeled Enable unclean leader election, click Save Changes, and restart the Kafka service.
+
+Acknowledgements
+When writing or configuring a Kafka producer, you can choose how many replicas commit a new message before the message is acknowledged using the acks property.
+
+Set acks to 0 (immediately acknowledge the message without waiting for any brokers to commit), 1 (acknowledge after the leader commits the message), or all (acknowledge after all in-sync replicas are committed) according to your requirements. Setting acks to all provides the highest consistency guarantee at the expense of slower writes to the cluster.
+
+Minimum In-sync Replicas
+You can set the minimum number of in-sync replicas (ISRs) that must be available for the producer to successfully send messages to a partition using the min.insync.replicas setting. If min.insync.replicas is set to 2 and acks is set to all, each message must be written successfully to at least two replicas. This guarantees that the message is not lost unless both hosts crash.
+
+It also means that if one of the hosts crashes, the partition is no longer available for writes. Similar to the unclean leader election configuration, setting min.insync.replicas is a balance between higher consistency (requiring writes to more than one broker) and higher availability (allowing writes when fewer brokers are available).
+
+The leader is considered one of the in-sync replicas. It is included in the count of total min.insync.replicas. However, leaders are special, in that producers and consumers can only interact with leaders in a Kafka cluster.
+
+To configure min.insync.replicas at the cluster level, navigate to Kafka Service > Configuration > Service-Wide. Set Minimum number of replicas in ISR to the desired value, click Save Changes, and restart the Kafka service.
+
+To set this parameter on a per-topic basis, navigate to Kafka Service > Configuration > Kafka broker Default Group > Advanced, and add the following to the Kafka Broker Advanced Configuration Snippet (Safety Valve) for kafka.properties:
+min.insync.replicas.per.topic=topic_name_1:value,topic_name_2:value
+Replace topic_name_n with the topic names, and replace value with the desired minimum number of in-sync replicas.
+
+You can also set this parameter using the /usr/bin/kafka-topics --alter command for each topic. For example:
+/usr/bin/kafka-topics --alter --zookeeper zk01.example.com:2181 --topic topicname \
+--config min.insync.replicas=2
+Kafka MirrorMaker
+Kafka mirroring enables maintaining a replica of an existing Kafka cluster. You can configure MirrorMaker directly in Cloudera Manager 5.4 and higher.
+
+The most important configuration setting is Destination broker list. This is a list of brokers on the destination cluster. You should list more than one, to support high availability, but you do not need to list all brokers.
+
+MirrorMaker requires that you specify a Topic whitelist that represents the exclusive set of topics to replicate. The Topic blacklist setting has been removed in CDK 2.0 and higher Powered By Apache Kafka.
+
+Note: The Avoid Data Loss option from earlier releases has been removed in favor of automatically setting the following properties. Also note that MirrorMaker starts correctly if you enter the numeric values in the configuration snippet (rather than using "max integer" for retries and "max long" for max.block.ms).
+Producer settings
+acks=all
+retries=2147483647
+max.block.ms=9223372036854775807
+Consumer setting
+auto.commit.enable=false
+MirrorMaker setting
+abort.on.send.failure=true
+Categories: Acknowledgements | Administrators | High Availability | Kafka | MirrorMaker | Preferred Leader Election | All Categories
+##############################################################################################################################################################

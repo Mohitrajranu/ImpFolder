@@ -1,0 +1,82 @@
+https://o7planning.org/en/10649/social-login-in-spring-mvc-with-spring-social-security
+
+http://www.littlebigextra.com/part-2-authorising-user-using-spring-social-google-facebook-linkedin-spring-security/
+
+http://www.littlebigextra.com/part-1-authorising-user-using-spring-social-google-facebook-and-linkedin-and-spring-security/
+
+http://sunilkumarpblog.blogspot.com/2016/04/social-login-with-spring-security.html
+
+Client ID : 815vjfe6apaykf
+Client Secret : WRnky1huWWGM4N6N
+
+The redirect_uri does not match the registered value
+
+http://34.74.243.55:8086/sampleloginsocial/auth/linkedin
+
+http://example.com/sa/complete/linkedin-oauth2/
+
+rg.springframework.social.UncategorizedApiException: 
+	org.springframework.social.linkedin.api.impl.LinkedInErrorHandler.handleUncategorizedError(LinkedInErrorHandler.java:62)
+	org.springframework.social.linkedin.api.impl.LinkedInErrorHandler.handleError(LinkedInErrorHandler.java:55)
+	org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:636)
+	org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:592)
+	org.springframework.web.client.RestTemplate.execute(RestTemplate.java:567)
+	org.springframework.web.client.RestTemplate.getForObject(RestTemplate.java:275)
+	org.springframework.social.linkedin.api.impl.ProfileTemplate.getUserProfile(ProfileTemplate.java:123)
+	org.springframework.social.linkedin.api.impl.ProfileTemplate.getUserProfile(ProfileTemplate.java:88)
+	org.springframework.social.linkedin.connect.LinkedInAdapter.setConnectionValues(LinkedInAdapter.java:43)
+	org.springframework.social.linkedin.connect.LinkedInAdapter.setConnectionValues(LinkedInAdapter.java:30)
+	org.springframework.social.connect.support.AbstractConnection.setValues(AbstractConnection.java:174)
+	org.springframework.social.connect.support.AbstractConnection.initKey(AbstractConnection.java:137)
+	org.springframework.social.connect.support.OAuth2Connection.<init>(OAuth2Connection.java:75)
+	org.springframework.social.connect.support.OAuth2ConnectionFactory.createConnection(OAuth2ConnectionFactory.java:91)
+	org.springframework.social.security.provider.OAuth2AuthenticationService.getAuthToken(OAuth2AuthenticationService.java:99)
+	org.springframework.social.security.SocialAuthenticationFilter.attemptAuthService(SocialAuthenticationFilter.java:239)
+	org.springframework.social.security.SocialAuthenticationFilter.attemptAuthentication(SocialAuthenticationFilter.java:157)
+	org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:211)
+	org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)
+	org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110)
+	org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)
+	org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:50)
+	org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)
+	org.springframework.security.web.context.SecurityContextPersistenceFilter.doFilter(SecurityContextPersistenceFilter.java:87)
+	org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)
+	org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:192)
+	org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:160)
+	org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:346)
+	org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:262)
+Root Cause
+
+org.springframework.web.client.HttpClientErrorException: 410 Gone
+	org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:91)
+	org.springframework.social.linkedin.api.impl.LinkedInErrorHandler.handleUncategorizedError(LinkedInErrorHandler.java:60)
+	org.springframework.social.linkedin.api.impl.LinkedInErrorHandler.handleError(LinkedInErrorHandler.java:55)
+	org.springframework.web.client.RestTemplate.handleResponse(RestTemplate.java:636)
+	org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:592)
+	org.springframework.web.client.RestTemplate.execute(RestTemplate.java:567)
+	org.springframework.web.client.RestTemplate.getForObject(RestTemplate.java:275)
+	org.springframework.social.linkedin.api.impl.ProfileTemplate.getUserProfile(ProfileTemplate.java:123)
+	org.springframework.social.linkedin.api.impl.ProfileTemplate.getUserProfile(ProfileTemplate.java:88)
+	org.springframework.social.linkedin.connect.LinkedInAdapter.setConnectionValues(LinkedInAdapter.java:43)
+	org.springframework.social.linkedin.connect.LinkedInAdapter.setConnectionValues(LinkedInAdapter.java:30)
+	org.springframework.social.connect.support.AbstractConnection.setValues(AbstractConnection.java:174)
+	org.springframework.social.connect.support.AbstractConnection.initKey(AbstractConnection.java:137)
+	org.springframework.social.connect.support.OAuth2Connection.<init>(OAuth2Connection.java:75)
+	org.springframework.social.connect.support.OAuth2ConnectionFactory.createConnection(OAuth2ConnectionFactory.java:91)
+	org.springframework.social.security.provider.OAuth2AuthenticationService.getAuthToken(OAuth2AuthenticationService.java:99)
+	org.springframework.social.security.SocialAuthenticationFilter.attemptAuthService(SocialAuthenticationFilter.java:239)
+	org.springframework.social.security.SocialAuthenticationFilter.attemptAuthentication(SocialAuthenticationFilter.java:157)
+	org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter.doFilter(AbstractAuthenticationProcessingFilter.java:211)
+	org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)
+	org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:110)
+	org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)
+	org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:50)
+	org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)
+	org.springframework.security.web.context.SecurityContextPersistenceFilter.doFilter(SecurityContextPersistenceFilter.java:87)
+	org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:342)
+	org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:192)
+	org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:160)
+	org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:346)
+	org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:262)

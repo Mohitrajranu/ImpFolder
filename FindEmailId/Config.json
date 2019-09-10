@@ -1,0 +1,10 @@
+{
+    "domains": ["gmail.com","yahoo.com","mail.com","mail.cc","mail.org","mail.com",".com"] ,
+    "separators":["","-","_","."],
+    "fileName":"Sample.xlsx",
+    "firstNameColumn": "First name",
+    "lastNameColumn":"Last name",
+    "companyNameColumn":"Company",
+
+    "debug": true
+}

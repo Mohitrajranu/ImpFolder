@@ -1,0 +1,3 @@
+Bizlem site running ,services active Mq,open cart ,on the same server in a running state.
+Existing services to be migrated to this server.
+Property file introduction.

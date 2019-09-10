@@ -1,0 +1,20 @@
+Step1: sudo apt-get purge mongodb-org*
+sudo rm -r /var/log/mongodb
+sudo rm -r /var/lib/mongodb
+sudo apt-get update && sudo apt-get install -f
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
+echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+
+Step2:sudo apt-get update
+sudo apt-get install -y mongodb-org
+cd /lib/systemd/system/
+vim mongod.service
+systemctl daemon-reload
+sudo dpkg -l | grep systemd
+
+cd /home/ubuntu/
+mongo
+ /run/mongodb/mongodb-27017.sock
+ 
+sudo  netstat -ap | grep :27017
+db.serverStatus().connections

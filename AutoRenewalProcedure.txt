@@ -1,0 +1,64 @@
+https://jioapps.ril.com/Citrix/jioappsWeb/
+create or replace 
+PACKAGE AutoRenewal_Process AS
+   
+   PROCEDURE RenewSubscriber(recordLimit INT,rec_Count OUT NUMBER);
+ 
+   END AutoRenewal_Process;
+/
+
+CREATE OR REPLACE PACKAGE BODY AutoRenewal_Process AS
+  
+   
+PROCEDURE RenewSubscriber(recordLimit INT,rec_Count OUT NUMBER)
+
+/*
+ *  Copyright(c) 2017, Mahindra Comviva Pvt. Ltd.
+ *  All Rights Reserved
+ *  -----------------------------------------------------------------------------
+ *  Author              Date            History
+ *  -----------------------------------------------------------------------------
+ *  Mohit Raj       04/12/2017         Data Movement of Renewal eligible records 
+                                       from Live Table to temporary Table.
+ *  -----------------------------------------------------------------------------
+ */
+IS
+
+  -- define array type of the new table
+  TYPE new_table_array_type IS TABLE OF T_SUB_SERVICE_INFO_DIG_REN%ROWTYPE INDEX BY BINARY_INTEGER;
+
+  -- define array object of new table
+  new_table_array_object new_table_array_type;
+
+  -- fetch size on  bulk operation, scale the value to tweak
+  -- performance optimization over IO and memory usage
+  fetch_size NUMBER := recordLimit;
+
+  -- define select statment of old table
+  -- select desiered columns of OLD_TABLE to be filled in NEW_TABLE
+  CURSOR old_table_cursor IS
+    SELECT SI.SUBSCRIPTION_ID, SI.MSISDN, SI.SERVICE_ID, SI.SERVICE_TYPE, SI.CATEGORY, SI.CONTENT_ID, SI.SUBS_TYPE, SI.REGION_CODE, SI.AUTO_RENEW, SI.OFFER_ID, SI.PLAN_ID, SI.REQ_PLAN_ID, SI.REQ_NEXT_PLAN_ID, SI.CRM_ID, SI.CUST_SERVICE_ID,
+	SI.BEARER_ID, SI.SERVICE_NODE, SI.TRXN_ID, SI.CUST_STATUS, SI.LANGUAGE_ID, SI.CHARGING_AMOUNT, SI.LINKED_SERVICE_ID,
+	SI.LINKED_SERVICE_TYPE, SI.OPERATION, SI.CALLED_PARTY, SI.PRODUCT_ORDER_ID, SI.MODE_OF_PAYMENT, SI.PARAM1, SI.PARAM2,
+	SI.PARAM3, SI.PARAM4, SI.PARAM5 FROM T_SUB_SERVICE_INFO SI;
+ 
+BEGIN
+SELECT COUNT(1) INTO rec_Count FROM T_SUB_SERVICE_INFO;
+  OPEN old_table_cursor;
+  loop
+    -- bulk fetch(read) operation
+    FETCH old_table_cursor BULK COLLECT
+      INTO new_table_array_object LIMIT fetch_size;
+  
+    -- bulk Insert operation
+    FORALL i IN INDICES OF new_table_array_object SAVE EXCEPTIONS
+      INSERT INTO T_SUB_SERVICE_INFO_DIG_REN VALUES new_table_array_object(i);
+    COMMIT;
+EXIT WHEN old_table_cursor%NOTFOUND;
+  END LOOP;
+  CLOSE old_table_cursor;
+End RenewSubscriber;
+  
+   END AutoRenewal_Process;
+  /
+  

@@ -1,0 +1,515 @@
+Mongodb : 
+
+Database Name: ruleengine
+Collection Name : ruleenginedata
+
+
+RuleEngine Name : 
+Invoice_No
+Po_No
+Tr_No
+Invoice_Date
+Po_Date
+Tr_Date
+
+
+
+RuleEngine URL :
+
+
+Invoice_No_API=http://35.186.166.22:8082/drools/callrules/carrotrule@xyz.com_PoInvoiceProcessing_Invoice_No/fire
+
+Po_No_API=http://35.186.166.22:8082/drools/callrules/carrotrule@xyz.com_PoInvoiceProcessing_PoRule/fire
+
+TR_No_API=http://35.186.166.22:8082/drools/callrules/carrotrule@xyz.com_PoInvoiceProcessing_TR_No/fire
+
+Invoice_Date_API=http://35.186.166.22:8082/drools/callrules/carrotrule@xyz.com_PoInvoiceProcessing_InvoiceDate_Rule1/fire
+
+Po_Date_API=http://35.186.166.22:8082/drools/callrules/carrotrule@xyz.com_PoInvoiceProcessing_PoDate_Rule1/fire
+
+TR_Date_API=http://35.186.166.22:8082/drools/callrules/carrotrule@xyz.com_PoInvoiceProcessing_TrDate_Rule1/fire
+
+**********************************************************************************************************************************
+
+db.ruleenginedata.find().pretty();
+{
+        "_id" : ObjectId("5c9b936f39eec012050407f3"),
+        "Y_Threshold" : "8",
+        "Gstin" : [
+                {
+                        "Regex_Line_OffSet" : 0,
+                        "Regex_Id" : "GSTIN",
+                        "Regex_Length" : 15,
+                        "Regex_Value" : "24AAIFC0429K1ZM",
+                        "Regex_X1_OffSet" : 75,
+                        "Regex_Y_OffSet" : 0,
+                        "Regex_X2-X1_OffSet" : 188,
+                        "Regex_X2-X2_OffSet" : 152,
+                        "Regex_Type" : "GSTIN",
+                        "Regex_X1-X2_OffSet" : 39
+                }
+        ],
+        "flag" : 0,
+        "File_Name" : "N2000HZ118-19-0149470-1.jpg",
+        "X_Threshold" : "0",
+        "Rule_Engine_Name" : "Gstin"
+}
+{
+        "_id" : ObjectId("5c9b937439eec012050407f5"),
+        "Integer" : [
+                {
+                        "Integer_X1_OffSet" : "-1",
+                        "Output F1" : "18",
+                        "Integer_X2-X2_OffSet" : "28",
+                        "Priority" : "1",
+                        "Integer_Value" : "18",
+                        "Integer_X2-X1_OffSet" : "86",
+                        "Integer_Y_OffSet" : "15",
+                        "Integer_X1-X2_OffSet" : "-59",
+                        "Integer_Line_OffSet" : "1",
+                        "Integer_Length" : "2"
+                }
+        ],
+        "Y_Threshold" : "10",
+        "flag" : 0,
+        "Regex" : [
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "dg_3",
+                        "Regex_Length" : "3",
+                        "Regex_Value" : "025",
+                        "Output F1" : "025",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "DIGITS",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_7",
+                        "Regex_Length" : "6",
+                        "Regex_Value" : "GST/18",
+                        "Output F1" : "GST/18",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_17",
+                        "Regex_Length" : "13",
+                        "Regex_Value" : "GST/18-19/025",
+                        "Output F1" : "GST/18-19/025",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_18",
+                        "Regex_Length" : "13",
+                        "Regex_Value" : "GST/18-19/025",
+                        "Output F1" : "GST/18-19/025",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_19",
+                        "Regex_Length" : "9",
+                        "Regex_Value" : "GST/18-19",
+                        "Output F1" : "GST/18-19",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_20",
+                        "Regex_Length" : "9",
+                        "Regex_Value" : "GST/18-19",
+                        "Output F1" : "GST/18-19",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_43",
+                        "Regex_Length" : "5",
+                        "Regex_Value" : "18-19",
+                        "Output F1" : "18-19",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_58",
+                        "Regex_Length" : "6",
+                        "Regex_Value" : "GST/18",
+                        "Output F1" : "GST/18",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                }
+        ],
+        "File_Name" : "N2000HZ118-19-0149470-1.jpg",
+        "X_Threshold" : "2",
+        "Rule_Engine_Name" : "Invoice_Number"
+}
+{
+        "_id" : ObjectId("5c9b937639eec012050407f6"),
+        "Y_Threshold" : "10",
+        "Gstin" : [
+                {
+                        "Regex_Line_OffSet" : 0,
+                        "Regex_Id" : "GSTIN",
+                        "Regex_Length" : 15,
+                        "Regex_Value" : "24AAIFC0429K1ZM",
+                        "Regex_X1_OffSet" : 75,
+                        "Regex_Y_OffSet" : 0,
+                        "Regex_X2-X1_OffSet" : 188,
+                        "Regex_X2-X2_OffSet" : 152,
+                        "Regex_Type" : "GSTIN",
+                        "Regex_X1-X2_OffSet" : 39
+                }
+        ],
+        "flag" : 0,
+        "File_Name" : "N2000HZ118-19-0149470-1.jpg",
+        "X_Threshold" : "2",
+        "Rule_Engine_Name" : "Gstin"
+}
+{
+        "_id" : ObjectId("5c9b937b39eec012050407f8"),
+        "Integer" : [
+                {
+                        "Integer_X1_OffSet" : "-1",
+                        "Output F1" : "18",
+                        "Integer_X2-X2_OffSet" : "28",
+                        "Priority" : "1",
+                        "Integer_Value" : "18",
+                        "Integer_X2-X1_OffSet" : "86",
+                        "Integer_Y_OffSet" : "15",
+                        "Integer_X1-X2_OffSet" : "-59",
+                        "Integer_Line_OffSet" : "1",
+                        "Integer_Length" : "2"
+                }
+        ],
+        "Y_Threshold" : "10",
+        "flag" : 0,
+        "Regex" : [
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "dg_3",
+                        "Regex_Length" : "3",
+                        "Regex_Value" : "025",
+                        "Output F1" : "025",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "DIGITS",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_7",
+                        "Regex_Length" : "6",
+                        "Regex_Value" : "GST/18",
+                        "Output F1" : "GST/18",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_17",
+                        "Regex_Length" : "13",
+                        "Regex_Value" : "GST/18-19/025",
+                        "Output F1" : "GST/18-19/025",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_18",
+                        "Regex_Length" : "13",
+                        "Regex_Value" : "GST/18-19/025",
+                        "Output F1" : "GST/18-19/025",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_19",
+                        "Regex_Length" : "9",
+                        "Regex_Value" : "GST/18-19",
+                        "Output F1" : "GST/18-19",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_20",
+                        "Regex_Length" : "9",
+                        "Regex_Value" : "GST/18-19",
+                        "Output F1" : "GST/18-19",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_43",
+                        "Regex_Length" : "5",
+                        "Regex_Value" : "18-19",
+                        "Output F1" : "18-19",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                },
+                {
+                        "Regex_Line_OffSet" : "1",
+                        "Regex_Id" : "DOC_58",
+                        "Regex_Length" : "6",
+                        "Regex_Value" : "GST/18",
+                        "Output F1" : "GST/18",
+                        "Priority" : "1",
+                        "Regex_X1_OffSet" : "-1",
+                        "Regex_Y_OffSet" : "15",
+                        "Regex_X2-X1_OffSet" : "86",
+                        "Regex_X2-X2_OffSet" : "28",
+                        "Regex_Type" : "Document",
+                        "Regex_X1-X2_OffSet" : "-59"
+                }
+        ],
+        "File_Name" : "N2000HZ118-19-0149470-1.jpg",
+        "X_Threshold" : "4",
+        "Rule_Engine_Name" : "Invoice_Number"
+}
+{
+        "_id" : ObjectId("5c9b937d39eec012050407f9"),
+        "Y_Threshold" : "10",
+        "Gstin" : [
+                {
+                        "Regex_Line_OffSet" : 0,
+                        "Regex_Id" : "GSTIN",
+                        "Regex_Length" : 15,
+                        "Regex_Value" : "24AAACE1741P1ZN",
+                        "Regex_X1_OffSet" : 120,
+                        "Regex_Y_OffSet" : 0,
+                        "Regex_X2-X1_OffSet" : 237,
+                        "Regex_X2-X2_OffSet" : 173,
+                        "Regex_Type" : "GSTIN",
+                        "Regex_X1-X2_OffSet" : 56
+                },
+                {
+                        "Regex_Line_OffSet" : 0,
+                        "Regex_Id" : "GSTIN",
+                        "Regex_Length" : 15,
+                        "Regex_Value" : "24AAACE1741P1ZN",
+                        "Regex_X1_OffSet" : 118,
+                        "Regex_Y_OffSet" : 0,
+                        "Regex_X2-X1_OffSet" : 237,
+                        "Regex_X2-X2_OffSet" : 175,
+                        "Regex_Type" : "GSTIN",
+                        "Regex_X1-X2_OffSet" : 56
+                }
+        ],
+        "flag" : 0,
+        "File_Name" : "N2000HZ118-19-0149470-1.jpg",
+        "X_Threshold" : "4",
+        "Rule_Engine_Name" : "Gstin"
+}
+N2000HZ118-19-0149636
+db.ruleenginedata.find({
+    $and : [ 
+        {"File_Name": "N2000HZ118-19-0185506.jpg"},
+        {"Rule_Engine_Name": "Invoice_Number"},
+		{"flag": 1}
+    ]       
+})
+db.ruleenginedata.distinct("Regex.Regex_Value",{File_Name: {$elemMatch: {"File_Name" : "N2000HZ11
+-19-0185493.jpg"}}});
+db.ruleenginedata.aggregate([
+    { $unwind : "$Regex"},
+    { $match : {"Regex.Priority" : "1","File_Name": "N2000HZ118-19-0185506.jpg",
+        "Rule_Engine_Name": "Invoice_Number",
+		"flag": 1}},
+    { $project : { _id : 0, Regex : 1}}
+]);
+existobject.add(new BasicDBObject("Regex.Regex_Value", new BasicDBObject("$exists", true)));
+			existobject.add(new BasicDBObject("File_Name", new BasicDBObject("$eq", "N2000HZ118-19-0185493.jpg")));
+			DBCursor existintegercursor = collection.find(new BasicDBObject("$and", existintegerobject));
+
+
+db.ruleenginedata.aggregate([
+    { $unwind : "$Regex"},
+    { $match : {"Regex.Priority" : "1"}},
+    { $project : { _id : 0, Regex : 1}}
+])
+N2000HZ118-19-0180605.jpg
+.max( { "Regex_Length": 100, type: 'B'} )
+.max( { age: 50, type: 'B' } )
+
+ db.ruleenginedata.distinct("File_Name",{"flag":0})
+ 
+ BasicDBObject match = new BasicDBObject();
+match.put("$query", new BasicDBObject("price", new BasicDBObject("$gt", 10)));
+List list = mongoTemplate.getCollection("mycollection").distinct("ord_dt", match);
+
+List<DBObject> criteria = new ArrayList<DBObject>();
+criteria.add(new BasicDBObject("totalmarks", new BasicDBObject("$ne", 10)));
+criteria.add(new BasicDBObject("totalmarks", new BasicDBObject("$ne", 15)));
+DBCursor dbCursor = collection.find(new BasicDBObject("$and", criteria));
+
+ db.Article.distinct("Comment.Reply.ip",{"Comment.Reply.email" : "xxx"})
+db.Article.distinct("Comment.Reply.ip",{Comment: {$elemMatch: {"Reply.email" : "xxx"}}})
+
+db.displayscanningdata.find().pretty();
+{
+        "_id" : ObjectId("5cb32038b04de82de967d069"),
+        "File_Name" : "N2000HZ118-19-0150142-1.jpg",
+        "flag" : 0,
+        "Image_Location" : "http://34.80.26.185:8086/EssarInvoice/InvoiceImages/N2000HZ118-19-0150142-1.jpg",
+        "Json_Location" : "http://34.80.26.185:8086/EssarInvoice/InvoiceJson/N2000HZ118-19-0150142-1.jpg0returnvalue.json",
+        "jsonout" : {
+                "Vendor" : "Rojalin Hospitality Services",
+                "Currency" : "INR",
+                "GSTIN" : "24AORPB3455R1ZE",
+                "Invoice_Number" : "RG/290/18-19",
+                "PAN" : "AORPB3455R",
+                "Purchase_Order_Number" : "4400116668",
+                "Invoice_Date" : "01.10.2018",
+                "Purchase_Order_Number_Date" : "Sep-18"
+        },
+        "footer" : {
+                "Total" : "524,300.00",
+                "CGSTAmount" : "47,187.00",
+                "SGSTAmount" : "47,187.00",
+                "GrandTotal" : "618,674.00"
+        },
+        "header" : [
+                {
+                        "DescriptionOfServices" : "Cleaning Services",
+                        "HSNSAC" : "998539",
+                        "Rate" : "535000",
+                        "Unit" : "0.98",
+                        "Amount" : "524,300.00",
+                        "SGST" : "9%",
+                        "CGST" : "9%",
+                        "Total" : "524,300.00",
+                        "CGSTAmount" : "47,187.00",
+                        "SGSTAmount" : "47,187.00"
+                }
+        ]
+}
+{
+        "_id" : ObjectId("5cb382006adb3ec1e7b813b2"),
+        "File_Name" : "N2000HZ118-19-0149634.jpg",
+        "flag" : 0,
+        "Image_Location" : "http://34.80.26.185:8086/EssarInvoice/InvoiceImages/N2000HZ118-19-0149634.jpg",
+        "Json_Location" : "http://34.80.26.185:8086/EssarInvoice/InvoiceJson/N2000HZ118-19-0149634.jpg0returnvalue.json",
+        "jsonout" : {
+                "Vendor" : "Pioneer Adhesives",
+                "Currency" : "INR",
+                "GSTIN" : "24AAFP7758M1ZM",
+                "Invoice_Number" : "456/GST/18-19",
+                "PAN" : "AAFP7758M",
+                "Purchase_Order_Number" : "ESTL-DTA/GST/4500250023",
+                "Invoice_Date" : "24-Dec-2018",
+                "Purchase_Order_Number_Date" : "31-Aug-2018"
+        },
+        "footer" : {
+                "Total" : "54,536.00",
+                "CGSTAmount" : "4,908.00",
+                "SGSTAmount" : "4,908.00",
+                "GrandTotal" : "64,352.00"
+        },
+        "header" : [
+                {
+                        "DescriptionOfServices" : "McCoy Gasket Seal",
+                        "HSNSAC" : "3214",
+                        "Quantity" : "136.00 No",
+                        "Rate" : "401.00",
+                        "Unit" : "",
+                        "Amount" : "54,536.00",
+                        "SGST" : "9%",
+                        "CGST" : "9%",
+                        "Total" : "54,536.00",
+                        "CGSTAmount" : "4,908.00",
+                        "SGSTAmount" : "4,908.00"
+                }
+        ]
+}
+
+
+db.scanningdatasave.update({"File_Name" : "N2000HZ118-19-0150281-1.jpg"},{$set:{"Image_Location":"http://34.80.26.185:8086/EssarInvoice/InvoiceImages/N2000HZ118-19-0150281-1.jpg","Json_Location":"http://34.80.26.185:8086/EssarInvoice/InvoiceJson/N2000HZ118-19-0150281-1.jpg.json"}},{upsert:true})
+
+Image Location : http://34.80.26.185:8086/EssarInvoice/InvoiceImages/N2000HZ118-19-0151613-1.jpg
+Json Location : http://34.80.26.185:8086/EssarInvoice/InvoiceJson/N2000HZ118-19-0149663.jpg.json
+
+
+
+

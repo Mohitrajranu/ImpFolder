@@ -1,0 +1,164 @@
+package com.monitorjbl.xlsx;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.json.JSONObject;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import com.monitorjbl.xlsx.StreamingReader;
+public class ReadLargeExcelFile {
+private static String Empty="";
+	
+/*	private static XSSFSheet getReadWorkbook(String fileName) throws IOException {
+		InputStream is = new FileInputStream(new File(fileName));
+		Workbook workbook = StreamingReader.builder()
+		        .rowCacheSize(100)    // number of rows to keep in memory (defaults to 10)
+		        .bufferSize(4096)     // buffer size to use when reading InputStream to file (defaults to 1024)
+		        .open(is);            // InputStream or File for XLSX file (required)
+		
+		setFormulaEvaluator(workbook);
+
+		return getSheet(workbook);
+	}
+
+	private static void setFormulaEvaluator(Workbook workBook) {
+		FormulaEvaluator evaluator = workBook.getCreationHelper().createFormulaEvaluator();
+		workBook.setForceFormulaRecalculation(true);
+	}
+
+	private static XSSFSheet getSheet(Workbook workBook) {
+		return (XSSFSheet) workBook.getSheetAt(0);
+	}*/
+
+	private static void output(String value) {
+		System.out.println(value);
+	}
+	public static JSONObject readExcel(String fileName) {
+
+		//JSONObject finaldataobject = new JSONObject();
+		JSONObject keyvaluesjson = null;
+		String contents = null;
+		
+		try (
+				  InputStream is = new FileInputStream(new File(fileName));
+				  Workbook workbook = StreamingReader.builder()
+				          .rowCacheSize(100)
+				          .bufferSize(4096)
+				          .open(is)) {
+			//setFormulaEvaluator(workbook);
+			Long count= 0l;
+				 // for (Sheet sheet : workbook){
+			Sheet sheet = workbook.getSheetAt(0);
+			Long columnCount = 0l;
+				    System.out.println(sheet.getSheetName());
+				    for (Row row : sheet) {
+				    	
+				    	try {
+							
+							count = (long) row.getRowNum();
+							//System.out.println("Inside Row "+count);
+							
+                            for (Cell cell : row) {
+							//  System.out.println("Inside");
+                            	columnCount =	(long) cell.getColumnIndex();
+                            	
+                            //	System.out.println("Inside cell "+cell.getCellType() +"at "+cell.getColumnIndex());
+								
+								//if (rowvalue.getRowNum() == 41) {
+                            	if(row.getRowNum() > 1){
+									switch (cell.getCellTypeEnum()) {
+									case STRING:
+										output(cell.getRichStringCellValue().getString());
+									//	valuelist.add(cell.getRichStringCellValue().getString());
+
+										break;
+									case NUMERIC:
+										if (DateUtil.isCellDateFormatted(cell)) {
+											output(cell.getDateCellValue() + Empty);
+										//	valuelist.add(cell.getDateCellValue() + Empty);
+										} else {
+										output(cell.getNumericCellValue() + Empty);
+										//	valuelist.add(cell.getNumericCellValue() + Empty);
+
+										}
+										break;
+									case BOOLEAN:
+										output(cell.getBooleanCellValue() + Empty);
+										//valuelist.add(cell.getBooleanCellValue() + Empty);
+
+										break;
+									case FORMULA:
+
+										switch (cell.getCachedFormulaResultTypeEnum()) {
+										case NUMERIC:
+											
+											if (cell.getCellStyle() != null && cell.getCellStyle().getDataFormatString() != null) {
+												contents = new DataFormatter().formatRawCellContents(cell.getNumericCellValue(),
+														cell.getCellStyle().getDataFormat(),
+														cell.getCellStyle().getDataFormatString());
+												output("Content s: " + contents);
+											}
+											output("0. case Cell.CELL_TYPE_NUMERIC --> Last evaluated as: "
+													+ cell.getNumericCellValue());
+											break;
+										case STRING:
+											
+											output("1. case Cell.CELL_TYPE_STRING --> Last evaluated as \""
+													+ cell.getRichStringCellValue().getString() + "\"");
+											break;
+										case ERROR:
+											output("2. case Cell.CELL_TYPE_ERROR --> ");
+											break;
+										}
+										break;
+									case BLANK:
+										output("");
+										break;
+									default:
+										output("default");
+									}}
+								}
+						} catch (Exception e) {
+						//System.out.println("Total column count "+columnCount);
+							
+							e.printStackTrace();
+							break;
+							// TODO Auto-generated catch block
+							//
+							
+						}
+				        
+				      }
+				     System.out.println("Total Rows ::"+count);
+				   //  System.out.println("Values Size is ::"+values.size());
+				    }
+				//  }
+				
+				 catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		
+	
+		return keyvaluesjson;
+
+	}
+	
+	public static void main(String[] args) {
+		Stopwatch timeTaken = new Stopwatch();
+		readExcel("src/test/resources/9465_hl_start_end_testingpallavifinalexcel.xlsx");
+		System.out.println("End Time "+timeTaken.elapsedTime());
+		}
+
+}

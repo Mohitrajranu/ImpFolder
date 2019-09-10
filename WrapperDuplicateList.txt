@@ -1,0 +1,52 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+public class DuplicateMap<K, V> {
+
+    private Map<K, ArrayList<V>> m = new HashMap<>();
+
+    public void put(K k, V v) {
+        if (m.containsKey(k)) {
+            m.get(k).add(v);
+        } else {
+            ArrayList<V> arr = new ArrayList<>();
+            arr.add(v);
+            m.put(k, arr);
+        }
+    }
+
+     public ArrayList<V> get(K k) {
+        return m.get(k);
+    }
+
+    public V get(K k, int index) {
+        return m.get(k).size()-1 < index ? null : m.get(k).get(index);
+    }
+}
+
+and you could to use it in this way:
+
+    public static void main(String[] args) {
+    DuplicateMap<String,String> dm=new DuplicateMap<>();
+    dm.put("1", "one");
+    dm.put("1", "not one");
+    dm.put("1", "surely not one");
+    System.out.println(dm.get("1"));
+    System.out.println(dm.get("1",1));
+    System.out.println(dm.get("1", 5));
+}
+and result of prints are :
+
+[one, not one, surely not one]
+not one
+null
+share
+
+
+
+
+ getCCIDetailsAccountAndProduct() : resp.getRequestSOAP():<?xml version="1.0" encoding="UTF-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soapenv:Body><retrieveCustomerServiceConfiguration xmlns="http://www.jio.ril.com/integration/services/common/CustomerConfigurationInquiry/"><retrieveCustomerServiceConfigurationRequest xmlns=""><customer><partyId>5000005815</partyId></customer><salesChannel><id>82</id></salesChannel></retrieveCustomerServiceConfigurationRequest></retrieveCustomerServiceConfiguration></soapenv:Body></soapenv:Envelope>
+17:21:45,233 INFO  [com.comviva.dbill.billing.CCIEnquiry] (SUB_TP_0) getCCIDetailsAccountAndProduct() : resp.getResponseSOAP():<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"><SOAP-ENV:Body><ns0:retrieveCustomerServiceConfigurationResponse xmlns:ns0="http://www.jio.ril.com/integration/services/common/CustomerConfigurationInquiry/"><retrieveCustomerServiceConfigurationResponse><customer><partyId>5000005815</partyId><CustomerAccount><accountType>1</accountType><companyCode>6000</companyCode><circleId>KL</circleId><accountID>500000007466</accountID><subscriptionType>1</subscriptionType><Identifier><value>916186200559</value></Identifier><Identifier><value>4957960274</value></Identifier></CustomerAccount><emailId>namrata.kashyap@ril.com</emailId><telephoneNumber>+917012137030</telephoneNumber><name><salutation>0002</salutation><firstName>thirupathi</firstName><middleName>rao</middleName><lastName>sindhyala</lastName></name><Product><id>P10005</id><name>FTTX STANDARD|FTTX STANDARD CONSUMER</name><contractRefNumber/><productStatus>Z020</productStatus><activationDate>2016-11-04T13:04:59</activationDate><Identifier><name>R4GID</name><value>916186200559</value><subCategory>2</subCategory><category>4</category></Identifier><ProductRelationship><specificationId/><Identifier><subCategory>2</subCategory><category>4</category></Identifier></ProductRelationship><Service><name>FTTH-DATA|FTTH-DATA</name><Identifier><name>MACID</name><value>441c.a83a.ccef</value><subCategory>3</subCategory><category>2</category></Identifier><id>S10005</id><ServiceSpecification><serviceType>Z0005</serviceType></ServiceSpecification></Service><ProductCharacteristic><name>PRODUCT_STATE</name><value>KL</value></ProductCharacteristic><ProductOffering><id>1401916</id><name>SIT OFFER FOR JIOHOMEVOICE|SIT OFFER FOR</name></ProductOffering><customerAccount><accountID>500000007466</accountID></customerAccount><billingType>1</billingType><type/></Product><Product><id>P10024</id><name>JIO HOME VOICE|JIO HOME VOICE</name><contractRefNumber/><productStatus>Z020</productStatus><activationDate>2016-11-04T13:04:59</activationDate><Identifier><name>FLN</name><value>4957960274</value><subCategory>2</subCategory><category>4</category></Identifier><ProductRelationship><specificationId/><Identifier><subCategory>2</subCategory><category>4</category></Identifier></ProductRelationship><Service><name>JIO HOME VOICE AND VIDEO|JIO HOME VOICE</name><Identifier><name>MSISDN</name><value>914957960274</value><subCategory>3</subCategory><category>2</category></Identifier><id>1751003</id><ServiceSpecification><serviceType>Z0029</serviceType></ServiceSpecification></Service><ProductCharacteristic><name>PRODUCT_STATE</name><value>KL</value></ProductCharacteristic><ProductOffering><id>1401916</id><name>SIT OFFER FOR JIOHOMEVOICE|SIT OFFER FOR</name></ProductOffering><customerAccount><accountID>500000007466</accountID></customerAccount><billingType>1</billingType><type/></Product><preferredCommunicationChannel>PAG</preferredCommunicationChannel><preferredLanguage>EN</preferredLanguage><segment><attributeName>CUSTOMER_CATEGORY</attributeName><attributeValue>0001</attributeValue></segment><segment><attributeName>1</attributeName><attributeValue>015001</attributeValue></segment></customer></retrieveCustomerServiceConfigurationResponse></ns0:retrieveCustomerServiceConfigurationResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>, jioRoute=SO012
+17:21:45,233 DEBUG [com.comviva.dbill.billing.CCIEnquiry] (SUB_TP_0) getCCIDetailsAccountAndProduct() : jioRoute:SO012, headerDate:Thu, 25 Jan 2018 11:51:45 GMT
+17:21:45,233 INFO  [com.comviva.dbill.billing.CCIEnquiry] (SUB_TP_0) getCCIDetailsAccountAndProduct() : Response companyCode=6000, accountId=500000007466, circleId=KL, subscriberType=1, accountType=1

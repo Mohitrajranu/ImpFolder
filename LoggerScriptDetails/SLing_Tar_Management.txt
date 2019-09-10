@@ -1,0 +1,41 @@
+We are running sling as a web application which we are deploying on tomcat server.
+Putty Login Credentials:
+Username:root
+Password:B!zL3M786 
+After login enter the command sudo -s
+
+
+dir c:\ -recurse -erroraction silentlycontinue | sort length -descending | select -first 20
+Tomcat Directory: cd /usr/local/tomcat8/apache-tomcat-8.5.35/
+
+Sling Installation Directory:
+
+cd /usr/local/tomcat8/apache-tomcat-8.5.35/bin/sling/_scorpio
+ 
+Sling Database Storage Area( where tar files are generated): 
+
+cd /usr/local/tomcat8/apache-tomcat-8.5.35/bin/sling/_scorpio/repository/segmentstore
+ 
+Sling UI Url:
+Creadentials:
+UserName: admin
+Password: admin
+URL-Path: https://34.80.114.183:8082/scorpio/bin/browser.html/
+
+f you had to stop AEM to avoid disk space growth then use the commands below to do some initial analysis.
+
+On Linux platform, leverage the du command to list all directories under crx-quickstart with the summarized size of those directories:
+
+du -h --max-depth=2 crx-quickstart
+
+Use find and du commands to find recently modified files and get their sizes:
+
+find crx-quickstart -type f -mtime 1 -exec du -hs {} \; -print
+
+To find large files in the datastore, you can combine find, du and file commands to find files over 100MB in the datastore directory and auto-identify their file type:
+
+find crx-quickstart/repository/datastore -type f -size +100M -exec sh -c "du -hs \"{}\"; file \"{}\"" \;
+
+If you find that the growth is occuring in the segmentstore directory then the command below can help give some clues as to what data is being written:
+
+strings data_xxxxxx.tar | egrep '^.?/' | sed 's/.$//;s/^.\//\//'

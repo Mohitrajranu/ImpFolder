@@ -1,0 +1,111 @@
+docker run -d -p 8878:8098 dockdevmohit/quartzrepo
+
+mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc6 -Dversion=11.2.0.3 -Dpackaging=jar -Dfile=ojdbc6.jar -DgeneratePom=true
+
+awk -v start=00:00 -v stop=09:00 'start <= $2 && $2 < stop' file.log
+
+ cat localhost_access_log.2019-09-10.txt | awk '$4 >= "[10/Sep/2019:11:00:00" && $4 < "[10/Sep/2019:12:00:00"'
+ mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc6 -Dversion=11.2.0.3 -Dpackaging=jar -Dfile=ojdbc6.jar -DgeneratePom=true
+#########################################################################
+
+
+scp -r user@server1:/var/www/html/ user@server2:/var/www/html/
+
+Say hello to rsync
+
+I recommend using rsync command which will only push or download updated files. It can copy locally, to/from another host over any remote shell, or to/from a remote rsync daemon. In this example, copy files from remote server called server1 into /backup directory:
+rsync -avz -e ssh user@server1:/var/www/html /backup
+
+#!/usr/bin/expect
+
+spawn sftp username@hostname.com
+expect "password:"
+send "yourpasswordhere\n"
+expect "sftp>"
+send "cd logdirectory\n"
+expect "sftp>"
+send "put /var/log/file.log\n"
+expect "sftp>"
+send "exit\n"
+interact
+
+
+export SSHPASS=your-password-here
+sshpass -e sftp -oBatchMode=no -b - sftp-user@remote-host << !
+   cd incoming
+   put your-log-file.log
+   bye
+!
+########################################################################################################################
+1 * * * * ./jstack -l 29835 > /home/mbas/ThreadAnalysis/ThreadAnalysis.log
+
+########################################################################################################################
+call_file( ){
+         shopt -s nullglob
+         for i in /home/mbas/BackEndProcess/NEHA_BILL_PLANCHANGE/*.csv;do
+         for j in /home/mbas/BackEndProcess/NEHA_BILL_PLANCHANGE_REC/*.csv;do
+           if [ ! -s $i ] &&  [ ! -s $j ];
+          then
+            break 2
+         fi
+          ## Get the file name
+           str1="${i##*/}"
+          ## Get the file name
+          str="${j##*/}"
+          if [ -s $i ] &&  [ -s $j ];
+          then
+          if [[ ${str1} == ${str} ]];
+          then
+          awk 'FNR==NR{a[$0];next};!($0 in a)' $i $j >> /home/mbas/BackEndProcess/NEHA_BILL_PLANCHANGE_ERR/${str1}
+                  mv -u $i /home/mbas/BackEndProcess/BILL_PC_ServerFail
+                  mv /home/mbas/BackEndProcess/NEHA_BILL_PLANCHANGE_ERR/${str1} /home/mbas/BackEndProcess/NEHA_BILL_PLANCHANGE
+          break 2
+          else
+          echo "files are not same.."
+         fi
+         fi
+      done
+  done
+   comm -3 <(sort -u  /home/mbas/BackEndProcess/NEHA_BILL_PLANCHANGE/SAPMZ_SE_BillplanChange17042017170000.csv) <(sort -u /home/mbas/BackEndProcess/NEHA_BILL_PLANCHANGE_REC/SAPMZ_SE_BillplanChange17042017170000.csv) > /home/mbas/BackEndProcess/BILL_PC_ServerFail/SAPMZ_SE_BillplanChange17042017170000.csv
+   
+mkdir CRBT_BULK_ACTIVATION_PEN CRBT_BULK_ACTIVATION CRBT_BULK_ACTIVATION_PROC CRBT_BULK_ACTIVATION_ERR CRBT_BULK_ACTIVATION_RES CRBT_BULK_ACTIVATION_REPUSH
+   
+BillPendingFilePath = /home/mbas/BackEndProcess/CRBT_BULK_ACTIVATION_PEN/
+BillPcFilePath = /home/mbas/BackEndProcess/CRBT_BULK_ACTIVATION/
+BillPcProcessedFilePath = /home/mbas/BackEndProcess/CRBT_BULK_ACTIVATION_PROC/
+BillPcErrorPath = /home/mbas/BackEndProcess/CRBT_BULK_ACTIVATION_ERR/
+serviceNode = RJIL
+bearerId = 73
+cpcgFlag = 10
+asyncFlag = Y
+subscrFlag = S
+requestType = 20
+ModeOfPayment = 00
+renFlag = N
+delayForRecords = 500
+max_file_size_in_kb = 3
+sleepTime = 6000
+sleepTimeMultiplier = 5
+mode_of_application = E
+RecordDelim = |
+PCProcFilePath = /home/mbas/BackEndProcess/CRBT_BULK_ACTIVATION_RES/
+PCRepushFilePath = /home/mbas/BackEndProcess/CRBT_BULK_ACTIVATION_REPUSH/
+##############################################################################
+
+C:\Users\HP>netstat -ao | find "8081"
+  TCP    0.0.0.0:8081           SAKSOFT:0              LISTENING
+  TCP    [::]:8081              SAKSOFT:0              LISTENING
+
+C:\Users\HP>kill -9 440
+'kill' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\HP>Taskkill /PID 440 /F
+SUCCESS: The process with PID 440 has been terminated.
+
+C:\Users\HP>netstat -ao | find "8081"
+
+C:\Users\HP>netstat -ao | find "3000"
+
+C:\Users\HP>netstat -ao | find "8080"
+############################################################################

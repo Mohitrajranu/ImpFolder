@@ -1,0 +1,63 @@
+DELIMITER $$
+CREATE EVENT `updateFreeTrialExpiryDate`
+  ON SCHEDULE EVERY 1 DAY STARTS '2015-09-01 00:00:00'
+  ON COMPLETION PRESERVE
+DO BEGIN
+   update user_product_assignment set free_trial=1 and expired_flag=1
+   where datediff(now(),EXPIRE_PERIOD)>=0; 
+   
+END;$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE EVENT deactivate_freeTrial_service
+ ON SCHEDULE 
+    EVERY 1 DAY
+    STARTS str_to_date( date_format(now(), '%Y%m%d 0200'), '%Y%m%d %H%i' ) + INTERVAL 1 DAY
+ ON COMPLETION PRESERVE
+COMMENT 'Test'
+DO BEGIN
+   update user_product_assignment set free_trial=1,expired_flag=1
+   where datediff(now(),EXPIRE_PERIOD)>=0; 
+END;$$
+DELIMITER ;
+DELIMITER $$
+CREATE EVENT deactivate_freeTrial_service
+    ON SCHEDULE
+      EVERY 1 HOUR
+    ON COMPLETION PRESERVE
+DO BEGIN
+  update auctions.user_product_assignment up set up.FREE_TRIAL = 1,up.EXPIRED_FLAG = 1  where datediff(now(),up.EXPIRE_PERIOD)>=0;
+END;$$
+DELIMITER ;
+
+ SET GLOBAL event_scheduler = ON;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SHOW PROCESSLIST;
+
+SHOW EVENTS FROM auctions;
+
+ show events\G;
+*************************** 1. row ***************************
+                  Db: auctions
+                Name: deactivate_freeTrial_service
+             Definer: root@localhost
+           Time zone: SYSTEM
+                Type: RECURRING
+          Execute at: NULL
+      Interval value: 1
+      Interval field: DAY
+              Starts: 2019-01-04 02:00:00
+                Ends: NULL
+              Status: ENABLED
+          Originator: 0
+character_set_client: latin1
+collation_connection: latin1_swedish_ci
+  Database Collation: latin1_swedish_ci
+1 row in set (0.00 sec)
+
+ERROR:
+No query specified
+
+SELECT * FROM INFORMATION_SCHEMA.events;

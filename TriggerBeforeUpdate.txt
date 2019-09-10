@@ -1,0 +1,60 @@
+create sequence seq_contact start with 1000 increment by 1 nocache nocycle;
+
+create table contact (
+    contact_id integer,
+    first_name varchar2(120 char),
+    last_name varchar2(120 char),
+    last_update_date date
+    );
+
+alter table contact add constraint pk_contact primary key (contact_id);
+
+create table a$contact (
+    version_id integer,
+    contact_id integer,
+    first_name varchar2(120 char),
+    last_name varchar2(120 char),
+    last_update_date date
+    );
+
+alter table a$contact add constraint pk_a$contact primary key
+        (contact_id, version_id);
+
+create or replace trigger trg_contact
+before insert or delete or update on contact 
+for each row
+declare
+
+    v_row contact%rowtype;
+    v_audit a$contact%rowtype;
+
+begin
+
+    select seq_contact.nextval into v_audit.version_id from dual;
+
+    if not deleting then
+
+        :new.last_update_date := sysdate;
+
+    end if;
+
+    if inserting or updating then
+
+        v_audit.contact_id := :new.contact_id;
+        v_audit.first_name := :new.first_name;
+        v_audit.last_name := :new.last_name;
+        v_audit.last_update_date := :new.last_update_date;
+
+    elsif deleting then
+
+        v_audit.contact_id := :old.contact_id;
+        v_audit.first_name := :old.first_name;
+        v_audit.last_name := :old.last_name;
+        v_audit.last_update_date := sysdate;
+
+    end if;
+
+    insert into a$contact values v_audit;
+
+end trg_contact;
+/

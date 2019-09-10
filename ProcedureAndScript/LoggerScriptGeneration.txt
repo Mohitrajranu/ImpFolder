@@ -1,0 +1,531 @@
+#######################################-LoggerScriptRunner-###########################################################################
+#!/bin/bash
+Logger_Running=`ps -ef |  grep -w /home/mbas/BackEndProcess/cronjobs/[s]drGenerationScript.sh |grep -v grep | awk '{print $2}' | wc -l`
+echo "Arguments passed at the commandLine is:$1"
+if [ $Logger_Running -ge 1 ]
+   then
+    echo "script is running"
+    else
+    echo "script is not running, Starting it"
+    serviceGroup=`echo $1 | tr "[:lower:]" "[:upper:]"`
+    echo "serviceGroup: "$serviceGroup
+    sh /home/mbas/BackEndProcess/cronjobs/sdrGenerationScript.sh "$serviceGroup" 1>>$LOG_BASE/backEndProcessLogs/SDRlogger_out.log.`date +%Y-%m-%d` 2>>$LOG_BASE/backEndProcessLogs/SDRlogger_out.log.`date +%Y-%m-%d`
+fi
+
+###########################################-SdrGenerationScript-#######################################################################
+#!/bin/bash
+#Author:Mohit Raj
+
+ filebased_logger()
+ {
+   source "/home/mbas/BackEndProcess/config/loggerConstants.txt"
+   sftpjarDir="$loggerSftpJarpath"
+   fileTypeVas="VAS"
+        fileTypeDig="DIG"
+        if [[ $1 == *"$fileTypeVas"* ]];
+        then
+              echo "Valid Service Group="$1
+        elif [[ $1 == *"$fileTypeDig"* ]];
+        then
+              echo "Valid Service Group="$1
+        else
+                echo "Invalid Service Group="$1
+             return 0
+        fi
+   cd "$sftpjarDir"
+   java -jar sdrSFTPlogger.jar mbas 10.135.25.55 dbillse@123 1200 $1 $2
+   sleep 5
+ }
+
+  dbFilebased_logger() {
+    retailAppType="RET"
+        enterpriseAppType="ENT"
+        if [[ $2 == *"$retailAppType"* ]];
+        then
+                source "/home/mbas/BackEndProcess/config/loggerConstants.txt"
+    elif [[ $2 == *"$enterpriseAppType"* ]];
+        then
+            source "/home/mbas/BackEndProcess/config/loggerENTConstants.txt"
+    else
+        echo "Invalid Application Type Passed"
+        return 0
+    fi
+
+    currentAppdirectory="$appSDRFilePath"
+    consolidateSdrdirectory="$sourceSdrFilePath"
+    var=`date`
+    echo "Date="$var
+    if [ "$(ls -A "$currentAppdirectory"/*.tok)" ];
+    then
+        FILE_PATTERN=""
+        fileTypeVas="VAS"
+        fileTypeDig="DIG"
+        if [[ $1 == *"$fileTypeVas"* ]];
+        then
+                FILE_PATTERN="_VASSDRSE00_"
+
+        elif [[ $1 == *"$fileTypeDig"* ]];
+        then
+                FILE_PATTERN="_SDRSE00_"
+        else
+           echo "Invalid FILE_PATTERN"
+                return 0
+        fi
+        echo "FILE_PATTERN="$FILE_PATTERN
+        cd "$currentAppdirectory"
+        for file1 in `ls *$FILE_PATTERN*.tok`;do
+            filecdr=`echo $file1 | rev | cut -f 2- -d '.' | rev`
+            filecdrExist=`find . -maxdepth 1  -type f -name $filecdr -printf "%f\n"`
+            if [[ $filecdr == $filecdrExist ]];
+            then
+                echo "$filecdr is a file and the corresponding token file for it is $file1."
+                if [ -s $filecdr ];
+                then
+                   echo "$filecdr is a complete file and it will be processed and moved to new location."
+                   mv -u $filecdr $consolidateSdrdirectory
+                   rm -f $file1
+                else
+                   echo "$filecdr is empty file wait for it to get completed."
+                fi
+            else
+                echo "Corresponding cdr file not found for the given token file ="$file1
+                rm -f $file1
+            fi
+        done
+    else
+        echo "Directory doesnot contains any token file."
+    fi
+ }
+
+  mergeSDRfiles(){
+       var=`date`
+       echo $var
+       sysdate=`date +%M%S`
+       finalFileName=""
+       fileType="VAS"
+       fileTypeDig="DIG"
+        if [[ $1 == *"$fileType"* ]];
+        then
+         echo "Valid Service Group="$1
+        elif [[ $1 == *"$fileTypeDig"* ]];
+        then
+        echo "Valid Service Group="$1
+        else
+         echo "Invalid Service Group"
+        return 0
+        fi
+
+       source "/home/mbas/BackEndProcess/config/loggerConstants.txt"
+       currentWebdir="$sourceSdrFilePath"
+       destinationWebDir="$destinationSdrLocation"
+       backupCdr="$backupSdrFilePath"
+      # if [ ${#files[@]} -gt 0 ];
+       if [ "$(ls -A $currentWebdir)" ];
+       then
+       echo "Source directory contain files"
+       if [[ $1 == *"$fileType"* ]];
+       then
+       cd "$currentWebdir"
+       for m in `find . -type f -name '*_VASSDRSE00_*_VAS.cdr' -printf "%f\n" | cut -d"_" -f4 | cut -c1-10 | sort | uniq`;do
+       dd=${m:0:2}
+       mm=${m:2:2}
+       yy=${m:4:4}
+       tt=${m:8:2}
+       DateHour=$yy$mm$dd$tt
+       FILE_PATTERN="_VASSDRSE00_"$m
+       fileList=`ls *$FILE_PATTERN*_VAS.cdr`
+       fileCount=`ls *$FILE_PATTERN*_VAS.cdr | wc -l`
+       echo "File Picked of the following pattern"$fileList
+       echo "Total No of files picked:"$fileCount
+       for i in $fileList;do
+       if [ ! -s $i ];
+       then
+       continue
+       fi
+       chmod 777 $i
+       str1="${i##*/}"
+       fileName=$i
+      cat "${fileName}"
+      mv $i "$backupCdr"
+      done > output_file
+      finalFileName=VASSDRSE00_"$DateHour""$sysdate".cdr.tmp
+      mv output_file $finalFileName
+      NAME=$finalFileName
+      lf=`head -1 $NAME`
+      ln=`tail -2 $NAME | head -1`
+      j=`echo $lf | cut -d \| -f 18`
+      h2=`echo $ln | cut -d \| -f 18`
+      echo "j="$j
+      echo "h2="$h2
+      yy=`echo $j | cut -c 1-4`
+      mm=`echo $j | cut -c 5-6`
+      dd=`echo $j | cut -c 7-8`
+      tm=`echo $j | cut -c 9-14`
+      wd=`wc -l $NAME`
+      wd=`echo $wd| cut -d " " -f 1`
+      if [ "$wd" != "0" ]; then
+      echo "WC ="$wd
+      sed -i '1i\'"80|$j" $NAME
+      yye=`echo $h2 | cut -c 1-4`
+      mme=`echo $h2 | cut -c 5-6`
+      dde=`echo $h2 | cut -c 7-8`
+      tme=`echo $h2 | cut -c 9-14`
+      echo "90|$wd|$h2">>$NAME
+      fi
+      echo "Final consolidated file after merging the above listed files is="$finalFileName
+      mv $finalFileName "$destinationWebDir"
+      done
+      elif [[ $1 == *"$fileTypeDig"* ]];
+      then
+      cd "$currentWebdir"
+       for m in `find . -type f -name '*_SDRSE00_*_DIG.cdr' -printf "%f\n" | cut -d"_" -f4 | cut -c1-10 | sort | uniq`;do
+       dd=${m:0:2}
+       mm=${m:2:2}
+       yy=${m:4:4}
+       tt=${m:8:2}
+       DateHour=$yy$mm$dd$tt
+       FILE_PATTERN="_SDRSE00_"$m
+       fileList=`ls *$FILE_PATTERN*_DIG.cdr`
+       fileCount=`ls *$FILE_PATTERN*_DIG.cdr | wc -l`
+       echo "File Picked of the following pattern ="$fileList
+       echo "Total No of files picked:"$fileCount
+       for i in $fileList;do
+       if [ ! -s $i ];
+       then
+       continue
+      fi
+      #echo "File picked for consolidation:$i "
+      chmod 777 $i
+       str1="${i##*/}"
+       fileName=$i
+      cat "${fileName}"
+      mv $i "$backupCdr"
+      done > output_file
+      finalFileName=SDRSE00_"$DateHour""$sysdate".cdr.tmp
+      mv output_file $finalFileName
+      #echo " Final Consolidated File after Merging:$finalFileName"
+      NAME=$finalFileName
+      lf=`head -1 $NAME`
+      ln=`tail -2 $NAME | head -1`
+      j=`echo $lf | cut -d \| -f 18`
+      h2=`echo $ln | cut -d \| -f 18`
+      echo "j="$j
+      echo "h2="$h2
+      yy=`echo $j | cut -c 1-4`
+      mm=`echo $j | cut -c 5-6`
+      dd=`echo $j | cut -c 7-8`
+      tm=`echo $j | cut -c 9-14`
+      wd=`wc -l $NAME`
+      wd=`echo $wd| cut -d " " -f 1`
+      if [ "$wd" != "0" ]; then
+      echo "WC ="$wd
+      sed -i '1i\'"80|$j" $NAME
+      yye=`echo $h2 | cut -c 1-4`
+      mme=`echo $h2 | cut -c 5-6`
+      dde=`echo $h2 | cut -c 7-8`
+      tme=`echo $h2 | cut -c 9-14`
+      echo "90|$wd|$h2">>$NAME
+      fi
+      echo "Final consolidated file after merging the above listed files is="$finalFileName
+      mv $finalFileName "$destinationWebDir"
+      done
+      fi
+      else
+      echo "directory is empty no more files are present"
+      fi
+
+  }
+
+   moveToNAS()
+ {
+      FILE_PATTERN=""
+      fileType="VAS"
+      fileTypeDig="DIG"
+      if [[ $1 == *"$fileType"* ]];
+        then
+             FILE_PATTERN="VASSDRSE00_"
+         echo "Valid File Pattern"
+        elif [[ $1 == *"$fileTypeDig"* ]];
+        then
+             FILE_PATTERN="SDRSE00_"
+           echo "Valid File Pattern"
+        else
+            echo "Invalid File Pattern"
+             return 0
+        fi
+      echo $FILE_PATTERN
+      source "/home/mbas/BackEndProcess/config/loggerConstants.txt"
+      currentNasSDR="$destinationSdrLocation"
+      destinationNASsdr="$nasDestinationdir"
+      backupSdrFile="$backupSdrFilePath"
+      nasStaticIpDestination=$nasStaticIpDestinationdir
+      serviceParam=$serviceType
+      currDate=`date '+%Y%m%d%H%M%S'`
+
+      echo $currDate
+      if [ "$(ls -A $currentNasSDR)" ];
+      then
+      echo "File present in the Source directory is a non empty file"
+      cd "$currentNasSDR"
+      for file in `ls $FILE_PATTERN*.tmp`
+      do
+      if [[ $1 == *"$fileType"* ]];
+      then
+      StaticIpRecExist=`egrep "$serviceParam" $file | wc -l`
+      if [ $StaticIpRecExist -ge 1 ];
+      then
+      echo "StaticIp Record is present in the file."
+      egrep "$serviceParam" $file > StaticIp_output_file
+      finalFileName=`echo $file | rev | cut -f 2- -d '.' | rev`
+      mv StaticIp_output_file $finalFileName
+      NAME=$finalFileName
+      lf=`head -1 $NAME`
+      ln=`tail -2 $NAME | head -1`
+      j=`echo $lf | cut -d \| -f 18`
+      h2=`echo $ln | cut -d \| -f 18`
+      echo "j="$j
+      echo "h2="$h2
+      yy=`echo $j | cut -c 1-4`
+      mm=`echo $j | cut -c 5-6`
+      dd=`echo $j | cut -c 7-8`
+      tm=`echo $j | cut -c 9-14`
+      wd=`wc -l $NAME`
+      wd=`echo $wd| cut -d " " -f 1`
+      if [ "$wd" != "0" ]; then
+      echo "WC ="$wd
+      sed -i '1i\'"80|$j" $NAME
+      yye=`echo $h2 | cut -c 1-4`
+      mme=`echo $h2 | cut -c 5-6`
+      dde=`echo $h2 | cut -c 7-8`
+      tme=`echo $h2 | cut -c 9-14`
+      echo "90|$wd|$h2">>$NAME
+      fi
+      chmod 755 $finalFileName
+       sshpass -p "dbillse@123" scp -r $finalFileName mbas@10.135.25.55:"$nasStaticIpDestination"
+      if [ $? -ne 0 ];
+      then
+      echo "File $finalFileName transfer Failed to StaticIp Nas location"
+      else
+      echo "File $finalFileName Successfully transferred to StaticIp NAS location"
+      fi
+      mv $finalFileName  "$backupSdrFile"$finalFileName.StaticIp_PLL
+      else
+      echo "StaticIp Record is not present in the file."
+      fi
+      fi
+      filename=`echo $file | rev | cut -f 2- -d '.' | rev`
+      NAME_FILE=$file
+      mv $NAME_FILE $filename
+      chmod 755 $filename
+      sshpass -p "dbillse@123" scp -r $filename mbas@10.135.25.55:"$destinationNASsdr"
+      if [ $? -ne 0 ];
+      then
+      echo "File $filename transfer Failed to Nas location"
+      else
+      echo "File $filename Successfully transferred to NAS location"
+      fi
+      #cp $filename "$destinationNASsdr"
+      mv $filename "$backupSdrFile"$filename.PLL
+      done
+      else
+      echo "File present in the Source directory is an empty file"
+      fi
+ }
+
+  mergeEnterpriseSDRfiles(){
+       var=`date`
+       echo $var
+       sysdate=`date +%M%S`
+       finalFileName=""
+       fileType="VAS"
+       fileTypeDig="DIG"
+        if [[ $1 == *"$fileType"* ]];
+        then
+         echo "Valid Service Group="$1
+        elif [[ $1 == *"$fileTypeDig"* ]];
+        then
+        echo "Valid Service Group="$1
+        else
+         echo "Invalid Service Group"
+        return 0
+        fi
+
+       source "/home/mbas/BackEndProcess/config/loggerENTConstants.txt"
+       currentWebdir="$sourceSdrFilePath"
+       destinationWebDir="$destinationSdrLocation"
+       backupCdr="$backupSdrFilePath"
+      # if [ ${#files[@]} -gt 0 ];
+       if [ "$(ls -A $currentWebdir)" ];
+       then
+       echo "Source directory contain files"
+       if [[ $1 == *"$fileType"* ]];
+       then
+       cd "$currentWebdir"
+       for m in `find . -type f -name '*ENT_VASSDRSE00_*_VAS.cdr' -printf "%f\n" | cut -d"_" -f5 | cut -c1-10 | sort | uniq`;do
+       dd=${m:0:2}
+       mm=${m:2:2}
+       yy=${m:4:4}
+       tt=${m:8:2}
+       DateHour=$yy$mm$dd$tt
+       FILE_PATTERN="ENT_VASSDRSE00_"$m
+       fileList=`ls *$FILE_PATTERN*_VAS.cdr`
+       fileCount=`ls *$FILE_PATTERN*_VAS.cdr | wc -l`
+       echo "File Picked of the following pattern"$fileList
+       echo "Total No of files picked:"$fileCount
+       for i in $fileList;do
+       if [ ! -s $i ];
+       then
+	   continue
+       fi
+       chmod 777 $i
+       str1="${i##*/}"
+       fileName=$i
+      cat "${fileName}"
+      mv $i "$backupCdr"
+      done > output_file
+      finalFileName=ENT_VASSDRSE00_"$DateHour""$sysdate".cdr.tmp
+      mv output_file $finalFileName
+      NAME=$finalFileName
+      lf=`head -1 $NAME`
+      ln=`tail -2 $NAME | head -1`
+      j=`echo $lf | cut -d \| -f 18`
+      h2=`echo $ln | cut -d \| -f 18`
+      echo "j="$j
+      echo "h2="$h2
+      yy=`echo $j | cut -c 1-4`
+      mm=`echo $j | cut -c 5-6`
+      dd=`echo $j | cut -c 7-8`
+      tm=`echo $j | cut -c 9-14`
+      wd=`wc -l $NAME`
+      wd=`echo $wd| cut -d " " -f 1`
+      if [ "$wd" != "0" ]; then
+      echo "WC ="$wd
+      sed -i '1i\'"80|$j" $NAME
+      yye=`echo $h2 | cut -c 1-4`
+      mme=`echo $h2 | cut -c 5-6`
+      dde=`echo $h2 | cut -c 7-8`
+      tme=`echo $h2 | cut -c 9-14`
+      echo "90|$wd|$h2">>$NAME
+      fi
+      echo "Final consolidated file after merging the above listed files is="$finalFileName
+      mv $finalFileName "$destinationWebDir"
+      done
+      elif [[ $1 == *"$fileTypeDig"* ]];
+      then
+      cd "$currentWebdir"
+       for m in `find . -type f -name '*ENT_SDRSE00_*_DIG.cdr' -printf "%f\n" | cut -d"_" -f5 | cut -c1-10 | sort | uniq`;do
+       dd=${m:0:2}
+       mm=${m:2:2}
+       yy=${m:4:4}
+       tt=${m:8:2}
+	   DateHour=$yy$mm$dd$tt
+       FILE_PATTERN="ENT_SDRSE00_"$m
+       fileList=`ls *$FILE_PATTERN*_DIG.cdr`
+       fileCount=`ls *$FILE_PATTERN*_DIG.cdr | wc -l`
+       echo "File Picked of the following pattern ="$fileList
+       echo "Total No of files picked:"$fileCount
+       for i in $fileList;do
+       if [ ! -s $i ];
+       then
+       continue
+      fi
+      #echo "File picked for consolidation:$i "
+      chmod 777 $i
+       str1="${i##*/}"
+       fileName=$i
+      cat "${fileName}"
+      mv $i "$backupCdr"
+      done > output_file
+      finalFileName=ENT_SDRSE00_"$DateHour""$sysdate".cdr.tmp
+      mv output_file $finalFileName
+      #echo " Final Consolidated File after Merging:$finalFileName"
+      NAME=$finalFileName
+      lf=`head -1 $NAME`
+      ln=`tail -2 $NAME | head -1`
+      j=`echo $lf | cut -d \| -f 18`
+      h2=`echo $ln | cut -d \| -f 18`
+      echo "j="$j
+      echo "h2="$h2
+      yy=`echo $j | cut -c 1-4`
+      mm=`echo $j | cut -c 5-6`
+      dd=`echo $j | cut -c 7-8`
+      tm=`echo $j | cut -c 9-14`
+      wd=`wc -l $NAME`
+      wd=`echo $wd| cut -d " " -f 1`
+      if [ "$wd" != "0" ]; then
+      echo "WC ="$wd
+      sed -i '1i\'"80|$j" $NAME
+      yye=`echo $h2 | cut -c 1-4`
+      mme=`echo $h2 | cut -c 5-6`
+      dde=`echo $h2 | cut -c 7-8`
+      tme=`echo $h2 | cut -c 9-14`
+      echo "90|$wd|$h2">>$NAME
+      fi
+      echo "Final consolidated file after merging the above listed files is="$finalFileName
+      mv $finalFileName "$destinationWebDir"
+      done
+      fi
+      else
+      echo "directory is empty no more files are present"
+      fi
+  }
+
+ moveEnterpriseToNAS()
+ {
+      FILE_PATTERN=""
+      fileType="VAS"
+      fileTypeDig="DIG"
+      if [[ $1 == *"$fileType"* ]];
+        then
+             FILE_PATTERN="ENT_VASSDRSE00_"
+         echo "Valid File Pattern"
+        elif [[ $1 == *"$fileTypeDig"* ]];
+        then
+             FILE_PATTERN="ENT_SDRSE00_"
+           echo "Valid File Pattern"
+        else
+            echo "Invalid File Pattern"
+             return 0
+        fi
+      echo $FILE_PATTERN
+      source "/home/mbas/BackEndProcess/config/loggerENTConstants.txt"
+      currentNasSDR="$destinationSdrLocation"
+      destinationNASsdr="$nasDestinationdir"
+      backupSdrFile="$backupSdrFilePath"
+     # if [ ${#files[@]} -gt 0 ];
+       var=`date`
+       echo $var
+       if [ "$(ls -A $currentNasSDR)" ];
+      then
+      echo "File present in the Source directory is a non empty file"
+      cd "$currentNasSDR"
+      for file in `ls $FILE_PATTERN*.tmp`
+      do
+      filename=`echo $file | rev | cut -f 2- -d '.' | rev`
+      NAME=$file
+      mv $NAME $filename
+      chmod 755 $filename
+      sshpass -p "dbillse@123" scp -r $filename mbas@10.135.25.55:"$destinationNASsdr"
+      if [ $? -ne 0 ];
+      then
+      echo "File $filename transfer Failed to Nas location"
+      else
+      echo "File $filename Successfully transferred to NAS location"
+      fi
+      #cp $filename "$destinationNASsdr"
+      mv $filename "$backupSdrFile"$filename.PLL
+      done
+      else
+      echo "File present in the Source directory is an empty file"
+      fi
+ }
+   #check if process already running
+   echo "Argument Passed at commandLine is: $1"
+   filebased_logger $1 RET
+   #dbFilebased_logger $1 RET
+   mergeSDRfiles $1
+   moveToNAS $1
+   filebased_logger $1 ENT
+   #dbFilebased_logger $1 ENT
+   mergeEnterpriseSDRfiles $1
+   moveEnterpriseToNAS $1

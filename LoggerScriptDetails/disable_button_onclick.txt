@@ -1,0 +1,34 @@
+<h3>Form</h3>
+<form action='' id='theform' >
+<div class='row'>
+    <div class="form-group col-md-4">
+            <label for="name">Name:</label>
+            <input type='text' name='name' class='form-control'/>
+    </div>
+</div>  
+<div class='row'>
+    <div class="form-group col-md-4">
+            <label for="email">Email:</label>
+            <input type='text' name='email' class='form-control'/>
+    </div>
+</div>  
+<div class='row'>
+    <div class="form-group col-md-4">
+         <input class='btn btn-primary pull-right' type="button" value="Submit" id='btnsubmit' />   
+    </div>
+</div>
+</form>
+
+
+$(function()
+{
+  $('#btnsubmit').on('click',function()
+  {
+    $(this).val('Please wait ...')
+      .attr('disabled','disabled');
+    $('#theform').submit();
+  });
+  
+});
+
+PO_invoice_@123bizlem

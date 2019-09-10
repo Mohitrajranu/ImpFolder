@@ -1,0 +1,238 @@
+****************************************************************************************************************************************************************
+export DOCKER_HOST=unix:///private/var/tmp/docker.sock
+
+export DOCKER_HOST=tcp://192.168.99.100:2376
+Docker Container Credentials:
+DockDevMohit ---username dockdevmohit
+B!z|e/\/\@d^^!n-------password.
+mohit.raj@bizlem.com-email
+
+dockhubRepoProj--Repo Name
+docker build -t dockdevmohit/docapiconversionrepo .
+docker pull dockdevmohit/docapiconversionrepo
+docker run -d -p 8078:8078 dockdevmohit/docapiconversionrepo
+
+docker build -t dockdevmohit/dockhubrepoproj .
+docker push dockdevmohit/dockhubrepoproj
+docker pull dockdevmohit/dockhubrepoproj
+docker run -d -p 8078:8078 dockdevmohit/dockhubrepoproj
+<docker.image.prefix>hello-howtodoinjava</docker.image.prefix>
+Example:https://howtodoinjava.com/docker/docker-hello-world-example/
+
+(1) Set up the docker repository
+
+sudo apt-get update
+sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+(2) Install Docker CE
+
+sudo apt-get update
+sudo apt-get install docker-ce
+(3) Verify the installation
+
+sudo docker run hello-world
+################################################################################################################################################################
+https://medium.freecodecamp.org/how-to-setup-log-rotation-for-a-docker-container-a508093912b2
+
+The default logging driver
+We can configure different logging drivers for containers. By default, the stdout and stderr of the container are written in a JSON file located in /var/lib/docker/containers/[container-id]/[container-id]-json.log. If you leave it unattended, it can take up a large amount of disk space, as shown below.
+
+Purge the log manually
+If this JSON log file takes up a significant amount of the disk, we can purge it using the following command.
+
+truncate -s 0 <logfile>
+Setup the log rotation
+Configure the default logging driver
+This can be done by adding the following values in /etc/docker/daemon.json. Create this file if it doesn’t exist.
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "10"
+  }
+}
+***************************************************************************************************************************************************************
+Add the EPEL Repository
+Docker is part of Extra Packages for Enterprise Linux (EPEL), which is a community repository of non-standard packages for the RHEL distribution. First, we’ll install the EPEL repository:
+
+rpm -iUvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+
+Then, as a matter of best practice, we’ll update our packages:
+
+yum update -y
+
+Installation
+Now let’s install Docker by installing the docker-io package:
+
+yum -y install docker-io
+
+Once the installation completes, we’ll need to start the Docker daemon:
+
+service docker start
+
+And finally, and optionally, let’s configure Docker to start when the server boots:
+
+chkconfig docker on
+
+Download a Docker Container
+Let’s begin using Docker! Download the centos Docker image:
+
+docker pull centos
+
+Run a Docker Container
+Now, to setup a basic centos container with a bash shell, we just run one command. docker run will run a command in a new container, -i attaches stdin and stdout, -t allocates a tty, and we’re using the standard fedora container.
+
+docker run -i -t centos /bin/bash
+
+That’s it! You’re now using a bash shell inside of a centos docker container.
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+docker-machine ip---
+
+
+mvn clean install dockerfile:build to create docker image.
+
+
+docker run -d -p 8878:9078 dockdevmohit/postgresdata_api_v1
+
+docker run -p 8878:9078 -t hello-howtodoinjava/hello-docker  --name hello-docker-image
+
+docker run -p 8078:8078 -t document-conversionapi/doc-conversion-api
+
+
+Here the option -p 8080:9080 is important. It says that expose port 8080 for internal port 9080. Remember our application is running in port 9080 inside docker image and we will access that in port 8080 from outside Docker container.
+
+Now access the application with URL http://192.168.99.100:8078/hello/sajal. Notice that the browser output is same as output of standalone REST API on localhost.
+
+Two ways to stop running a container:
+
+1. $docker stop container_ID
+
+2. $docker kill container_ID
+You can get running containers using the following command:
+
+3. docker rm $(docker ps -a -q)
+
+$docker ps
+
+Find your stopped container id
+docker ps -a
+Commit the stopped container:
+This command saves modified container state into a new image user/test_image
+
+docker commit $CONTAINER_ID user/test_image
+Start/run with a different entry point:
+docker run -ti --entrypoint=sh user/test_image
+
+################################################################################################################################################################
+Deploy Java Spring server with Docker container
+I am deploying a Java Spring server using Docker. Here are the steps:
+
+1. Launch a ubuntu server
+In this demo, assume you have a server launched with ubuntu 14.04. Install docker via APT repository:
+
+$ sudo apt-get update
+$ sudo apt-get install apt-transport-https ca-certificates
+$ sudo apt-key adv — keyserver hkp://p80.pool.sks-keyservers.net:80 — recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+Open /etc/apt/sources.list.d/docker.list with your favorite editor and add this line:
+
+deb https://apt.dockerproject.org/repo ubuntu-trusty main
+Install docker in the server as follow:
+
+$ sudo apt-get update
+$ sudo apt-get install docker-engine
+$ sudo service docker start
+2. Build Docker image
+Login to Docker hub (https://hub.docker.com/) and create a new repository. Then in your terminal,
+
+$ docker login
+with your username and password.
+
+In your local development Java spring folder, create a Dockerfile like this:
+
+FROM frolvlad/alpine-oraclejdk8:slim
+VOLUME /tmp
+ADD target/fleet-beacon*.jar app.jar
+EXPOSE 8080
+RUN sh -c ‘touch /app.jar’
+ENTRYPOINT [“java”, “-jar”,”/app.jar”]
+And build the image:
+
+$ docker build -t username/repo-name .
+*where -t stands for tag, 
+*replace username and repo-name with your namespace. 
+*also don’t forget the dot .
+
+Push the image to your remote repository:
+
+$ docker push username/repo-name
+3. Pull the docker image
+In your remote ubuntu server, docker login and pull the image:
+
+$ docker pull username/repo-name
+Run it in the background
+
+$ docker run -d -p 8080:8080 username/repo-name
+*where -d means detached, 
+*-p means publish all exposed ports to the host interfaces, for example 8080 to 8080.
+
+4. Nginx setup
+With the vim editor, open the file in /etc/nginx/sites-available/default, and edit as follow
+
+server {
+ listen 80 default_server;
+ listen [::]:80 default_server ipv6only=on;
+ root /usr/share/nginx/html;
+ index index.html index.htm;
+ server_name localhost;
+location / {
+  proxy_set_header X-Forwarded-Host $host;
+  proxy_set_header X-Forwarded-Server $host;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_pass http://localhost:8080/;
+}
+Exit and save with :wq! that’s it. Open a browser and point to your remote server IP, you should be able to see the Java Spring page running.
+
+5. Troubleshooting
+Sometimes if you encounter a problem with the daemon connection:
+
+Cannot connect to the Docker daemon. Is the docker daemon running on this host?
+Run the command:
+
+$ eval $(docker-machine env default)
+If your are testing locally and couldn’t find your IP address, try this command to find the IP:
+
+$ docker-machine ls
+Leave a comment below if you encounter other issues as well.
+
+########################################################################################################################
+docker pull apache/sling
+docker run -d -p 8096:8080 --name my-sling-container apache/sling
+http://35.221.160.146:8096/bin/browser.html/
+http://35.221.160.146:8096/starter/index.html
+########################################################################################################################
+[root@localhost ~]# yum -y update kernel
+Loaded plugins: fastestmirror, presto
+Loading mirror speeds from cached hostfile
+ * base: ftp.crc.dk
+...
+Dependency Updated:
+  dracut.noarch 0:004-388.el6    dracut-kernel.noarch 0:004-388.el6    dracut-network.noarch 0:004-388.el6    kernel-firmware.noarch 0:2.6.32-573.12.1.el6   
+
+Complete!
+[user@localhost ~]$ reboot
+...
+[user@localhost ~]$ uname -r
+2.6.32-573.12.1.el6.x86_64
+[user@localhost ~]$ docker run hello-world
+
+Hello from Docker.
+########################################################################################################################
+
+server.port=8089
+server.ssl.enabled=true
+server.ssl.key-store=src/main/resources/keystore.p12
+server.ssl.key-store-password=****
+server.ssl.keyStoreType=PKCS12
+server.ssl.keyAlias=tomcat << This should be the alias of yourfile.12 if you have forgotten just create a new one and replace it>>

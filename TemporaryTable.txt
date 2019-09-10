@@ -1,0 +1,44 @@
+create or replace PROCEDURE updateJioSecurityPlan(p_skuId IN T_D_CNF_PLAN_MASTER.TONE_TYPE%TYPE,p_offerId IN T_D_CNF_OFFER_PLAN.OFFER_ID%TYPE,rec_Count OUT NUMBER)
+ 
+ 
+SELECT COUNT(1) INTO rec_Count FROM T_SUB_SERVICE_INFO;
+ 
+ 
+CREATE TABLE "T_SUB_SERVICE_INFO_DIG_REN"
+   (           "SUBSCRIPTION_ID" VARCHAR2(60 BYTE),
+                "MSISDN" VARCHAR2(100 BYTE) NOT NULL ENABLE,
+                "SERVICE_ID" VARCHAR2(30 BYTE) NOT NULL ENABLE,
+                "SERVICE_TYPE" VARCHAR2(20 BYTE) NOT NULL ENABLE,
+                "CATEGORY" VARCHAR2(30 BYTE) NOT NULL ENABLE,
+                "CONTENT_ID" VARCHAR2(30 BYTE) NOT NULL ENABLE,
+                "SUBS_TYPE" NUMBER,
+                "REGION_CODE" VARCHAR2(15 BYTE),
+                "AUTO_RENEW" CHAR(1 BYTE),
+                "OFFER_ID" VARCHAR2(32 BYTE),
+                "PLAN_ID" VARCHAR2(32 BYTE),
+                "REQ_PLAN_ID" VARCHAR2(32 BYTE),
+                "REQ_NEXT_PLAN_ID" VARCHAR2(32 BYTE),
+                "CRM_ID" VARCHAR2(50 BYTE),
+                "CUST_SERVICE_ID" VARCHAR2(50 BYTE),
+                "BEARER_ID" VARCHAR2(10 BYTE),
+                "SERVICE_NODE" VARCHAR2(20 BYTE) NOT NULL ENABLE,
+                "TRXN_ID" VARCHAR2(60 BYTE) NOT NULL ENABLE,
+                "CUST_STATUS" CHAR(1 BYTE),
+                "LANGUAGE_ID" VARCHAR2(10 BYTE),
+                "CHARGING_AMOUNT" FLOAT(10),
+                "LINKED_SERVICE_ID" VARCHAR2(30 BYTE),
+                "LINKED_SERVICE_TYPE" VARCHAR2(30 BYTE),
+                "OPERATION" VARCHAR2(3 BYTE),
+                "CALLED_PARTY" VARCHAR2(20 BYTE),
+                "PRODUCT_ORDER_ID" VARCHAR2(50 BYTE),
+                "MODE_OF_PAYMENT" VARCHAR2(100 BYTE),
+                "SERVICE_GROUP" VARCHAR2(32 BYTE),
+                "PARAM1" VARCHAR2(50 BYTE),
+                "PARAM2" VARCHAR2(50 BYTE),
+                "PARAM3" VARCHAR2(50 BYTE),
+                "PARAM4" VARCHAR2(50 BYTE),
+                "PARAM5" VARCHAR2(50 BYTE),
+                "RENEWAL_DATE" DATE NOT NULL ENABLE,
+                "SERVICE_PRIORITY" NUMBER,
+                "GIFTER" VARCHAR2(20 BYTE),
+                 CONSTRAINT "T_SUB_SERVICE_INFO_DIG_REN_PK" PRIMARY KEY ("SUBSCRIPTION_ID"));

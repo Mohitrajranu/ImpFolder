@@ -1,0 +1,62 @@
+<Connector port="8082" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" />
+
+###############################%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+<Connector port="8082" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" maxThreads="350" minSpareThreads="35"
+               maxSpareThreads="70" compression="on" compressableMimeType="text/html,text/xml,text/plain"
+     />
+
+##############################****************************************$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+man logrotate
+/home/vil/sling\ tomcat/apache-tomcat-6.0.35/logs/catalina.out {   copytruncate   daily   rotate 7   compress   missingok   size 5M  }
+
+
+Create this file
+
+/etc/logrotate.d/tomcat
+2. Copy the following contents into the above file
+
+/var/log/tomcat/catalina.out {   copytruncate   daily   rotate 7   compress   missingok   size 5M  }
+ 
+
+About the above configuration:
+
+Make sure that the path /var/log/tomcat/catalina.out above is adjusted to point to your tomcat’s catalina.out
+daily - rotates the catalina.out daily
+rotate – keeps at most 7 log files
+compress – compressesthe rotated files
+size – rotates if the size of catalina.out is bigger than 5M
+You don’t need to do anything else.
+
+How it works
+Every night the cron daemon runs jobs listed in the /etc/cron.daily/ directory
+This triggers the /etc/cron.daily/logrotate file which is generally shipped with linux installations. It runs the command “/usr/sbin/logrotate /etc/logrotate.conf“
+The /etc/logrotate.confincludes all scripts in the/etc/logrotate.d/ directory.
+This triggers the /etc/logrotate.d/tomcat file that you wrote in the previous step.
+Run logrotate manually
+Run the following command to run the cron job manually
+
+/usr/sbin/logrotate /etc/logrotate.conf
+More logrotate options
+To see all logrotate options on your system, see the manual:
+
+man logrotate
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+#!/bin/sh
+
+find . -name 'catalina.*.log' -mtime +2 -print0 | xargs -0 rm -f
+
+find . -name 'localhost_access_log.*.txt' -mtime +2 -print0 | xargs -0 rm -f
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Using rotatelogs
+
+/usr/sbin/rotatelogs
+
+2>&1 |/usr/sbin/rotatelogs "$CATALINA_BASE/logs/catalina.out" 86400 &

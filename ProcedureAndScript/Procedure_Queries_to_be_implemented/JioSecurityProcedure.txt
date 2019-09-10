@@ -1,0 +1,53 @@
+create or replace PROCEDURE updateJioSecurityTest
+
+/*
+ *  Copyright(c) 2017, Mahindra Comviva Pvt. Ltd.
+ *  All Rights Reserved
+ *  Procedure to Update Jio Security Offer
+ *  -----------------------------------------------------------------------------
+ *  Author              Date            History
+ *  -----------------------------------------------------------------------------
+ *  Mohit Raj       27/07/2017         Update Jio Security Offer
+ *  -----------------------------------------------------------------------------
+ */
+AS
+  p_planId  t_sub_callback_retry.plan_id%TYPE;
+  p_validity  t_sub_callback_retry.validity_days%TYPE;
+  p_msisdn t_sub_callback_retry.calling_party%TYPE;
+  p_subscriptionId t_sub_callback_retry.subscription_id%TYPE;
+  p_serviceType t_sub_callback_retry.service_type%TYPE;
+  p_bearerId t_sub_callback_retry.bearer_id%TYPE;
+  p_lifecycleId t_sub_callback_retry.lifecycle_id%TYPE;
+  p_subType t_sub_callback_retry.subs_type%TYPE;
+  p_serviceId t_sub_callback_retry.service_id%TYPE;
+  p_createdOn t_sub_callback_retry.created_on%TYPE;
+  p_orn t_sub_callback_retry.product_order_id%TYPE;
+  v_count number DEFAULT 1234567;
+  CURSOR updt_subId IS
+    Select PM.PLAN_ID as PLAN_ID ,  PL.VALIDITY as VALIDITY, PM.TONE_TYPE as TONE_TYPE ,SI.MSISDN as MSISDN,SI.PRODUCT_ORDER_ID as PRODUCT_ORDER_ID,
+    SI.SERVICE_TYPE as SERVICE_TYPE,SI.SERVICE_ID as SERVICE_ID,PL.LIFECYCLE_ID as LIFECYCLE_ID,SI.CREATED_ON as CREATED_ON,SI.SUBSCRIPTION_ID as SUBSCRIPTION_ID,SI.SUBS_TYPE as SUBS_TYPE,SI.BEARER_ID as BEARER_ID
+    from T_D_CNF_PLAN_LIFECYCLE PL INNER JOIN T_D_CNF_PLAN_MASTER PM ON PL.LIFECYCLE_ID = PM.LIFECYCLE_ID and PM.TONE_TYPE = '21359945'
+    INNER JOIN T_SUB_SERVICE_INFO SI ON SI.PLAN_ID = PM.PLAN_ID;
+    sub_id updt_subId%rowtype;
+    BEGIN
+        FOR sub_id IN updt_subId
+        LOOP
+        p_planId := sub_id.plan_id;
+        p_validity := sub_id.validity;
+        p_msisdn := sub_id.msisdn;
+        p_subscriptionId := sub_id.subscription_id;
+        p_serviceType := sub_id.service_type;
+        p_lifecycleId := sub_id.lifecycle_id;
+		    p_subType := sub_id.subs_type;
+        p_bearerId := sub_id.bearer_id;
+        p_orn := sub_id.product_order_id;
+        p_serviceId := sub_id.service_id;
+        p_createdOn := sub_id.created_on;
+        
+        insert into T_SUB_CALLBACK_RETRY_MOHIT ("COMMAND_TYPE","OPERATION","CUST_STATUS","PLAN_ID","VALIDITY_DAYS","PRODUCT_ORDER_ID","CALLING_PARTY","REQUEST_NO","SERVICE_TYPE","SERVICE_ID",
+"CREATED_ON","SUBS_TYPE","BEARER_ID","LIFECYCLE_ID","SEQUENCE_NO") values ('ACT','SN','A',p_planId,p_validity,p_orn,p_msisdn,v_COUNT,p_serviceType,p_serviceId,p_createdOn,p_subType,p_bearerId,p_lifecycleId,p_orn);
+        COMMIT;
+        v_COUNT := v_COUNT + 1;
+        END LOOP;
+       DBMS_OUTPUT.PUT_LINE(v_COUNT);
+    END;

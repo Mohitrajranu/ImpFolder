@@ -1,0 +1,31 @@
+http://www.linuxunixworld.com/2010/07/step-by-step-configuring-svn-server-in-linux/?i=1
+
+
+
+InputFile Path :: https://sf.deeprootsurface.com/plans/DRZ494901.pdf
+OutputFile Path :: /home/ubuntu/apache-tomcat-8.5.31/webapps/ROOT/images/qrcode/DRZ494901.pdf
+
+http://35.236.226.129:18080/svn/ApplicationNew/
+Username - atul
+Password - a3t2u1l
+
+AuctionServices/---done
+BizlemApp/---done
+Exhibition/---done
+ServiceConsumption/---done
+social/BloggerService/
+social/FileUpload/
+social/Gallery/
+social/LoginDWR/
+social/Poll/
+social/ShareContent/
+social/ShiroService/
+social/SocialMessage/
+social/UserService/
+social/activeMQ/
+social/cas/
+social/docConverter/
+social/mailPlatform/
+social/rave/
+social/service.logging/
+social/socialauth/

@@ -1,0 +1,180 @@
+http://35.188.243.203:8080/jbpm-console/kie-wb.jsp
+
+Username - kieserver
+Password - kieserver1!
+
+Username - hemant
+password - hemant
+
+for putty:
+Username : jbpm
+passowrd : jbpm
+
+#####################################################################################################################################
+Java_Home::/usr/lib/jvm/java-1.8.0
+
+
+server details : 35.186.166.22 , username : root, password : B1!4z5L$e#m@Or#@GIn
+/home/ubuntu/apache-tomcat-8.5.31
+
+1.8.0_191
+/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.191.b12-0.el6_10.x86_64
+how to start the server 
+cd /home/vil/sling\ tomcat/apache-tomcat-6.0.35/bin/
+./startup.sh
+
+cd /home/vil/cas\ Server/apache-tomcat-6.0.35/bin/
+./startup.sh
+
+cd /home/vil/rave\ Server/apache-rave-0.14-bin/bin/
+./startup.sh
+
+/etc/init.d/red5 status
+/etc/init.d/red5 start
+service openfire restart
+
+
+cd /home/vil/openfire/apache-tomcat_openfire-7.0.40/bin
+./startup.sh
+cd /home/vil/chatnodejs
+forever start ipaddr.js
+forever start server.js
+forever start save.js
+sudo service mongod start
+
+
+################################################Server Details#####################################################
+35.186.166.22
+ubuntu 
+B!zL3M786
+
+<role rolename="manager-gui"/>
+<user username="admin" password="B!z|e/\/\@d^^!n" roles="standard,manager-gui,manager-script"/>
+
+http://download.forge.ow2.org/spagobi/All-In-One-SpagoBI-5.1.0-r24688.zip
+
+
+35.221.0.187-----------------------sameas---------------------35.221.253.98
+
+35.221.245.31
+
+35.236.248.68
+root
+B1!4z5L$e#m@Or#@GIn
+http://35.186.166.22:8082/portal/servlet/service/FocusedProduct.focusedproduct
+
+
+35.221.183.246
+ubuntu 
+B!zL3M786
+################################################Sling Details#####################################################
+http://35.186.166.22:8082/portal/.explorer.html#
+
+http://35.221.0.187:8082/portal/bin/browser.html/content
+
+http://35.186.166.22:8082/portal/system/console/bundles
+
+35.221.0.187
+ubuntu
+B!zL3M786
+
+###############Main Server######################
+35.221.160.146
+root
+B!zL3M786
+http://35.221.160.146:3000
+
+du -sh * | sort -hr | head -n10
+
+find . -type f -mtime +2 -name '*.log' -print0 | xargs -r0 rm --
+
+Restart the SpagoBI server, login into the server at http://localhost:8080/SpagoBI/ with biadmin / biadmin
+################################################
+redmine
+ip-35.199.1.166
+username-ubuntu
+pass-B1!4z5L$e#m@Or#@GIn
+################################################
+
+svn server
+  35.186.185.236
+username - ubuntu
+use bugzilla_svn.ppk
+
+svnadmin create carrotrule_uat_code
+cd /var/lib/svn
+sudo /etc/init.d/apache2 start
+service apache2 status
+cd /etc/apache2
+
+http://35.186.185.236/svn/repos/
+
+http://35.186.185.236/svn/
+
+cd /etc/apache2/sites-available
+vim MailTangyRepo.conf
+<Location /svn>
+  DAV svn
+  SVNParentPath /var/lib/svn/
+  AuthType Basic
+  AuthName "RESTFUL_SERVICES"
+  AuthUserFile /etc/svnpasswd
+  Require valid-user
+ </Location>
+
+ tejal:$apr1$StihMTJB$vZ/JZSU9KZBifTUTy7JxK1
+ amol:$apr1$rpM.yrcW$n1NDpsVVlnOI4P1SdK0DW/
+ 
+ 
+ 
+ [users]
+mohit = mohitsecret
+
+
+Step 1 » Issue the below command to update the repositories.
+sudo apt-get update
+
+Step 2 » After updating repositories , Issue the below command to install SVN and apache webserver (To access SVN through http ) .
+sudo apt-get install subversion apache2 libapache2-svn apache2-utils
+
+Step 3 » Now create a directory and create a new repository in that directory ( Here i’m using testrepo as repository name ).
+sudo mkdir -p /svn/repos/
+sudo svnadmin create /svn/repos/testrepo
+
+Step 4 » Now change ownership for the repository.
+sudo chown -R www-data:www-data /svn/repos/testrepo
+
+Step 5 » Create a file testrepo.conf in /etc/apache2/sites-available/ and add the below lines for creating apache virtual host.
+
+
+<Location /svn>
+  DAV svn
+  SVNParentPath /svn/repos/
+  AuthType Basic
+  AuthName "Test Repo"
+  AuthUserFile /etc/svnpasswd
+  Require valid-user
+ </Location>
+
+SVNParentPath /svn/repos/ : Parent Directory without repository name.
+AuthUserFile /etc/svnpasswd : File need to be created ( Step 8) for user details.
+
+Step 6 » Issue the below command to enable the Site ( testrepo in the below command should match the file name created in the previous step )
+sudo a2ensite testrepo
+
+Step 7 » Now restart or reload apache service.
+sudo service apache2 reload
+
+Step 8 » Issue the command to create user for accessing repository and add the user details to /etc/svnpasswd file.
+Use this command to create first user.
+sudo htpasswd -cm /etc/svnpasswd user1
+
+Use the same command without c option to create additional users.
+sudo htpasswd -m /etc/svnpasswd user2
+
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Logging Files $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+https://www.codejava.net/coding/how-to-initialize-log4j-for-java-web-application
+ 

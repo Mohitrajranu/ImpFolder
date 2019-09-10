@@ -1,0 +1,33 @@
+select * from T_SUB_SERVICE_INFO where SERVICE_TYPE='Z0026' and SERVICE_ID='CRBT';
+update T_SUB_SERVICE_INFO set parent_subscription_id =null where SERVICE_TYPE='Z0026' and SERVICE_ID='TONE';
+commit;
+select * from T_SUB_SERVICE_INFO where SERVICE_TYPE='Z0026' and SERVICE_ID='TONE';
+
+Step1-Create Procedure
+CREATE OR REPLACE PROCEDURE update_parentSubId
+AS
+  parent_customerService_id t_sub_service_info.parent_subscription_id%TYPE;
+  v_count number DEFAULT 0;
+  CURSOR updt_subId IS
+    select cust_service_id,subscription_id from T_SUB_SERVICE_INFO where service_id='TONE' and SERVICE_TYPE='Z0026' and PARENT_SUBSCRIPTION_ID is null;
+    sub_id updt_subId%rowtype;
+    
+   CURSOR updt_pId IS
+   select cust_service_id,subscription_id from T_SUB_SERVICE_INFO where service_id='CRBT' and SERVICE_TYPE='Z0026' and CUST_SERVICE_ID = parent_customerService_id;
+    psub_id updt_pId%rowtype;
+    BEGIN
+        FOR sub_id IN updt_subId
+        LOOP
+        parent_customerService_id := sub_id.cust_service_id;
+          FOR psub_id IN updt_pId
+        LOOP
+        v_COUNT := v_COUNT + 1;
+          update T_SUB_SERVICE_INFO set PARENT_SUBSCRIPTION_ID = psub_id.subscription_id where SERVICE_ID='TONE' and SERVICE_TYPE='Z0026' and PARENT_SUBSCRIPTION_ID is null and CUST_SERVICE_ID=parent_customerService_id;
+          COMMIT;
+          END LOOP;
+        END LOOP;
+       DBMS_OUTPUT.PUT_LINE(v_COUNT);
+    END;
+    /
+Step2-EXECUTE the above stored procedure by executing the below command.	
+EXECUTE update_parentSubId;

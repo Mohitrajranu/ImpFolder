@@ -1,0 +1,130 @@
+private DbillErrorCodes processPlatformProvision(TSubCallbackRetry mTSubCallbackRetry) {
+		String reqXmlStr = null;
+		String urlStr = null;
+		DbillErrorCodes mDbillErrorCodes = null;
+        try {
+			reqXmlStr = this.generateCallbackProvRequest(mTSubCallbackRetry);
+			//change url string after getting dbill config properties file
+			urlStr = DatasbaseProperties.getInstance().getProperty("dbillURL")+ "serviceNode="+ mTSubCallbackRetry.getServiceNode();
+			logger.info("processPlatformProvision(): URL is =" + urlStr);
+			mDbillErrorCodes = this.sendHttpCallBack(urlStr, reqXmlStr, mTSubCallbackRetry);
+		} catch (Exception ex) {
+			logger.error("processPlatformProvision() : exception while making a entry into cdr "+ ex.getMessage());
+			ex.printStackTrace();
+		} finally {
+			if (mTSubCallbackRetry != null) {
+				mTSubCallbackRetry = null;
+			}
+			logger.info("processPlatformProvision() : finally Exit.");
+		}
+
+		return mDbillErrorCodes;
+	}
+
+public DbillErrorCodes sendHttpCallBack(String p_url, String requestStr ,TSubCallbackRetry pSubCallbackRetry) {
+		logger.info("sendHttpCallBack() : enter.");
+
+		URL url = null;
+		HttpURLConnection urlConn = null;
+		PrintWriter _out = null;
+		int httpStatus = 0;
+		urlConn = null;
+		BufferedReader _in = null;
+		StringBuffer buffer = null;
+		String responseStr = null;
+		DbillErrorCodes mDbillErrorCodes = DbillErrorCodes.SERVICE_DENY;
+		String httpResult = null;
+		int retryCounter;
+		String requestNo = null;
+		String custStatus = null;
+        String modifiedBy = null;
+        String subscriptionId = null;
+		
+		try {
+			if (!Details1.isNullString(p_url)) {
+				url = new URL(p_url);
+				urlConn = (HttpURLConnection) url.openConnection();
+				urlConn.setConnectTimeout(10000);
+				urlConn.setReadTimeout(10000);
+				urlConn.setDoOutput(true);
+				urlConn.setRequestProperty("Content-Type", "text/xml");
+				urlConn.setDoInput(true);
+				urlConn.setRequestMethod("POST");
+				urlConn.setUseCaches(false);
+				urlConn.connect();
+
+				String msg = requestStr;
+
+				try {
+					_out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(urlConn.getOutputStream())),true);
+					_out.flush();
+					_out.println(msg);
+				} catch (Exception e) {
+					logger.error("sendHttpCallBack() : Exception at send request, Error="+ e.getMessage());
+					e.printStackTrace();
+				}
+
+				try {
+					httpStatus = urlConn.getResponseCode();
+					pSubCallbackRetry.setResponseCode(httpStatus+"");
+				} catch (Exception e) {
+					logger.error("sendHttpCallBack() : Exception at getResponseCode, Error="+ e.getMessage());
+					e.printStackTrace();
+				} finally {
+					logger.info("sendHttpCallBack() : httpStatus=" + httpStatus);
+					pSubCallbackRetry.setResponseCode(httpStatus+"");
+				}
+				if (httpStatus == 200) {
+					try {
+						_in = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					String response = null;
+					buffer = new StringBuffer();
+					while ((response = _in.readLine()) != null) {
+						buffer.append(response);
+					}
+					responseStr = buffer.toString();
+					logger.info("stringFromPlatform = responseStr="	+ responseStr);
+
+					mDbillErrorCodes = DbillErrorCodes.SERVICE_ALLOW;
+				} else {
+					mDbillErrorCodes = DbillErrorCodes.SERVICE_DENY;
+				}
+			} else {
+				mDbillErrorCodes = DbillErrorCodes.BLANK_CALLBACL_URL;
+			}
+		} catch (Exception e) {
+			logger.error("sendHttpCallBack() : Exception, Error="
+					+ e.getMessage());
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				if (_in != null)
+					_in.close();
+			} catch (Exception ex) {
+			}
+			try {
+				if (_out != null)
+					_out.close();
+			} catch (Exception ex) {
+			}
+			try {
+				if (url != null)
+					url = null;
+			} catch (Exception ex) {
+			}
+			try {
+				if (urlConn != null)
+					urlConn.disconnect();						
+				} catch (Exception ex) {
+			}
+
+			logger.info("sendHttpCallBack() : finally Exit, mDbillErrorCodes="
+					+ mDbillErrorCodes);
+		}
+		return mDbillErrorCodes;
+	}

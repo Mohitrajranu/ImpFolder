@@ -1,0 +1,9 @@
+Step1] Download Platform https://docs.camunda.org/enterprise/download/
+https://camunda.com/download/ --Open Source
+
+http://localhost:8095/camunda-welcome/index.html --camunda dashboard
+
+UserName and Password = demo.
+
+http://localhost:8095/camunda/app/cockpit/default/#/dashboard
+

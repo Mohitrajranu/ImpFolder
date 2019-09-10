@@ -1,0 +1,171 @@
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+  http://www.jjoe64.com/2014/01/apache-shiro-with-hibernatesql-full.html
+  
+  https://apereo.github.io/cas/4.2.x/integration/CAS-Clients.html
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Open git bash (Use the Windows search. To find it, type "git bash") or the Mac Terminal. Pro Tip: You can use any *nix based command prompt (but not the default Windows Command Prompt!)
+Type cd ~/.ssh. This will take you to the root directory for Git (Likely C:\Users\[YOUR-USER-NAME]\.ssh\ on Windows)
+Within the .ssh folder, there should be these two files: id_rsa and id_rsa.pub. These are the files that tell your computer how to communicate with GitHub, BitBucket, or any other Git based service. Type ls to see a directory listing. If those two files don't show up, proceed to the next step. NOTE: Your SSH keys must be named id_rsa and id_rsa.pub in order for Git, GitHub, and BitBucket to recognize them by default.
+To create the SSH keys, type ssh-keygen -t rsa -C "your_email@example.com". This will create both id_rsa and id_rsa.pub files.
+Now, go and open id_rsa.pub in your favorite text editor (you can do this via Windows Explorer or the OSX Finder if you like, typing open . will open the folder).
+Copy the contents--exactly as it appears, with no extra spaces or lines--of id_rsa.pub and paste it into GitHub and/or BitBucket under the Account Settings > SSH Keys. NOTE: I like to give the SSH key a descriptive name, usually with the name of the workstation I'm on along with the date.
+Now that you've added your public key to Github and/or BitBucket, try to git push again and see if it works. It should!
+
+git remote set-url origin git@github.com:fishercoder1534/Leetcode.git
+
+git config credential.helper
+########################################################################Git and Github Setup for configuring SVN################################################################
+1]https://git-scm.com/download/win download git on local machine.
+2]git help /git help -a list available git commands.
+3]clear for clearing screen ,git help -g list of available subcommands.
+4]git config --global --list
+5]git config --global user.name "Bizlem-Dev"
+6]git config --global user.email "abhishek.tayshete@bizlem.com"
+7]
+username-Bizlem-Dev
+pass-Danielalves@123
+
+8]curl -O https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh
+
+9]vi .bashrc
+. ~/git-prompt.sh
+export GIT_PS1_SHOWDIRTYSTATE=1
+export PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
+and then save the file by typing :x
+10]mkdir git-repos-home
+cd git-repos-home
+mkdir blank-repo ,cd blank-repo
+git init
+Initialized empty Git repository in C:/Users/Administrator/git-repos-home/blank-repo/.git/
+
+11]copy project from workspace and add it to your git-repos-home and go to cd project-repo, and issue the command git add .
+example:-[Administrator@DESKTOP-SF9QGCI git-repos-home]$ cd RESTfulExample/
+[Administrator@DESKTOP-SF9QGCI RESTfulExample (master #)]$ ls
+pom.xml  src/  target/
+[Administrator@DESKTOP-SF9QGCI RESTfulExample (master #)]$ git add .
+warning: LF will be replaced by CRLF in target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst.
+The file will have its original line endings in your working directory
+
+12]Commiting changes to repository
+git commit -m "Initial Commit"
+[master (root-commit) 5d88b6c] Initial Commit  //here 5d88b6c is the hashed commit id.
+ 1 file changed, 1 insertion(+)
+ create mode 100644 sample.txt
+
+ 
+ git commit -m "Initial Project imported"
+[master (root-commit) 60cb40e] Initial Project imported
+ 39 files changed, 444 insertions(+)
+
+13] Viewing the status on git issue the below command,
+ git status
+On branch master
+nothing to commit, working tree clean
+Note: git checkout -- <file> to discard changes in working directory.
+
+14]For add and commit issue command ,git commit -a -m "Third commit of the file"
+
+15]To go to the prevision version of the modified code instead of checkout we use reset command.
+git reset HEAD <file>
+
+16]Viewing history in the git repository.
+git log --oneline
+commit 60cb40eba9094fc30f1df8923df81ff8b6f546c1 (HEAD -> master)
+Author: Bizlem Dev <abhishek.tayshete@bizlem.com>
+Date:   Sat Oct 20 13:17:40 2018 +0530
+
+git log -n 3
+
+git log <filename>
+
+17]Creating branches 
+git branch test-feature-branch
+[Administrator@DESKTOP-SF9QGCI RESTfulExample (master)]$ git branch
+* master
+  test-feature-branch
+  
+18] git checkout test-feature-branch
+Switched to branch 'test-feature-branch'
+
+19]first go to master branch and then issue the below command:
+ git merge test-feature-branch
+
+ 20] git log --oneline --decorate
+60cb40e (HEAD -> master, test-feature-branch) Initial Project imported
+
+21] To delete a branch issue the below command:-
+git branch -d test-feature-branch
+
+##################################################################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&&&&&&&&&&&&&&&&&&&&&
+
+Setting Up GitHub
+
+1]git remote -v
+
+2]git remote add origin https://github.com/Bizlem-Dev/bizlem-repos-dev.git
+git push -u origin master /or you can also set any other branch but before that checkout to that particular branch.
+
+3]git pull ----------for taking out changes in the master/test repository.
+
+4]forking and cloning
+git clone https://github.com/Bizlem-Dev/Java.git
+[Administrator@DESKTOP-SF9QGCI Java (master)]$ git branch -a
+* master
+  remotes/origin/Development
+  remotes/origin/HEAD -> origin/master
+  remotes/origin/master
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&**************************************************************#################################################
+
+  5]Integrating with eclipse-----
+
+a] Eclipse already comes with git setup inbuilt, or else you can also add by going to help -> Install software -> Add ->  Egit and url as http://download.eclipse.org/egit/updates  
+
+b]Now customize perspective by going to Window->perspective->customize perspective ->enable git
+Window->Show View->Other->Git->Git Repositories and Git Staging.
+
+c]Now select a project , Team->Share Project->Git->Create local repository-> then enable navigator -> Go to bin delete .ignore file and then select the entire and add to ignore from bin.
+
+d]Select src,.classpath and .gitignore and add to index by right click Team.
+
+e]Commit by adding changes and in the local repository under branches go to master -> show in history.
+
+f]Now in local repository section ,select remote and ,configure remote github repository url in it. If repository is not created in github then first create the repository and after that configure it in remote in eclipse by selecting change.
+
+g]Now push in remote and select the apt src and destination by selecting advanced,
+
+Configure fetch from origin
+#####################################################################################################################################################################################
+h]For adding new file or modified file in the git repository ----------> select the modified/new file and add it to index,and then select option commit and push, to publish changes to remote github repository and 
+
+i]For cloning first configure your workspace as repository by going to Window->Preferences->Team->Git. then In the repository section select the cloning option paste the copied clone url and go ahead.
+
+j]For forked projects also it is similar to cloning.
+
+k]Making changes on Github repository and then pulling it to local repository. first select the project and in the repository section check it Remote Tracking and master branch id , then select the option fetch from upstream.
+
+l]Now for the selected project under the Git option -> select merge. and then let the default be as it is and click merge and finish.
+
+m] commit using stash , in an existing class add a method then go to Team->Stashes->Stash Changes -> ok, the method will disappear go to github repository and paste the code.
+---------------->>Team-Stash-process methods.Apply stashed changes.
+
+n]For creating branches ----go to local repository--> select project Repo -->Local -->click on master and create a new branch --> and enable commit changes.
+Now click on the branch and select ,push branch to upstream 
+
+o] To delete branch from github..,Select Team -->remote-->push->remove branch specs --> ok
+
+________________________________________________________________________________________________________________________________________________________________________________________
+_____________________________________________________________________________Merging with branches______________________________________________________________________________________
+
+checkout a local branch ,perform changes on it and then commit , Now checkout to a master branch in the local repository section right click on master and select merge option. After that push the branch to upstream.
+
+########################################################################################################################################################################################http://stgconsulting.com/running-automated-selenium-tests-from-jenkins-on-linux/
+########################################################################################################################################################################################
+git clone https://github.com/Bizlem-Dev/Python_Parser_Code.git
+Here is the step to clone the repo to anywhere:
+1. `git clone https://pexea12@bitbucket.org/pexea12/fup-info-extraction.git`
+2. `cd fup-info-extraction`
+3 (optional) If you want to use virtualenv, you can run `virtualenv venv` and `source venv/bin/activate`. Otherwise, move to step 4
+4. Install necessary libraries: `pip install -r requirements.txt`
+5. Done
+Here is the step

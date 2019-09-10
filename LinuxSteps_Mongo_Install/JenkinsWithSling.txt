@@ -1,0 +1,184 @@
+https://docs.mongodb.com/manual/tutorial/install-mongodb-enterprise-on-ubuntu/
+###########################################################################JdkInstallation###################################################################################
+Step 1: Add A Third Party PPA To Ubuntu
+The easiest way to install Oracle Java JDK 8 on Ubuntu is via a third party PPA… To add that PPA, run the commands below
+
+ sudo add-apt-repository ppa:webupd8team/java
+
+After running the commands above, you should see a prompt to accept the PPA key onto Ubuntu… accept and continue
+
+Continue below to install Java 8…
+
+Step 2: Download Oracle Java 8 Installer
+Now that the PPA repository has been added to Ubuntu, run the commands below to download Oracle Java 8 installer…. the installer should install the latest Java JDK 8 on your Ubuntu machines.
+
+sudo apt update
+sudo apt install oracle-java8-installer
+When you run the commands above you’ll be prompted to access the license terms of the software… accept and continue..
+
+Step 3: Configure Oracle JDK8 As Default
+Set Oracle JDK8 as default, to do that, install the oracle-java8-set-default package. This will automatically set the JAVA env variable.
+
+sudo apt install oracle-java8-set-default
+
+The command above will automatically set Java 8 as the default… and that should complete your installation, you can check you java version by running following command.
+javac -version
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+sudo apt-get remove --auto-remove maven
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Step 2 – Install Apache Maven on Ubuntu
+After verifying java version on your system. Download Apache maven from its official website or use following command to download Apache Maven 3.5.4.
+
+cd /usr/local
+wget http://www-eu.apache.org/dist/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.tar.gz
+Now extract downloaded archive using following command.
+
+sudo tar xzf apache-maven-3.5.4-bin.tar.gz
+sudo ln -s apache-maven-3.5.4 apache-maven
+Step 3 – Setup Environment Variables
+As you have downloaded pre compiled Apache Maven files on your system. Now set the environments variables by creating new file /etc/profile.d/maven.sh.
+
+sudo vi /etc/profile.d/apache-maven.sh
+and add following content.
+
+java-11-openjdk-amd64
+
+export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+export M2_HOME=/usr/local/apache-maven
+export MAVEN_HOME=/usr/local/apache-maven
+export PATH=${M2_HOME}/bin:${PATH}
+Now load the environment variables in current shell using following command.
+
+source /etc/profile.d/apache-maven.sh
+Step 4 – Verify Installation
+You have successfully installed and configured Apache Maven on your Ubuntu system. Use the following command to check the version of Maven.
+
+mvn -version
+Maven home: /usr/local/apache-maven
+
+vi /etc/environment and configure it in the maven path.
+sudo vi /etc/init.d/jenkins
+
+sudo update-alternatives --config java
+#############################################################################################################################################################################
+Setting Up bash_profile.++\++++++\++++++++++++++\++++++++++++\++++++++++++++\++++++++++++++\+++++++++++++++///////////////////////////////////////////
+source ~/.profile
+vi .profile
+
+
+# ~/.profile: executed by the command interpreter for login shells.
+# This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
+# exists.
+# see /usr/share/doc/bash/examples/startup-files for examples.
+# the files are located in the bash-doc package.
+
+# the default umask is set in /etc/profile; for setting the umask
+# for ssh logins, install and configure the libpam-umask package.
+#umask 022
+
+# if running bash
+if [ -n "$BASH_VERSION" ]; then
+    # include .bashrc if it exists
+    if [ -f "$HOME/.bashrc" ]; then
+        . "$HOME/.bashrc"
+    fi
+fi
+
+# set PATH so it includes user's private bin if it exists
+# User Specific environments and startup programs
+cd ~
+HOME=`pwd`
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+export JAVA_HOME
+PATH=$JAVA_HOME:$PATH:$HOME/bin
+export PATH
+MAVEN_HOME="/usr/local/apache-maven"
+export MAVEN_HOME
+export PATH=$MAVEN_HOME/bin/:$PATH
+set alias dos2unix="sed -i -e 's/'\"\$(printf '\015')\"'//g' "
+cls()
+{
+    clear
+}
+ulimit -c unlimited
+
+##############################################################################################################################################################################
+https://labs.tadigital.com/index.php/2017/11/29/build-automation-and-deployment-of-aem-using-jenkins/
+################################################################################################################################################################################
+Install jenkins on ubuntu server from below link
+https://tecadmin.net/install-jenkins-in-ubuntu/
+and open the port 8086 after configuring it on Google cloud Platform.
+
+cd /var/lib/jenkins
+cd /etc/default/
+vim jenkins
+HTTP_PORT=8086
+sudo service jenkins stop
+sudo service jenkins start
+sudo service jenkins restart
+
+cd /var/lib/jenkins/secrets
+vim initialAdminPassword
+e8ebe8960a084bdcaaa421a46503c42c
+
+http://35.186.166.22:8086 -------------Jenkins Server Address
+
+http://35.186.166.22:8086/login?from=%2F
+#####################################################################################################################################################################################
+http://35.186.166.22:8086/Jenkins_Build -------don't use it.
+#################################################################################UserCredentials######################################################################################
+Bizlem-admin----------username.
+B!z|e/\/\@d^^!n-------password.
+admin-----------------fullname.
+abhishek.tayshete@bizlem.com--email.
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Docker Container Credentials:
+DockDevMohit ---username dockdevmohit
+B!z|e/\/\@d^^!n-------password.
+mohit.raj@bizlem.com-email
+
+dockhubRepoProj--Repo Name
+docker build -t dockdevmohit/dockhubrepoproj .
+docker push dockdevmohit/dockhubrepoproj
+docker pull dockdevmohit/dockhubrepoproj
+docker run -d -p 8078:8078 dockdevmohit/dockhubrepoproj
+Example:https://howtodoinjava.com/docker/docker-hello-world-example/
+
+(1) Set up the docker repository
+
+sudo apt-get update
+sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+(2) Install Docker CE
+
+sudo apt-get update
+sudo apt-get install docker-ce
+(3) Verify the installation
+
+sudo docker run hello-world
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+***********************************************************####################################################################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+Submitting a patch to the Sling Site project
+Create a Git patch:
+Locally check out the git repository.
+Edit the documentation, don't commit.
+From the command line git diff > site.patch.
+Submit your changes:
+Navigate to the Jira issue tracker.
+Create an account and/or login.
+Create a ticket, enter a description and choose Documentation for Components.
+Select the ticket, click more, select attach files and attach your Git patch.
+Additionally there is a Github hosted Apache Sling Site Project Mirror which can be used to submit changes as well.
+
+Submitting a pull request to the GitHub Sling Site mirror
+Create the Pull Request:
+Navigate to the Apache Sling Site Project Mirror.
+Create an account and/or login.
+Edit the documentation using the edit icon Fork this project and edit this file.
+Once all changes are done click New pull request.
+Select base fork:apache/sling-site base:master as the project to push to

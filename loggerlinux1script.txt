@@ -1,0 +1,46 @@
+#!/bin/bash
+#Author:Mohit Raj
+
+       varDate=`./prevoius60mins.p1`
+       echo $varDate
+       FILE_PATTERN="SDRSE00_"$varDate
+       echo $FILE_PATTERN
+       cd /home/mbas/LOGS/cdr/
+       SOURCE_DIR="/home/mbas/LOGS/cdr/*.cdr"
+       files=("$SOURCE_DIR")
+       if [ ${#files[@]} -gt 0 ];
+       then
+       echo "File present in the Source directory is a non empty file"
+	   source "/home/mbas/BackEndProcess/mohit1/Date_Cmp.txt"
+       echo "$MYVARIABLE" #test
+       elapsedtime="$MYVARIABLE"
+       for i in `ls *$FILE_PATTERN*`;do
+	   if [ ! -s $i ];
+       then
+       continue
+       fi
+	   NAME=$file
+        current=`date +%s`
+        last_modified=`stat -c "%Y" $i`
+        if [ $(($current-$last_modified)) -gt $elapsedtime ]; then
+        echo "Wait for the current file:$i to get updated.";
+        else
+        chmod 777 $i
+        str1="${i##*/}"
+        echo "$str1" >> /home/mbas/BackEndProcess/test.txt
+        if [ -s $i ];
+        then
+        echo "$i"  >> /home/mbas/BackEndProcess/test.txt
+		cp $NAME /home/mbas/Arun
+        mv $NAME $NAME.PART
+		scp -r  $NAME.PART mbas@10.135.25.55:/var/www/html/
+		if [ $? -ne 0 ];
+        then
+        echo "File $str1 transfer failed from App Server to Web server" >> /home/mbas/BackEndProcess/test.txt
+        fi
+		fi
+        fi
+        done
+        else
+        echo "directory is empty no more files are present"
+        fi

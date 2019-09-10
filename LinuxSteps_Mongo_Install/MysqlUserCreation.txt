@@ -1,0 +1,76 @@
+select * from user_role_assignment;
++-----------------+---------------------------------+---------+-----------+
+| USER_ROLE_PK_ID | USER_NAME                       | ROLE_ID | IS_ACTIVE |
++-----------------+---------------------------------+---------+-----------+
+|             252 | dan                             |       1 |         0 |
+|             253 | dan                             |       2 |         0 |
+|             254 | dan                             |       3 |         0 |
+|             255 | dan                             |       4 |         0 |
+|             256 | dan                             |       5 |         0 |
+|             257 | sachinthechauhan@gmail.com      |       1 |         0 |
+|             258 | sachinthechauhan@gmail.com      |       2 |         0 |
+|             259 | sachinthechauhan@gmail.com      |       3 |         0 |
+|             260 | sachinthechauhan@gmail.com      |       4 |         0 |
+|             262 | avinash.singhal@jindalsteel.com |       7 |         0 |
+|             263 | Kirlosker123@gmail.com          |       7 |         0 |
+|             264 | avinash.singhal@jindalsteel.com |       1 |         0 |
++-----------------+---------------------------------+---------+-----------+
+12 rows in set (0.00 sec)
+
+mysql> desc user_role_assignment;
++-----------------+---------------------+------+-----+---------+----------------+
+| Field           | Type                | Null | Key | Default | Extra          |
++-----------------+---------------------+------+-----+---------+----------------+
+| USER_ROLE_PK_ID | int(10) unsigned    | NO   | PRI | NULL    | auto_increment |
+| USER_NAME       | varchar(50)         | NO   |     | NULL    |                |
+| ROLE_ID         | int(10) unsigned    | NO   |     | NULL    |                |
+| IS_ACTIVE       | tinyint(1) unsigned | NO   |     | NULL    |                |
++-----------------+---------------------+------+-----+---------+----------------+
+
+select * from role_master;
++------------+-----------------------+-----------+
+| ROLE_PK_ID | ROLE_NAME             | IS_ACTIVE |
++------------+-----------------------+-----------+
+|          1 | Admin                 |         0 |
+|          2 | Forward_Auction_Admin |         0 |
+|          3 | Reverse_Auction_Admin |         0 |
+|          4 | Auction_Manager       |         0 |
+|          5 | Auction_User          |         0 |
+|          6 | Auction_Guest         |         0 |
+|          7 | customer              |         0 |
++------------+-----------------------+-----------+
+
+http://35.221.160.146:8082/apirest/usrmgmt/user/
+{
+"username": "viki@gmail.com",
+"roleid": 1,
+"isactive": 0
+}
+******************************
+<script>
+var d = new Date();
+var today = new Date();
+var dd = today.getDate();
+var mm = today.getMonth() + 1; //January is 0!
+
+var yyyy = today.getFullYear();
+if (dd < 10) {
+  dd = '0' + dd;
+} 
+if (mm < 10) {
+  mm = '0' + mm;
+} 
+var today = dd + '/' + mm + '/' + yyyy;
+//document.getElementById('DATE').value = today;
+//var twoWeeksTime = Date.today().add({ days: 14 });
+//var formattedDate = twoWeeks.TimetoString('dd/MM/yy');
+document.getElementById("demo").innerHTML = today;
+//document.getElementById("formattedTime").innerHTML = formattedDate;
+var twoWeeks = 1000 * 60 * 60 * 24 * 14;
+var twoWeeksTime = new Date(new Date().getTime() + twoWeeks);
+var formattedDate = twoWeeksTime.getDate() + '/' + (twoWeeksTime.getMonth()+1) + '/' + twoWeeksTime.getFullYear();
+document.getElementById("formattedTime").innerHTML = formattedDate;
+</script>
+
+***********************
+changes to be made:- ActiveMq = ConsumerClient.java, 196.

@@ -1,0 +1,88 @@
+ORACLE_HOME
+C:\app\HP\product\11.2.0\dbhome_1\BIN
+
+CREATE TABLE USER (
+  ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  USERNAME VARCHAR (32) NOT NULL,
+  NAME VARCHAR (64) NOT NULL,
+  UNIQUE (USERNAME)
+);
+select REQUEST_NO as requestNo,SEQUENCE_NO as sequenceNo,SERVICE_TYPE as serviceType,SERVICE_ID as serviceId,CREATED_ON as createdOn,
+CONTENT as content,RESPONSE_CODE as responseCode,PROCESSED_ON as processedOn,RETRY_COUNT as retryCount,SUBSCRIPTION_ID as subscriptionId,
+COMMAND_TYPE as commandType,CALLING_PARTY as callingParty,REGION_CODE as regionId,MOBILE_NO as mobileNo,EMAIL_ID as emailId,SMS as sms,
+CUST_STATUS as custStatus,OPERATION as operation,VALIDITY_DAYS as validityDays,PLAN_ID as planId,PRE_STATUS as preStatus,CREDIT_UNITS as creditUnits,
+LIFECYCLE_ID as lifeCycleId,BEARER_ID as bearerId,PRODUCT_ORDER_ID as productOrderId,SERVICE_NODE as serviceNode,
+BASE_REQUEST_NO as baseRequestNo,CHARGING_AMOUNT as chargeAmount,TONE_CHANGE as toneChange,CONTENT_NAME as contentName,
+PARENT_REQUEST_NO as parentRequestNo,SUBS_TYPE as substype from T_SUB_CALLBACK_RETRY where RETRY_COUNT <=3 AND CREATED_ON = trunc(sysdate)
+and (COMMAND_TYPE is null or COMMAND_TYPE not in ('RET'))
+AND (RESPONSE_CODE is null or RESPONSE_CODE in ('100','404','300','400','401','500', '409','null', '-1','404','408','0000','2048','777'));
+--SERVICE_TYPE,SERVICE_ID,SERVICE_GROUP,REGION_ID;
+UPDATE T_SUB_CALLBACK_RETRY
+SET created_on = '22-02-17'
+Where request_no in 
+(SELECT request_no FROM T_SUB_CALLBACK_RETRY group by request_no  HAVING count(request_no) <=45);
+select * from T_SUB_CALLBACK_RETRY;
+desc T_SUB_CALLBACK_RETRY;
+
+UPDATE T_SUB_CALLBACK_RETRY
+SET created_on = '21-02-17'
+Where request_no in 
+(SELECT request_no FROM T_SUB_CALLBACK_RETRY group by request_no  HAVING count(request_no) <=45);
+
+
+SQL> create table emp ( emp_id number(10),
+fname varchar2(25),
+lname varchar2(25),
+constraint pk_emp_id PRIMARY KEY(emp_id)
+);
+
+Now let’s create a sequence.
+
+SQL> Create sequence emp_sequence start with 1
+increment by 1
+minvalue 1
+maxvalue 10000;
+
+Now we have created a sequence object named emp_sequence with starting value as 1 and incrementing by 1 from 1 (minvalue) to 10000 (maxvalue).
+
+Now let’s insert the values into emp table.
+
+SQL> insert into emp (emp_id,fname,lname) values(emp_sequence.nextval,'Darvin','Johnson'); SQL> insert into emp (emp_id,fname,lname) values(emp_sequence.nextval,'Mig','Andrews');
+SQL> insert into emp (emp_id,fname,lname) values(emp_sequence.nextval,'Alex','Martin');
+SQL> insert into emp (emp_id,fname,lname) values(emp_sequence.nextval,'Jon','paul');
+SQL> insert into emp (emp_id,fname,lname) values(emp_sequence.nextval,'Yatin','Bones');
+
+
+
+Hi Mohit,
+
+As explained you find below path in details and if you have any discrepancy please let me know.
+
+Steps-1
+TIBCO will push xml file in below location
+/home/mbas/LOGS/epcXmlReqFile
+
+Steps-2
+Scripts:As other scripts in specific location
+
+epcXmlParser.sh
+processEpcXmlParser.sh
+moveXmlFile.sh
+
+Steps-3
+
+Binary +Lib+xml deploy in below path:
+
+jar+Lib+xml file
+/home/mbas/epcXmlParser
+
+Steps-4
+
+After process xml file will move to following location:
+
+/home/mbas/LOGS/epcXmlProFile
+line NO:795
+transaction api:APP/src/com/comviva/dbill/usage/UsageProcessImp.java
+
+
+/home/mbas/BackEndProcess/mohit1/SAPMZ_SE_BillplanChange07042017110000.csv

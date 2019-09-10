@@ -1,0 +1,27 @@
+PSEUDO FLOW for Validity Changes.
+ 
+ 
+Validity Changes required for _
+1. sUBSCRIBER subscribes on any date - expiry date of plan will be validity end date.
+2. Rs XX for YY days , recurring for N times or
+                Rs XX for YY days , recurring, after every N days
+3.
+--------------------------------------------------------
+1. Activation
+2. In plan spec - a flag called validityApproach to decide if standard validity flow(existing '0') or  Fixed Validity Approach(Case 1 '1') or Recurring Approach (Case 2 '2') .
+2.1 PlanEndDateApplied flag = Y/N decides if next_renewal_date of subsccriber should not exceed validity_expiry_date 
+3. If validityApproach == '0' Standard SE flow.
+4. If validityApproach == '1' then next-renewal-date = plan-expiry-date configured
+5. If validityApproach == '2' then
+                Case - Rs XX for YY days , recurring, after every N days
+1. In plan spec ,  in existing lifecycle validity YY days to be configured
+and recurring after how many days- to be configured in a new field in llifecycle called recurringDays.
+ 
+If recurringDays > 0 and plan_lifecycle_validity >0
+then
+a. IF NEW_SUBS : next_renewal_date = todays date + recurringDays
+b. ELSE
+                Check if Next_renewal_date - First_act_date == YY days:
+                error : one time subscription quota exhausted.
+                On the  next_renewal_date, again through backend process, the same request eligible for renewal , and again
+                next_renewal_date = todays date + recurringDays

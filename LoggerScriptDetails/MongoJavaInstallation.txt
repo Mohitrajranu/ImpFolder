@@ -1,0 +1,311 @@
+keytool -importcert -file mongodb-cert.crt -alias mongoCert -keystore firstTrustStore
+
+cd /etc/ssl/
+openssl req -x509 -nodes -newkey rsa:2048 -config openssl.cnf -extensions subject_alt_name -keyout private.key -out self-signed.pem -subj '/C=gb/ST=edinburgh/L=edinburgh/O=mygroup/OU=servicing/CN=www.example.com/emailAddress=postmaster@example.com' -days 365
+ 
+
+$ openssl req -newkey rsa:2048 -config openssl.cnf -extensions subject_alt_name -new -x509 -days 7300 -nodes -out mongodb-cert.crt -keyout mongodb-cert.key
+This will create a self-signed certificate without password, that is valid for one year. We need to concatenate the private key and the certificate to create a PEM file:
+
+1
+$ cat mongodb-cert.key mongodb-cert.crt > mongodb.pem
+And then we can configure MongoDB to use the PEM file:
+
+1
+2
+3
+4
+net:
+   ssl:
+      mode: requireSSL
+      PEMKeyFile: /etc/ssl/mongodb.pem
+After we have restarted MongoDB, we will no longer be able to use unencrypted connections to MongoDB:
+
+
+MongoClientOptions.Builder builder = MongoClientOptions.builder();
+builder.sslEnabled(true).build();
+// If hostname or common name in certificate does not match hostname of 
+//system, the following code is required. 
+//builder.sslInvalidHostNameAllowed(true).build();
+MongoClientOptions sslOptions = builder.build();
+// create mongo client with SSL option
+MongoCredential.createMongoCRCredential(“user”, "tpfdf", "pw".toCharArray());
+mongoClient = new MongoClient(myServer, credential, sslOptions); 
+net:
+   tls:
+      mode: requireTLS
+      certificateKeyFile: /etc/ssl/mongodb.pem
+      CAFile: /etc/ssl/caToValidateClientCertificates.pem
+systemLog:
+   destination: file
+   path: "/var/log/mongodb/mongod.log"
+   logAppend: true
+storage:
+   dbPath: "/var/lib/mongodb"
+processManagement:
+   fork: true
+net:
+   bindIp: localhost,mongodb0.example.net
+   port: 27017
+net:
+   ssl:
+      mode: requireSSL
+      PEMKeyFile: /etc/ssl/mongodb.pem   
+keytool -importcert -file mongodb-cert.crt -alias mongoCert -keystore firstTrustStore
+	  firstTrustStore , password-bizlem123
+	  
+keytool -importkeystore -srckeystore MongoClientKeyCert.p12 -destkeystore MongoClientKeyCert.jks -srcstoretype pkcs12 -alias mongoClient -destkeypass bizlem123	  
+openssl pkcs12 -export -in mongodb-cert.crt -inkey mongodb-cert.key  -out MongoClientKeyCert.p12 -name mongoClient
+keytool -import -file mongodb.pem -alias mongoClient -keystore mongoStore.ts -storepass   StorePass
+
+keytool -import -file /certs/cacert.pem -alias mongoClient -keystore /trust/mongoStore.ts                 
+-storepass   StorePass
+
+The following example defines the truststore in a Java application:
+System.setProperty("javax.net.ssl.trustStore","/etc/ssl/firstTrustStore");
+System.setProperty("javax.net.ssl.trustStorePassword","bizlem123");Copy
+The following example defines the keystore, if needed, in a Java application:
+System.setProperty ("javax.net.ssl.keyStore","/etc/ssl/MongoClientKeyCert.jks");
+System.setProperty ("javax.net.ssl.keyStorePassword","bizlem123");
+
+keytool -list -v -keystore MongoClientKeyCert.jks
+keytool -printcert -v -file mongodb-cert.key
+keytool -printcert -v -file mongodb-cert.crt
+
+
+Edit your /etc/hosts file. Add the following lines. Then access your service using the domain name. Replace the xxxx with your real domain name.
+
+127.0.0.1 xxxxxx.de
+
+127.0.0.1 www.xxxxxx.de
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+Copy the openssl.cnf into a current directory
+
+#For MAC use below command
+cp /etc/ssl/openssl.cnf .
+
+#For RHELinux(Centos7) 
+cp /etc/pki/tls/openssl.cnf .
+
+#For Windows you will need to install openssl and then find out where the corresponding file is and use the below defined Method -2
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+ 
+#For MAC use below command
+cp /etc/ssl/openssl.cnf .
+ 
+#For RHELinux(Centos7) 
+cp /etc/pki/tls/openssl.cnf .
+ 
+#For Windows you will need to install openssl and then find out where the corresponding file is and use the below defined Method -2
+ 
+Now append the ‘[ subject_alt_name ]’ to end of openssl.cnf file
+
+ echo '[ subject_alt_name ]' >> openssl.cnf
+
+1
+2
+3
+ 
+ echo '[ subject_alt_name ]' >> openssl.cnf
+ 
+Now add multiple domain names, in the below example I am adding multiple domains, along with localhost
+
+ echo 'subjectAltName = DNS:example.mydomain1.com, DNS:example.mydomain2.com, DNS:example.mydomain3.com, DNS: localhost'>> openssl.cnf
+
+1
+2
+3
+ 
+ echo 'subjectAltName = DNS:example.mydomain1.com, DNS:example.mydomain2.com, DNS:example.mydomain3.com, DNS: localhost'>> openssl.cnf
+ 
+Create the .public  and private key, also note here we are adding the CN name and organisation details. The advantage of adding it in particular command is that you won’t be prompted with any details
+
+openssl req -x509 -nodes -newkey rsa:2048 -config openssl.cnf -extensions subject_alt_name -keyout private.key -out self-signed.pem -subj '/C=gb/ST=edinburgh/L=edinburgh/O=mygroup/OU=servicing/CN=www.example.com/emailAddress=postmaster@example.com' -days 365
+
+1
+2
+3
+ 
+openssl req -x509 -nodes -newkey rsa:2048 -config openssl.cnf -extensions subject_alt_name -keyout private.key -out self-signed.pem -subj '/C=gb/ST=edinburgh/L=edinburgh/O=mygroup/OU=servicing/CN=www.example.com/emailAddress=postmaster@example.com' -days 365
+ 
+
+The above command should generate a set of public and private keys. The private key will be generated in a file called private.key and the public key or certificate will be generated in a file called self-signed.pem.Also please note that above command also defines the country, state, location, organization name for simplification only XX has been added and the validity for above certificate is for a year which is controlled by ‘-days 365’. Feel free to change as per your needs.
+Verify the .pem file has been generated successfully
+
+openssl x509 -in self-signed.pem -text -noout
+
+1
+2
+3
+ 
+openssl x509 -in self-signed.pem -text -noout
+ 
+
+From the above command, you should see the multiple domain names which have been added. This verifies that our
+
+ Certificate:
+            Subject: C=gb, ST=edinburgh, L=edinburgh, O=mygroup, OU=servicing, CN=www.example.com/emailAddress=postmaster@example.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+               45:17:ea:d5:87:
+                    30:17:e1:50:4a:c7:67:9b:5f:35:c3:0b:0e:f2:83:
+                    32:19.......
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Alternative Name: 
+                DNS:example.mydomain1.com, DNS:example.mydomain2.com, DNS:example.mydomain3.com, DNS:localhost
+    Signature Algorithm: sha256WithRSAEncryption
+         8c:7d:85:5e:37:d2:e7:09:f5:3e:ce:73:d4:d5:3e:5a:ee:e2:
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+ 
+ Certificate:
+            Subject: C=gb, ST=edinburgh, L=edinburgh, O=mygroup, OU=servicing, CN=www.example.com/emailAddress=postmaster@example.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+               45:17:ea:d5:87:
+                    30:17:e1:50:4a:c7:67:9b:5f:35:c3:0b:0e:f2:83:
+                    32:19.......
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Alternative Name: 
+                DNS:example.mydomain1.com, DNS:example.mydomain2.com, DNS:example.mydomain3.com, DNS:localhost
+    Signature Algorithm: sha256WithRSAEncryption
+         8c:7d:85:5e:37:d2:e7:09:f5:3e:ce:73:d4:d5:3e:5a:ee:e2:
+ 
+Export the public key (.pem) file to PKS12 format. This will prompt you for password
+
+openssl pkcs12 -export -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES -export -in self-signed.pem -inkey private.key -name myalias -out keystore.p12
+
+1
+2
+3
+ 
+openssl pkcs12 -export -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES -export -in self-signed.pem -inkey private.key -name myalias -out keystore.p12
+ 
+
+
+ 
+Create a.JKS from self-signed PEM (Keystore)
+
+ keytool -importkeystore -destkeystore keystore.jks -deststoretype PKCS12 -srcstoretype PKCS12 -srckeystore keystore.p12
+
+1
+2
+3
+ 
+ keytool -importkeystore -destkeystore keystore.jks -deststoretype PKCS12 -srcstoretype PKCS12 -srckeystore keystore.p12
+ 
+
+The above-generated.jks file can you use within your Java application.
+Read here: – How to enable communication over https between 2 spring boot applications using a self-signed certificate
+Verify is the JKS has been correctly created
+
+keytool -list -v -keystore keystore.jks
+
+1
+2
+3
+ 
+keytool -list -v -keystore keystore.jks
+ 
+
+This should show you the multiple subject alt names added
+
+Signature algorithm name: SHA256withRSA
+Subject Public Key Algorithm: 2048-bit RSA key
+Version: 3
+
+Extensions: 
+
+SubjectAlternativeName [
+  DNSName: example.mydomain1.com
+  DNSName: example.mydomain2.com
+  DNSName: example.mydomain3.com
+  DNSName: localhost
+]
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+ 
+Signature algorithm name: SHA256withRSA
+Subject Public Key Algorithm: 2048-bit RSA key
+Version: 3
+ 
+Extensions: 
+ 
+SubjectAlternativeName [
+  DNSName: example.mydomain1.com
+  DNSName: example.mydomain2.com
+  DNSName: example.mydomain3.com
+  DNSName: localhost
+]
+ 
+
+ 
+Generate a Certificate from above Keystore or JKS file
+
+keytool -export -keystore keystore.jks -alias myalias -file selfsigned.crt
+
+1
+2
+3
+ 
+keytool -export -keystore keystore.jks -alias myalias -file selfsigned.crt
+ 
+
+ 
+ Since the above certificate is Self Signed and is not validated by CA, it needs to be added in Truststore(Cacerts file in below location)
+
+sudo keytool -importcert -file selfsigned.crt -alias myalias -keystore /Library/Java/JavaVirtualMachines/jdk1.8.0_171.jdk/Contents/Home/jre/lib/security/cacerts
+
+1
+2
+3
+ 
+sudo keytool -importcert -file selfsigned.crt -alias myalias -keystore /Library/Java/JavaVirtualMachines/jdk1.8.0_171.jdk/Contents/Home/jre/lib/security/cacerts
+ 
+Read here:How to fix javax.net.ssl.SSLHandshakeException: java.security.cert.CertificateException: No subject alternative names present
