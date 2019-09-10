@@ -1,0 +1,356 @@
+package com.excel;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.ResourceBundle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
+
+public class ExcelReadRowByRow {
+	@SuppressWarnings("deprecation")
+	public static void main(String[] args) {
+		ExcelReadRowByRow.readexcel("C:\\Users\\user\\Downloads\\TableHeaderExtraction_FinalV3.xlsx");
+	}
+
+	@SuppressWarnings("deprecation")
+	public static void readexcel(String filename) {
+		try {
+			ResourceBundle bundle = ResourceBundle.getBundle("config");
+			// xls code
+		//	String excelpath = bundle.getString("getinvoicepath") + filename;
+		String excelpath = filename;
+			InputStream ExcelFileToRead = new FileInputStream(excelpath);
+			Workbook wb = new XSSFWorkbook(ExcelFileToRead);
+			XSSFSheet sheet1 = (XSSFSheet) wb.getSheetAt(0);
+			Iterator<Row> rowIterator = sheet1.rowIterator();
+			Map<Integer,JSONArray> valueMap = new HashMap<Integer,JSONArray>();
+			
+			ArrayList<Object> rawjsonkeys = new ArrayList<>();
+			ArrayList<Object> keys = new ArrayList<>();
+			ArrayList<Object> values = new ArrayList<>();
+			ArrayList<Object> headingvalues = new ArrayList<>();
+
+			while (rowIterator.hasNext()) {
+				Row row = rowIterator.next();
+				if(row.getRowNum()>73) {
+				//	System.out.println("Row Entered is "+row.getRowNum());
+					break;
+				}
+				//System.out.println("Entered Row "+row.getRowNum());
+				ArrayList<Object> arrayformulakeyrange = new ArrayList<>();
+				ArrayList<Object> arrayformulavaluesrange = new ArrayList<>();
+				int rowcolumnrange=0;
+				
+				for (Cell cell : row) {
+
+					Object formulaValue = null;
+					Object formulakey = null;
+					Object rawkeys = null;
+					String valuesdata=null;
+					if (row.getRowNum() == 0 && cell.getColumnIndex() < 50) {
+					//	System.out.println("cell.getColumnIndex()  :: "+cell.getColumnIndex());
+						switch (cell.getCellType()) {
+
+						case Cell.CELL_TYPE_NUMERIC:
+							rawkeys = cell.getNumericCellValue();
+							rawjsonkeys.add(String.valueOf(rawkeys));
+							break;
+						case Cell.CELL_TYPE_STRING:
+							rawkeys = cell.getStringCellValue();
+							rawjsonkeys.add(rawkeys);
+							break;
+
+						}
+					}
+					/*for (int hk = 0; hk < headingvalues.size(); hk++) {
+				
+					
+					}*/
+					
+				
+					// setup code
+					// System.out.println("column index : :: :" + cell.getColumnIndex());
+/*					if ((!flagRow) && ((row.getRowNum()%2 != 0) && cell.getColumnIndex() < 90)) {
+						System.out.println("cell.getColumnIndex()  :: "+cell.getColumnIndex());
+						switch (cell.getCellType()) {
+
+						case Cell.CELL_TYPE_NUMERIC:
+							rawkeys = cell.getNumericCellValue();
+							rawjsonkeys.add(String.valueOf(rawkeys));
+							break;
+						case Cell.CELL_TYPE_STRING:
+							rawkeys = cell.getStringCellValue();
+							rawjsonkeys.add(rawkeys);
+							break;
+
+						}
+					}*/
+
+					if (((row.getRowNum() == 0 && cell.getColumnIndex() >= 50) ||  ((row.getRowNum()%2 == 0) && cell.getColumnIndex() >= 130))) {
+						//System.out.println("cell : : :  1 : " + cell.getColumnIndex());
+						switch (cell.getCellType()) {
+
+						case Cell.CELL_TYPE_NUMERIC:
+							formulakey = cell.getNumericCellValue();
+							keys.add(String.valueOf(formulakey));
+							
+							break;
+						case Cell.CELL_TYPE_STRING:
+							formulakey = cell.getStringCellValue();
+							keys.add(formulakey);
+							// System.out.println("String : "+formulakey);
+
+							break;
+						case Cell.CELL_TYPE_FORMULA:
+							switch (cell.getCachedFormulaResultType()) {
+
+							case Cell.CELL_TYPE_NUMERIC:
+								formulakey = cell.getCellFormula();
+								keys.add(String.valueOf("=" + formulakey));
+								break;
+							case Cell.CELL_TYPE_STRING:
+								formulakey = cell.getCellFormula();
+								keys.add(String.valueOf("=" + formulakey));
+								break;
+							}
+							//System.out.println("String : "+formulakey);
+						}
+					}
+
+					String numericFormula = "";
+					String stringFormula = "";
+					String cellRangeStr = "";
+					if ((( row.getRowNum() != 0) && ((row.getRowNum() == 1 && cell.getColumnIndex() >= 50) ||((row.getRowNum()%2 != 0) && cell.getColumnIndex() >= 130)))) {
+
+						
+						//System.out.println("Row Number: : : "+row.getRowNum());
+						// objFormulaEvaluator.evaluate(cell); // This will evaluate the cell, And any
+						// // type of
+						// // cell will return string value
+						// String valuedata = objDefaultFormat.formatCellValue(cell);
+						//
+						// System.out.println("cell : : :  2 : " + cell.getColumnIndex());
+						switch (cell.getCellType()) {
+
+						case Cell.CELL_TYPE_NUMERIC:
+							formulaValue = cell.getNumericCellValue();
+							values.add(formulaValue);
+							break;
+						case Cell.CELL_TYPE_STRING:
+							formulaValue = cell.getStringCellValue();
+							values.add(formulaValue);
+							// System.out.println("Formula Value String : " + formulaValue);
+							break;
+
+						case Cell.CELL_TYPE_FORMULA:
+							if(rowcolumnrange==0) {
+								rowcolumnrange = cell.getColumnIndex();
+							}
+							if(row.getRowNum()==1) {
+								
+								rowcolumnrange=50;
+							}
+							switch (cell.getCachedFormulaResultType()) {
+
+							case Cell.CELL_TYPE_NUMERIC:
+								formulaValue = cell.getCellFormula();
+								numericFormula = String.valueOf(formulaValue);
+								if (cell.isPartOfArrayFormulaGroup()) {
+									
+									//System.out.println("column : " + cell.getColumnIndex() + "row.getRowNum() :: "+row.getRowNum());
+									arrayformulakeyrange.add(cell.getColumnIndex());
+									arrayformulavaluesrange.add(row.getRowNum() + "::"
+											+ row.getRowNum() + "::"
+											+ cell.getArrayFormulaRange().getFirstColumn() + "::"
+											+ cell.getArrayFormulaRange().getLastColumn());
+//									System.out.println(" Numeric [] arrayformulakeyrange : "+arrayformulakeyrange);
+									//System.out.println(" Numeric [] arrayformulakeyrange : "+arrayformulavaluesrange);
+//									// CellRangeAddress range = new Ce
+//									System.out.println("numericFormula  :: " + numericFormula
+//											+ " arrayformulavaluesrange :: " + arrayformulavaluesrange);
+								}
+								for (int namerangecount = 0; namerangecount < wb.getNumberOfNames(); namerangecount++) {
+									// System.out.println("Name Range :
+									// "+wb.getNameAt(namerangecount).getRefersToFormula());
+									if (numericFormula.contains(wb.getNameAt(namerangecount).getNameName())) {
+										numericFormula = numericFormula.replaceAll(
+												"\\b" + wb.getNameAt(namerangecount).getNameName() + "\\b",
+												wb.getNameAt(namerangecount).getRefersToFormula()
+														.replace(wb.getSheetName(0), "").replace("!", "")
+														.replace("$", ""));
+									}
+								}
+								values.add(String.valueOf("=" + numericFormula));
+								// System.out.println("Formula formual Number Value : " + formulaValue);
+
+								break;
+							case Cell.CELL_TYPE_STRING:
+								formulaValue = cell.getCellFormula();
+								stringFormula = String.valueOf(formulaValue);
+								// System.out.println("stringFormula : : :" + cell.getArrayFormulaRange());
+
+								if (cell.isPartOfArrayFormulaGroup()) {
+								
+									arrayformulakeyrange.add(cell.getColumnIndex());
+									arrayformulavaluesrange.add(row.getRowNum() + "::"
+											+ row.getRowNum() + "::"
+											+ cell.getArrayFormulaRange().getFirstColumn() + "::"
+											+ cell.getArrayFormulaRange().getLastColumn());
+									// CellRangeAddress range = new Ce
+									//System.out.println(" String [] arrayformulakeyrange : "+arrayformulavaluesrange);
+								}
+								for (int namerangecount = 0; namerangecount < wb.getNumberOfNames(); namerangecount++) {
+									
+									if (stringFormula.contains(wb.getNameAt(namerangecount).getNameName())) {
+										stringFormula = stringFormula.replaceAll(
+												"\\b" + wb.getNameAt(namerangecount).getNameName() + "\\b",
+												wb.getNameAt(namerangecount).getRefersToFormula()
+														.replace(wb.getSheetName(0), "").replace("!", "")
+														.replace("$", ""));
+									}
+								}
+								values.add(String.valueOf("=" + stringFormula));
+								// System.out.println("Formula Value String : " + formulaValue);
+
+								break;
+							}
+							//System.out.println("Values : "+values);
+						}
+						 
+					}
+
+				}
+//				System.out.println("Row Number: "+row.getRowNum());
+//				System.out.println("Key Size : "+keys.size());
+//				System.out.println("Value Size : "+values.size());
+				if(row.getRowNum()%2==0) {
+					int keyitem = row.getRowNum();
+					
+				}else {
+					int valueitem = row.getRowNum();
+					JSONObject keyvaluesjson = null;
+					JSONArray finalarray = new JSONArray();
+				
+					//System.out.println("rowcolumnrange : "+rowcolumnrange);
+
+					for (int k = 0; k < keys.size(); k++) {
+//						System.out.println("Key : " + keys.get(k));
+
+						//System.out.println("" + values.get(k));
+
+						keyvaluesjson = new JSONObject();
+						keyvaluesjson.put((String) keys.get(k), values.get(k));
+
+						//System.out.println("K value : " + k);
+					
+						for (int range = 0; range < arrayformulakeyrange.size(); range++) {
+
+							if (arrayformulakeyrange.get(range).equals(k+rowcolumnrange)) {
+								keyvaluesjson.put("cellrange", arrayformulavaluesrange.get(range));
+							}
+
+						}
+						finalarray.put(keyvaluesjson);
+					}
+					valueMap.put(valueitem,finalarray);
+					keys.clear();
+					values.clear();
+				}
+				
+				
+
+			}
+			JSONArray finaljsonarray = new JSONArray();
+			//JSONArray fn = new JSONArray();
+			// using for-each loop for iteration over Map.entrySet() 
+	        for (Map.Entry<Integer,JSONArray> entry : valueMap.entrySet())  
+	        {  
+	        	/*System.out.println("Key = " + entry.getKey() + 
+	                             ", Value = "); */
+	        	JSONObject keyvaluesjson = new JSONObject();
+	        	int index = entry.getKey();
+	        	//finaljsonarray.put(index, entry.getValue());
+	        
+	        
+	        keyvaluesjson.put(String.valueOf(index), entry.getValue());
+	        keyvaluesjson.put("rowkey", String.valueOf(index));
+	        finaljsonarray.put(keyvaluesjson);
+	        keyvaluesjson = null;
+	        //fn.put(keyvaluesjson);
+	        }
+	        JSONObject mainObj = new JSONObject();
+	        mainObj.put("output", finaljsonarray);
+			/*JSONObject keyvaluesjson = null;
+			JSONArray finalarray = new JSONArray();
+			
+			 System.out.println("Key Size : " + keys.size());
+			 System.out.println("Value Size : " + values.size());
+			for (int k = 0; k < keys.size(); k++) {
+				//System.out.println("Key : " + keys.get(k));
+
+				//System.out.println("" + values.get(k));
+
+				keyvaluesjson = new JSONObject();
+				keyvaluesjson.put((String) keys.get(k), values.get(k));
+
+			//	System.out.println("K value : " + k);
+				for (int range = 0; range < arrayformulakeyrange.size(); range++) {
+
+					if (arrayformulakeyrange.get(range).equals(k+20)) {
+						keyvaluesjson.put("cellrange", arrayformulavaluesrange.get(range));
+					}
+				}
+				finalarray.put(keyvaluesjson);
+			}
+*/			JSONObject rawkeysjson = null;
+			JSONArray rawjsonarray = new JSONArray();
+			for (int j = 0; j < rawjsonkeys.size(); j++) {
+				rawkeysjson = new JSONObject();
+				rawkeysjson.put((String) rawjsonkeys.get(j), rawjsonkeys.get(j));
+				rawjsonarray.put(rawkeysjson);
+			}
+
+			System.out.println("Transform : " + mainObj);
+			System.out.println("RawJson  : " + rawjsonarray);
+			// Save Data in Mongodb
+			try {
+
+				MongoClient client = new MongoClient("localhost", 27017);
+				DB db = client.getDB("Preprocessing");
+				DBCollection collection = db.getCollection("excelpart2save");
+				DBObject document = new BasicDBObject();
+				document.put("Transform", mainObj.toString());
+				document.put("FileName", filename);
+				document.put("RawJson", rawjsonarray.toString());
+				document.put("Flag", "Not Readed");
+
+				collection.insert(document);
+			} catch (Exception e) {
+
+				System.out.println("exception ex: : " + e.getMessage());
+			}
+
+		}
+
+		catch (Exception e) {
+
+			System.out.println("Exception ex : " + e.getMessage());
+			e.printStackTrace();
+		}
+
+	}
+}

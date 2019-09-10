@@ -1,0 +1,1183 @@
+package com.excel;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.channels.FileChannel;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
+
+import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.openxml4j.opc.PackageAccess;
+import org.apache.poi.openxml4j.opc.PackagePart;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.json.JSONObject;
+
+public class CreatePallaviExcel {
+
+
+public static void main(String[] args) {
+	createexcel(new JSONObject("{\r\n" + 
+			"  \"user_name\": \"carrotrule_xyz.com\",\r\n" + 
+			"  \"project_name\": \"9465_hl_start_end_testing\",\r\n" + 
+			"  \"Rule_Engine\": \"Samplemay3\",\r\n" + 
+			"  \"RawJson\": {\r\n" + 
+			"    \"line_index_0\": [\r\n" + 
+			"      0,\r\n" + 
+			"      0,\r\n" + 
+			"      2,\r\n" + 
+			"      18,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      603,\r\n" + 
+			"      672,\r\n" + 
+			"      \"Lorties\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      690,\r\n" + 
+			"      717,\r\n" + 
+			"      \"Rem\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_1\": [\r\n" + 
+			"      0,\r\n" + 
+			"      1,\r\n" + 
+			"      2,\r\n" + 
+			"      60,\r\n" + 
+			"      \"number\",\r\n" + 
+			"      275,\r\n" + 
+			"      358,\r\n" + 
+			"      \"100566\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      760,\r\n" + 
+			"      778,\r\n" + 
+			"      \"/9\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_2\": [\r\n" + 
+			"      0,\r\n" + 
+			"      2,\r\n" + 
+			"      1,\r\n" + 
+			"      82,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      718,\r\n" + 
+			"      752,\r\n" + 
+			"      \"all\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_3\": [\r\n" + 
+			"      0,\r\n" + 
+			"      3,\r\n" + 
+			"      2,\r\n" + 
+			"      105,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      242,\r\n" + 
+			"      376,\r\n" + 
+			"      \"PERFECT\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      386,\r\n" + 
+			"      588,\r\n" + 
+			"      \"ENGINEERING\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_4\": [\r\n" + 
+			"      0,\r\n" + 
+			"      4,\r\n" + 
+			"      6,\r\n" + 
+			"      135,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      200,\r\n" + 
+			"      332,\r\n" + 
+			"      \"MARINEINDUSTRIAL\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      341,\r\n" + 
+			"      425,\r\n" + 
+			"      \"FABRICATION\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      432,\r\n" + 
+			"      488,\r\n" + 
+			"      \"WORKS&\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#works\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      495,\r\n" + 
+			"      522,\r\n" + 
+			"      \"MAN\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      530,\r\n" + 
+			"      575,\r\n" + 
+			"      \"POWER\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      585,\r\n" + 
+			"      636,\r\n" + 
+			"      \"SUPPLY\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_5\": [\r\n" + 
+			"      0,\r\n" + 
+			"      5,\r\n" + 
+			"      1,\r\n" + 
+			"      155,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      185,\r\n" + 
+			"      651,\r\n" + 
+			"      \"B-202,SWAPNASANGINI,OPP.RATNAJYOTI,VIPROAD,VESU,SURAT-395007\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_6\": [\r\n" + 
+			"      0,\r\n" + 
+			"      6,\r\n" + 
+			"      1,\r\n" + 
+			"      176,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      376,\r\n" + 
+			"      458,\r\n" + 
+			"      \"TAXINVOICE\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_7\": [\r\n" + 
+			"      0,\r\n" + 
+			"      7,\r\n" + 
+			"      4,\r\n" + 
+			"      192,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      150,\r\n" + 
+			"      183,\r\n" + 
+			"      \"GSTIN\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      250,\r\n" + 
+			"      356,\r\n" + 
+			"      \"24AAIFP2057N1ZZ\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      519,\r\n" + 
+			"      604,\r\n" + 
+			"      \"ORIGINALFOR\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      610,\r\n" + 
+			"      671,\r\n" + 
+			"      \"RECIPIENT\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_8\": [\r\n" + 
+			"      0,\r\n" + 
+			"      8,\r\n" + 
+			"      2,\r\n" + 
+			"      211,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      158,\r\n" + 
+			"      179,\r\n" + 
+			"      \"PAN\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#PAN_Number\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      249,\r\n" + 
+			"      319,\r\n" + 
+			"      \"AAIFP2057N\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_9\": [\r\n" + 
+			"      0,\r\n" + 
+			"      9,\r\n" + 
+			"      2,\r\n" + 
+			"      232,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      162,\r\n" + 
+			"      171,\r\n" + 
+			"      \"To\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      177,\r\n" + 
+			"      178,\r\n" + 
+			"      \",\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_10\": [\r\n" + 
+			"      0,\r\n" + 
+			"      10,\r\n" + 
+			"      5,\r\n" + 
+			"      250,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      98,\r\n" + 
+			"      131,\r\n" + 
+			"      \"ESSAR\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      138,\r\n" + 
+			"      204,\r\n" + 
+			"      \"STEELINDIA\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      213,\r\n" + 
+			"      257,\r\n" + 
+			"      \"LIMITED\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#Limited\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      455,\r\n" + 
+			"      516,\r\n" + 
+			"      \"Invoice No\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#Invoice_Number\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      614,\r\n" + 
+			"      691,\r\n" + 
+			"      \"PE/ESSAR/542\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_11\": [\r\n" + 
+			"      0,\r\n" + 
+			"      11,\r\n" + 
+			"      4,\r\n" + 
+			"      268,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      97,\r\n" + 
+			"      127,\r\n" + 
+			"      \"27KM\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      140,\r\n" + 
+			"      266,\r\n" + 
+			"      \"SURATHAZIRAROAD,\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      456,\r\n" + 
+			"      525,\r\n" + 
+			"      \"Invoice Date\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#Invoice_Date\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      615,\r\n" + 
+			"      664,\r\n" + 
+			"      \"05-12-18\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_12\": [\r\n" + 
+			"      0,\r\n" + 
+			"      12,\r\n" + 
+			"      5,\r\n" + 
+			"      288,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      96,\r\n" + 
+			"      136,\r\n" + 
+			"      \"HAZIRA\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      145,\r\n" + 
+			"      236,\r\n" + 
+			"      \"SURAT-394270\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      454,\r\n" + 
+			"      484,\r\n" + 
+			"      \"Work\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      490,\r\n" + 
+			"      541,\r\n" + 
+			"      \"Orderno\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"number\",\r\n" + 
+			"      613,\r\n" + 
+			"      684,\r\n" + 
+			"      \"4400118301\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_13\": [\r\n" + 
+			"      0,\r\n" + 
+			"      13,\r\n" + 
+			"      5,\r\n" + 
+			"      308,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      149,\r\n" + 
+			"      181,\r\n" + 
+			"      \"GSTIN\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      248,\r\n" + 
+			"      360,\r\n" + 
+			"      \"24AAACE1741P1ZN\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      517,\r\n" + 
+			"      543,\r\n" + 
+			"      \"Area\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      610,\r\n" + 
+			"      641,\r\n" + 
+			"      \"MOD\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      648,\r\n" + 
+			"      691,\r\n" + 
+			"      \"5/PMI\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_14\": [\r\n" + 
+			"      0,\r\n" + 
+			"      14,\r\n" + 
+			"      3,\r\n" + 
+			"      326,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      156,\r\n" + 
+			"      177,\r\n" + 
+			"      \"PAN\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#PAN_Number\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      246,\r\n" + 
+			"      322,\r\n" + 
+			"      \"AAACE1741P\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      614,\r\n" + 
+			"      681,\r\n" + 
+			"      \"SEPTEMBER\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_15\": [\r\n" + 
+			"      0,\r\n" + 
+			"      15,\r\n" + 
+			"      6,\r\n" + 
+			"      345,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      96,\r\n" + 
+			"      141,\r\n" + 
+			"      \"Placeof\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      147,\r\n" + 
+			"      181,\r\n" + 
+			"      \"supply\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      245,\r\n" + 
+			"      291,\r\n" + 
+			"      \"Gujarat\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      545,\r\n" + 
+			"      661,\r\n" + 
+			"      \"Otheremployment\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      667,\r\n" + 
+			"      671,\r\n" + 
+			"      \"&\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      677,\r\n" + 
+			"      717,\r\n" + 
+			"      \"labour\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_16\": [\r\n" + 
+			"      0,\r\n" + 
+			"      16,\r\n" + 
+			"      6,\r\n" + 
+			"      365,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      95,\r\n" + 
+			"      135,\r\n" + 
+			"      \"Service\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#DescriptionOfServices\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      141,\r\n" + 
+			"      225,\r\n" + 
+			"      \"AccountCode:\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"number\",\r\n" + 
+			"      246,\r\n" + 
+			"      287,\r\n" + 
+			"      \"998519\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      457,\r\n" + 
+			"      522,\r\n" + 
+			"      \"Description\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      572,\r\n" + 
+			"      607,\r\n" + 
+			"      \"supply\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      613,\r\n" + 
+			"      691,\r\n" + 
+			"      \"servicesn.e.c\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_17\": [\r\n" + 
+			"      0,\r\n" + 
+			"      17,\r\n" + 
+			"      6,\r\n" + 
+			"      383,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      98,\r\n" + 
+			"      129,\r\n" + 
+			"      \"SrNo\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      274,\r\n" + 
+			"      345,\r\n" + 
+			"      \"Description\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#DescriptionOfServices\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      352,\r\n" + 
+			"      418,\r\n" + 
+			"      \"ofServices\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      481,\r\n" + 
+			"      499,\r\n" + 
+			"      \"Qty\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#Quantity\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      556,\r\n" + 
+			"      582,\r\n" + 
+			"      \"Rate\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#Rate\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      647,\r\n" + 
+			"      696,\r\n" + 
+			"      \"Amount\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_18\": [\r\n" + 
+			"      0,\r\n" + 
+			"      18,\r\n" + 
+			"      4,\r\n" + 
+			"      427,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      197,\r\n" + 
+			"      389,\r\n" + 
+			"      \"Towardsdeploymentoflabour\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"number\",\r\n" + 
+			"      489,\r\n" + 
+			"      492,\r\n" + 
+			"      \"1\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"number\",\r\n" + 
+			"      549,\r\n" + 
+			"      588,\r\n" + 
+			"      \"143298\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"number\",\r\n" + 
+			"      689,\r\n" + 
+			"      728,\r\n" + 
+			"      \"143298\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_19\": [\r\n" + 
+			"      0,\r\n" + 
+			"      19,\r\n" + 
+			"      2,\r\n" + 
+			"      444,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      213,\r\n" + 
+			"      250,\r\n" + 
+			"      \"Period\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#Service_Period\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      256,\r\n" + 
+			"      368,\r\n" + 
+			"      \":-SEPTEMBER2018\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_20\": [\r\n" + 
+			"      0,\r\n" + 
+			"      20,\r\n" + 
+			"      2,\r\n" + 
+			"      466,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      277,\r\n" + 
+			"      307,\r\n" + 
+			"      \"Total\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"number\",\r\n" + 
+			"      688,\r\n" + 
+			"      728,\r\n" + 
+			"      \"143298\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_21\": [\r\n" + 
+			"      0,\r\n" + 
+			"      21,\r\n" + 
+			"      3,\r\n" + 
+			"      487,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      476,\r\n" + 
+			"      503,\r\n" + 
+			"      \"SGST\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#SGST\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      561,\r\n" + 
+			"      571,\r\n" + 
+			"      \"9%\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"number\",\r\n" + 
+			"      695,\r\n" + 
+			"      729,\r\n" + 
+			"      \"12897\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_22\": [\r\n" + 
+			"      0,\r\n" + 
+			"      22,\r\n" + 
+			"      3,\r\n" + 
+			"      505,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      475,\r\n" + 
+			"      502,\r\n" + 
+			"      \"CGST\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#CGST\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      561,\r\n" + 
+			"      570,\r\n" + 
+			"      \"9%\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"number\",\r\n" + 
+			"      693,\r\n" + 
+			"      728,\r\n" + 
+			"      \"12897\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_23\": [\r\n" + 
+			"      0,\r\n" + 
+			"      23,\r\n" + 
+			"      2,\r\n" + 
+			"      523,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      264,\r\n" + 
+			"      317,\r\n" + 
+			"      \"TotalTax\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"number\",\r\n" + 
+			"      693,\r\n" + 
+			"      727,\r\n" + 
+			"      \"25794\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_24\": [\r\n" + 
+			"      0,\r\n" + 
+			"      24,\r\n" + 
+			"      2,\r\n" + 
+			"      541,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      222,\r\n" + 
+			"      357,\r\n" + 
+			"      \"TotalAmountPayable\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"number\",\r\n" + 
+			"      686,\r\n" + 
+			"      727,\r\n" + 
+			"      \"169092\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_25\": [\r\n" + 
+			"      0,\r\n" + 
+			"      25,\r\n" + 
+			"      3,\r\n" + 
+			"      578,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      97,\r\n" + 
+			"      173,\r\n" + 
+			"      \"Rs:-Onelack\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      179,\r\n" + 
+			"      330,\r\n" + 
+			"      \"sixtyninethousandninety\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      337,\r\n" + 
+			"      391,\r\n" + 
+			"      \"twoonly.\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_26\": [\r\n" + 
+			"      0,\r\n" + 
+			"      26,\r\n" + 
+			"      8,\r\n" + 
+			"      601,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      92,\r\n" + 
+			"      139,\r\n" + 
+			"      \"Certified\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      146,\r\n" + 
+			"      167,\r\n" + 
+			"      \"that\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      174,\r\n" + 
+			"      234,\r\n" + 
+			"      \"particulars\",\r\n" + 
+			"      \"http://bizlem.io/PurchaseOrderProcessing#DescriptionOfServices\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      241,\r\n" + 
+			"      266,\r\n" + 
+			"      \"given\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      274,\r\n" + 
+			"      329,\r\n" + 
+			"      \"aboveare\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      335,\r\n" + 
+			"      375,\r\n" + 
+			"      \"correct\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      451,\r\n" + 
+			"      472,\r\n" + 
+			"      \"FOR\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      530,\r\n" + 
+			"      677,\r\n" + 
+			"      \"PERFECTENGINEERING\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_27\": [\r\n" + 
+			"      0,\r\n" + 
+			"      27,\r\n" + 
+			"      3,\r\n" + 
+			"      654,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      496,\r\n" + 
+			"      524,\r\n" + 
+			"      \"FOR\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      530,\r\n" + 
+			"      598,\r\n" + 
+			"      \"PERFECT\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      605,\r\n" + 
+			"      703,\r\n" + 
+			"      \"ENGINEERING\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_28\": [\r\n" + 
+			"      0,\r\n" + 
+			"      28,\r\n" + 
+			"      2,\r\n" + 
+			"      705,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      529,\r\n" + 
+			"      629,\r\n" + 
+			"      \"AuthorizedSigra\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      655,\r\n" + 
+			"      706,\r\n" + 
+			"      \"RIETOR\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_29\": [\r\n" + 
+			"      0,\r\n" + 
+			"      29,\r\n" + 
+			"      1,\r\n" + 
+			"      734,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      154,\r\n" + 
+			"      290,\r\n" + 
+			"      \"N2000HZ118-19-0149465\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_30\": [\r\n" + 
+			"      0,\r\n" + 
+			"      30,\r\n" + 
+			"      3,\r\n" + 
+			"      797,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      454,\r\n" + 
+			"      463,\r\n" + 
+			"      \"S\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      470,\r\n" + 
+			"      493,\r\n" + 
+			"      \".G\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      513,\r\n" + 
+			"      665,\r\n" + 
+			"      \".10C0511001\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_31\": [\r\n" + 
+			"      0,\r\n" + 
+			"      31,\r\n" + 
+			"      1,\r\n" + 
+			"      843,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      283,\r\n" + 
+			"      377,\r\n" + 
+			"      \"Ukmens\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_32\": [\r\n" + 
+			"      0,\r\n" + 
+			"      32,\r\n" + 
+			"      2,\r\n" + 
+			"      911,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      285,\r\n" + 
+			"      305,\r\n" + 
+			"      \"TAX\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      \"string\",\r\n" + 
+			"      311,\r\n" + 
+			"      373,\r\n" + 
+			"      \"CODEN2\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_33\": [\r\n" + 
+			"      0,\r\n" + 
+			"      33,\r\n" + 
+			"      1,\r\n" + 
+			"      924,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      278,\r\n" + 
+			"      368,\r\n" + 
+			"      \"ITCNOTELIGIBLEELIGIBLE\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_34\": [\r\n" + 
+			"      0,\r\n" + 
+			"      34,\r\n" + 
+			"      1,\r\n" + 
+			"      938,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      263,\r\n" + 
+			"      355,\r\n" + 
+			"      \"ITCGSTPAYABLE\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_35\": [\r\n" + 
+			"      0,\r\n" + 
+			"      35,\r\n" + 
+			"      1,\r\n" + 
+			"      960,\r\n" + 
+			"      \"string\",\r\n" + 
+			"      271,\r\n" + 
+			"      362,\r\n" + 
+			"      \"GSTEXEMPTED\",\r\n" + 
+			"      \"9999\",\r\n" + 
+			"      0\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_36\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_37\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_38\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_39\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_40\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_41\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_42\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_43\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_44\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_45\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_46\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_47\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_48\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_49\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_50\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_51\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_52\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_53\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_54\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_55\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_56\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_57\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_58\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_59\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_60\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_61\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_62\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_63\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_64\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_65\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_66\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_67\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_68\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_69\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_70\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_71\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_72\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_73\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_74\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_75\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_76\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_77\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_78\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_79\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_80\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_81\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_82\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_83\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_84\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_85\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_86\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_87\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_88\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_89\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_90\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_91\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_92\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_93\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_94\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_95\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_96\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_97\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_98\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_99\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ],\r\n" + 
+			"    \"line_index_100\": [\r\n" + 
+			"      \"Sample\"\r\n" + 
+			"    ]\r\n" + 
+			"  }\r\n" + 
+			"}"));
+}
+private static void copyFileUsingChannel(File source, File dest){
+    FileChannel sourceChannel = null;
+    FileChannel destChannel = null;
+    try {
+        sourceChannel = new FileInputStream(source).getChannel();
+        destChannel = new FileOutputStream(dest).getChannel();
+        destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
+       }
+    catch(Exception ex) {
+    	
+    }
+    finally{
+           try {
+			sourceChannel.close();
+			 destChannel.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+          
+   }
+}
+public static JSONObject createexcel(JSONObject jsonobject) {
+	JSONObject finaljson=null;
+	ResourceBundle bundle = ResourceBundle.getBundle("config");
+	//OPCPackage pkg = null;
+	try {
+		/*FileInputStream fis = new FileInputStream(
+				new File("C:\\Users\\user\\Downloads\\Working_Mohit_File2_Header_IdentificationWith_Footer_25_05_19_Part26_new1.xlsx"));
+*/
+		File file = new File("C:\\Users\\user\\Downloads\\Working_Mohit_File2_Header_IdentificationWith_Footer_25_05_19_Part26_new3.xlsx");
+		InputStream targetStream = new FileInputStream(file);
+		JSONObject rawdatajson = jsonobject.getJSONObject("RawJson");
+		String projectname = jsonobject.getString("project_name");
+
+		OPCPackage pkg = OPCPackage.open(targetStream);//,PackageAccess.READ_WRITE);
+		XSSFWorkbook workbook= new XSSFWorkbook(pkg);
+		workbook.getCreationHelper().createFormulaEvaluator().clearAllCachedResultValues();
+		workbook.setForceFormulaRecalculation(true);
+		//XSSFWorkbook workbook = new XSSFWorkbook(fis);
+		XSSFSheet sheet = workbook.getSheetAt(0);
+		XSSFRow row1 = sheet.getRow(2);
+		//Iterator keysitr = rawdatajson.keys();
+		//while (keysitr.hasNext()) {
+			
+			for (int i = 0; i < 100; i++) {
+				XSSFCell cell1 = row1.getCell(i);
+
+				cell1.setCellValue(rawdatajson.get("line_index_" + i).toString().replaceAll("\"", ""));
+			}
+			FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
+			 for (Row r : sheet) {
+			        for (Cell cell : r) {
+			            if (cell.getCellType() == Cell.CELL_TYPE_FORMULA) {
+			          System.out.println(cell.getAddress() + ":" + cell.getCellFormula());
+			               // evaluator.evaluateFormulaCell(c);
+			                switch (cell.getCachedFormulaResultType()) {
+							case Cell.CELL_TYPE_NUMERIC:
+								if (cell.getCellStyle() != null && cell.getCellStyle().getDataFormatString() != null) {
+									/*contents = new DataFormatter().formatRawCellContents(cell.getNumericCellValue(),
+											cell.getCellStyle().getDataFormat(),
+											cell.getCellStyle().getDataFormatString());
+									*///output("Content s: " + contents);
+								}
+								cell.setCellValue(cell.getNumericCellValue());
+//								output("0. case Cell.CELL_TYPE_NUMERIC --> Last evaluated as: "
+//										+ cell.getNumericCellValue());
+								
+
+								break;
+							case Cell.CELL_TYPE_STRING:
+								cell.setCellValue(cell.getRichStringCellValue());
+//								output("4. case Cell.CELL_TYPE_STRING --> Last evaluated as \""
+//										+ cell.getRichStringCellValue() + "\"");
+								
+
+								break;
+							case Cell.CELL_TYPE_ERROR:
+								//output("5. case Cell.CELL_TYPE_ERROR --> ");
+								break;
+							}
+							
+
+			            }
+			        }
+			    }
+		//}
+			//XSSFFormulaEvaluator.evaluateAllFormulaCells(workbook);
+			            // 
+			//workbook.getCreationHelper().createFormulaEvaluator().evaluateAll(); 
+			
+			
+				//sheet.setForceFormulaRecalculation(true);
+				
+		//fis.close();
+		
+		/*workbook.getCreationHelper().createFormulaEvaluator(). 
+		evaluateAll();
+		*/
+		//Without this, now it doesn't save
+			/*workbook.setForceFormulaRecalculation(true);
+			workbook.getCreationHelper().createFormulaEvaluator().evaluateAll();
+			*/
+			/*FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
+			
+			    for (Row r : sheet) {
+			        for (Cell c : r) {
+			            if (c.getCellType() == Cell.CELL_TYPE_FORMULA) {
+			          System.out.println(c.getAddress() + ":" + c.getCellFormula());
+			                evaluator.evaluateFormulaCell(c);
+			            }
+			        }
+			    }
+		*/
+
+			    workbook.setForceFormulaRecalculation(true);
+		/*FileOutputStream fos = new FileOutputStream(
+				new File(bundle.getString("getinvoicepath") + projectname + "pallavifinalexcel.xlsx"));
+		workbook.write(fos);
+		*/
+		/*workbook.getCreationHelper().createFormulaEvaluator(). 
+		evaluateAll(); 
+		workbook.setForceFormulaRecalculation(true);
+		*/
+		//fos.close();
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		workbook.write(os);
+		pkg.close();
+		targetStream.close();
+		FileOutputStream fos = null;
+		try {
+		    fos = new FileOutputStream(new File(bundle.getString("getinvoicepath") + projectname + "Test17Junefinalexcel.xlsx")); 
+		    os.writeTo(fos);
+		} catch(IOException ioe) {
+		    // Handle exception here
+		    ioe.printStackTrace();
+		} finally {
+		    fos.close();
+		    os.close();
+		}
+		//workbook.close();
+		//pkg.close();
+		//pkg = null;
+		System.out.println("Done");
+		/*File dest = new File(bundle.getString("getinvoicepath") + projectname + "pallavifinalexcel.xlsx");
+		copyFileUsingChannel(file,dest);
+		*/
+		//finaljson=readfinalexcel.readpallaviexcel(bundle.getString("getinvoicepath") + projectname + "pallavifinalexcel.xlsx");
+
+	} catch (Exception e) {
+e.printStackTrace();
+		//System.out.println("Exception ex : " + e.getMessage());
+	}
+	
+	return finaljson;
+}
+}
