@@ -21,7 +21,7 @@ net:
       PEMKeyFile: /etc/ssl/mongodb.pem
 After we have restarted MongoDB, we will no longer be able to use unencrypted connections to MongoDB:
 
-
+mongo --ssl --sslAllowInvalidCertificates
 MongoClientOptions.Builder builder = MongoClientOptions.builder();
 builder.sslEnabled(true).build();
 // If hostname or common name in certificate does not match hostname of 
