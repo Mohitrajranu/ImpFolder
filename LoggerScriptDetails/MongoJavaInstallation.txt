@@ -1,5 +1,5 @@
 keytool -importcert -file mongodb-cert.crt -alias mongoCert -keystore firstTrustStore
-
+keytool -import -alias -ca -file /etc/ssl/mongodb-cert.crt -keystore cacerts
 cd /etc/ssl/
 openssl req -x509 -nodes -newkey rsa:2048 -config openssl.cnf -extensions subject_alt_name -keyout private.key -out self-signed.pem -subj '/C=gb/ST=edinburgh/L=edinburgh/O=mygroup/OU=servicing/CN=www.example.com/emailAddress=postmaster@example.com' -days 365
  
