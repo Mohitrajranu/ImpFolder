@@ -1,3 +1,177 @@
+308 redirect java code+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+public static String sendGet(String urlstr) {
+		StringBuilder response = null;
+		URL url = null;
+		HttpURLConnection con = null;
+		try {
+
+			int responseCode = 0;
+
+		    url = new URL(urlstr);
+		    con = (HttpURLConnection) url.openConnection();
+			con.setConnectTimeout(10 * 1000);
+			con.setRequestMethod("GET");
+			con.addRequestProperty("Accept-Language", "en-US,en;q=0.8");
+			con.addRequestProperty("User-Agent", "Mozilla");
+			con.addRequestProperty("Referer", "google.com");
+
+		//	System.out.println("Request URL ... " + url);
+			con.setDoOutput(true);
+
+			responseCode = con.getResponseCode();
+			
+			// System.out.println("Response Code : " + responseCode);
+			 boolean redirect = false;
+
+				// normally, 3xx is redirect
+				if (responseCode != HttpURLConnection.HTTP_OK) {
+					if (responseCode == 308 ||
+							responseCode == HttpURLConnection.HTTP_MOVED_TEMP
+						|| responseCode == HttpURLConnection.HTTP_MOVED_PERM
+							|| responseCode == HttpURLConnection.HTTP_SEE_OTHER){
+					redirect = true;
+				}}
+				System.out.println("Response "+responseCode +" redirct " + redirect);
+
+				if (redirect) {
+
+					// get redirect url from "location" header field
+					String newUrl = con.getHeaderField("Location");
+
+					System.out.println("Location "+newUrl+" for url "+url);
+					// get the cookie if need, for login
+					String cookies = con.getHeaderField("Set-Cookie");
+					System.out.println("Location "+newUrl+" and cookie "+cookies+" for url "+url);
+					// open the new connnection again
+					con = (HttpURLConnection) new URL(newUrl).openConnection();
+					con.setInstanceFollowRedirects(true);  //you still need to handle redirect manully.
+					HttpURLConnection.setFollowRedirects(true);
+					con.setRequestProperty("Cookie", cookies);
+					con.addRequestProperty("Accept-Language", "en-US,en;q=0.8");
+					con.addRequestProperty("User-Agent", "Mozilla");
+					con.addRequestProperty("Referer", "google.com");
+											
+				//	System.out.println("Redirect to URL : " + newUrl);
+
+				}
+			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			response = new StringBuilder();
+
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+            in = null;
+		} catch (Exception e) {
+
+			return "Json Not Returned";
+		}
+		finally{
+			try {
+				con.disconnect();
+				con = null;
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				con = null;
+			}
+		}
+		return response.toString();
+
+	}
+bypass ssl java code :::#########################################################
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+import com.google.api.AccesAndRefreshToken;
+
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import java.util.ResourceBundle;
+
+public class ConnectHttps {
+	final static Logger logger = Logger.getLogger(ConnectHttps.class);
+  public static void main(String[] args)  {
+	  
+		try {
+			JSONObject respose_json_object=getTokenByRefreshToken("1/xlZy_MAfdJ3G-Tg6KmPbJU8_zMT-5Z_qaVg2v98QCIPN8b0hqVCMDgXJezplU4M8");
+			System.out.println("respose_json_object "+respose_json_object.toString());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    
+		/**
+     *  fix for
+     *    Exception in thread "main" javax.net.ssl.SSLHandshakeException:
+     *       sun.security.validator.ValidatorException:
+     *           PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException:
+     *               unable to find valid certification path to requested target
+     **/
+    TrustManager[] trustAllCerts = new TrustManager[] {
+       new X509TrustManager() {
+          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return null;
+          }
+
+          public void checkClientTrusted(X509Certificate[] certs, String authType) {  }
+
+          public void checkServerTrusted(X509Certificate[] certs, String authType) {  }
+
+       }
+    };
+
+    SSLContext sc = SSLContext.getInstance("SSL");
+    sc.init(null, trustAllCerts, new java.security.SecureRandom());
+    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+    // Create all-trusting host name verifier
+    HostnameVerifier allHostsValid = new HostnameVerifier() {
+        public boolean verify(String hostname, SSLSession session) {
+          return true;
+        }
+    };
+    // Install the all-trusting host verifier
+    HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+    
+     * end of the fix
+     
+
+    URL url = new URL("https://securewebsite.com");
+    URLConnection con = url.openConnection();
+    Reader reader = new InputStreamReader(con.getInputStream());
+    
+    
+    while (true) {
+      int ch = reader.read();
+      if (ch==-1) {
+        break;
+      }
+      System.out.print((char)ch);
+    }
+  }
+  
+
+
 docker run -d -p 8878:8098 dockdevmohit/quartzrepo
 
 mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc6 -Dversion=11.2.0.3 -Dpackaging=jar -Dfile=ojdbc6.jar -DgeneratePom=true
