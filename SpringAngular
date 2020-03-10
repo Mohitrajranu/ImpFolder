@@ -1,0 +1,100 @@
+@DeleteMapping("/users/{username}/todos/{id}")
+public ResponseEntity<Void> deleteTodo(@PathVariable String username,@PathVariable long id){
+Todo todo = todoService.deleteById(id);
+if(todo != null){
+return ResponseEntity.noContent().build();
+}
+return ResponseEntity.notFound().build();
+}
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+npm install -g @angular/cli
+ng new my-dream-app
+cd my-dream-app
+ng serve
+
+use === for comparing primitives is angular
+######################################################################
+ng lint
+What is linting :: Linting is nothing but checking your code for coding standards. eg : a new line at the end of every file.This rule is provided in tslint.json
+ng build --> creates dist folder which provides build for running application.
+ng test --> for running test {files having extension *.spec.ts}
+ng e2e --> (In e2e folder all files present)In angular end to end tests are attained through a framework called Protractor.Protractor uses Selenium in the background. angular.json is a file where all commands are present.
+..>>All the components and modules are present in apps folder.The assets folder has all the images, the content which needs to be rendered as it is like images.All the configuration of each environment goes into environment folder.
+..>> Browser doesnot understands typescript it only understands javascript,this conversion is provided in tsconfig.json. All the external framework and tools are provided in package.json.
+..>> gitignore contains folder which should not be committed to version control.
+At the start of angular application index.html and main.js are loaded which are responsible for bootstraping of angular application at higher level.
+..>> polyfills.ts takes care of browser incompatibilities, styles.css provides global application styles. test.ts is run for the unit test.
+In angular every thing is considered as a component.
+
+Eg:: app.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  //template: '<h1>{{title}}</h1>',
+  styleUrls: ['./app.component.css']
+  })
+  export class AppComponent{
+  title = 'todo';
+  }
+  
+  ---Interpolation {{ data }}
+  app.component.html
+  <div style="text-align:center">
+  <h1>Welcome to {{ title }} </h1>
+  <img></img>
+  </div>
+  <router-outlet></router-outlet>
+  
+  app.component.css -->> scope of the style which you specify here is restricted only to the component and is not applied to index.html
+div {
+    background-color: beige
+}  
+Once the component is created you won't be able to rollback.   
+ng generate component welcome
+Every angular component(@Component) has to be associated with an angular module(@NgModule) 
+If you want to use a class outside the module, you have to use export before class.
+########################################################################################################################################################
+Event Binding in Angular
+(event Occurs)=whatShouldYoudo -->event can be click.
+Banana in Box Approach --> It uses ngModel as a substitute for Interpolation and uses 2 way data binding.[(ngModel)]
+<><><><>------>>Angular applications are built using a number of angular modules, Javascript Modules are used to group multiple elements present in a single file, whereas angular module is used to group different angular components.If you will write anything in app.component.html it will be the part of main screen
+---> unpkg bootstrap4 on google chrome. and include it in style.css
+---> href reloads the entire page, but since we are making a single page application we should use routerLink for the internal site links,for external links we will still be using href.
+##############################################################################################################################################################
+RouteGuard Service for guarding components.
+ng generate service service/hardcodedAuthentication
+@Injectable will make the component available for dependency injection.
+>>>>>><<<<<<<<< Angular provides HTTPClient Module for restful calls.Which module you need to import in app.module.ts in imports as HTTPClientModule,Angular makes use of Observable(async call, which never keeps the thread waiting for response) for ajax request.
+Making a call to springboot rest api from angular requires cors implementation i.e., @CrossOrigin(origins="http://loclhost:4200")
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+JWT - Json Web token
+io.jsonwebtoken-jjwt-0.9.1
+We use basic authentication in most of our applications, No expiration time and no user details.
+Jwt has both user details as well as expiration time,Payload contains subject[who are we talking about],name,admin,iat[time of creation]
+application.properties:: jwt.signing.key.secret=mySecret
+jwt.get.token.uri= /authenticate
+jwt.refresh.token.uri= /refresh
+jwt.http.request.header= Authorization
+jwt.token.expiration.in.seconds=604800
+@Component
+public class JwtUnauthorizedResponseAuthenticationEntryPoint implements AuthenticationEntry{
+
+private static final long serialVersionUID = -8970718410437077606L;
+
+public void commemce(HttpServletRequest request,HttpServletResponse response,AuthenticationException authException) throws IOException{
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED,"You would need to provide jwt token to access this resource");
+
+}
+
+}
+************JWT Resources Implementation ***************
+AuthenticationException,JwtAuthenticationRestController,JwtTokenRequest,JwtTokenResponse
+To authenticate evey other get,put,post,delete requests we need filter JwtTokenAuthorizationOncePerRequestFilter.
+If you are using jwt tokens for cross site request forgery you will have to disable csrf and enable OPTIONS request which comes as a preflight request
+public void configure(HttpSecurity http) throws Exception{
+http.csrf().disable().authorizeRequests().antMatchers(HttpMethod.OPTIONS,"/**").permitAll().anyRequest().authenticated().and().httpBasic();
+}
+HttpInterceptors will add headers to all the crud request generating from the service.
