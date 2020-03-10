@@ -1,0 +1,90 @@
+Drools
+Expressions in Mvel                                      Expressions in java
+passport.passportNumber                                  passport.getPassportNumber()
+person.?company.name                                     if(person.getCompany() != null) return person.getCompany().getName();
+                                                         else return null;
+passport.passportNumber == 'AB12345'                     "AB12345".equals(passport.getPassportNumber())
+passport.country in ["US","GB","CA"]                     java.util.Arrays.asList("US","GB","CA").contains(passport.getCountry());
+passport == nil                                           passport == null
+passport == null
+passport.name = "xydfh"                                   passport.setName("abc")
+passport.name = 'ggfv'
+
+Collections in mvel
+
+Lists 
+names = ["a","b"]
+names[1] // returns b
+Arrays
+{"a","b"}
+country ="India"; //Strings are arrays.
+country[0] ; // returns India
+Maps
+person = ["first_name" : "Mohit Raj"]
+person["first_name"] or person.first_name //returns Mohit Raj
+
+Stateless Sessions
+Common usecases are Validation,Calculation,Routing and Filtering
+You need to explicitly state that session is stateless, write rules as short as possible , you can change the state of the objects during session but you cannot make drools aware of the changed state of an object.
+Stateful Sessions
+If you modify an object in a stateful session then all affected rules are automatically re-checked and re-run if needed. Used in Monitoring,Logistics,Diagnostics,Compliance.
+You need stateful session if you use inference i.e, one rule setting information that other rules consume, use modify keyword to make drool aware of changes, call dispose() method in the end of drools session to avoid memory leaks.
+
+CROSS PRODUCTS INTRO::
+Often one rule needs to look at combination of different objects, In drools join is called cross products ::- Pattern matching looks if combination of objects exist, We have to write in the when part how objects refer to each other.
+Example ::-->
+rule "Invalidate visa application with invalid passport"
+  dialect "mvel" 
+  when 
+    $passport: Passport(validation == Validation.FAILED)
+	$visaApplication: VisaApplication( passportNumber == $passport.passportNumber,validation != Validation.FAILED)
+then 
+   System.out.println("Set "+$visaApplication+ " invalid as "+$passport + " hasn't passed validation");
+   modify($visaApplication){
+   setValidation( Validation.FAILED)
+   }   
+ end  
+  Adding New facts and setting execution order.
+  Drools rules can insert new facts into the session, inserting new facts is another form of inference - creating new knowledge and in order to control execution order of the rules using either of salience or agenda-group.
+  Drools always looks for the rules with highest salience and fire them first.
+  
+  rule "Full passport"
+    dialect "mvel"
+	agenda-group "validate-passport"
+	salience 20
+	date-expires "01-Sep-2018"
+	when
+	  $passport: Passport( unusedVisaPages == 0 )
+	then
+      System.out.println( $passport + " is INVALID because it has no space for visa");
+	  modify($passport){
+	  setValidation(Validation.FAILED),
+	  setCause("passport has no space for visa")
+	  }
+	  end
+	  
+	 You can set expiration date for any rule, you can insert new facts into session, you can get all the facts from the session to java code.
+When two or more rules can trigger this is called conflict, You can control order using salience or agenda groups
+Rule with largest salience value is triggered first, Agenda groups are pushed into the stack by setting focus to them, Agenda groups are popped from stack by drools.
+If you use salience and agenda-group at the same time - salience only has effect within the particular agenda group.
+If two or more rules belong to same activation group then maximum one rule is run and only once.
+
+***************************************************************************************************************************************************************************************
+Insert new objects using "insertLogical()" we know that rule can insert a fact(on the right side of rule) when expression(left-hand side of the rule) is true, If we insert the object using insertLogical() and later the same expression becomes false then the object is deleted.
+Use "not()" if you need to match that fact doesn't exist, dont modify objects insert facts about them, reduce the number of rules needed by matching more than two objects at once.
+
+rule "Valid passport"
+  dialect "mvel"
+  when
+    $passport: Passport()
+    not( InvalidPassport{ this.passport = $passport})
+   then
+     sysout($passport + " is not invalid consider ok for now.");
+	 insertLogical(new ValidPassport($passport))
+end	 
+
+Use Drools event listeners for debugging::=> DebugAgendaEventListener, RuleRuntimeEventListener.
+
+exists :- use it to check that atleast one fact exists
+forall :- evaluates to true when all facts that match the first pattern,also match all the remaining patterns.
+we can use forall to extract a fact from a group.
