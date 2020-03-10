@@ -1,0 +1,426 @@
+repo.maven.apache.org/maven2/
+
+If you have something as there RequestBody then you need to have default constructor. 
+
+The annotation @JoinColumn indicates that this entity is the owner of the relationship (that is: the corresponding table has a column with a foreign key to the referenced table), whereas the attribute mappedBy indicates that the entity in this side is the inverse of the relationship, and the owner resides in the "other" entity. This also means that you can access the other table from the class which you've annotated with "mappedBy" (fully bidirectional relationship).
+
+OneToMany: LAZY
+ManyToOne: EAGER
+ManyToMany: LAZY
+OneToOne: EAGER
+
+session.save returns the generated id, and also makes chabges to db outside the transaction boundary for an entity , which is not in the case of persistance as it will not allow detached object to be persist in the database.
+**************************************************************************
+Save():-
+Returns generated Id after saving. Its Serializable return type.
+Saves the value to DB immediately and keeps track of the entity until the end of the session(I have tried to change the entity values outside of the transaction, it does not show any effect when session commits)
+save the changes to the db outside of the transaction.
+Assigns the generated id to the entity you are persisting
+Session.save() for a detached object will create a new row in the table.
+***************************************************************************
+Persist():-
+Does not returns generated Id after saving. Its void return type.
+Saves the value to DB immediately and keeps track of the entity until the end of the session.(I have tried to change the entity values outside of the transaction, it does not show any effect when session commits)
+Does not save the changes to the db outside of the transaction.
+Assigns the generated id to the entity you are persisting
+session.persist() for a detached object will throw PersistentObjectException as it is not allowed.
+***************************************************************************
+Example 1 : Dealing with Transient Object
+
+Session session = factory.openSession();
+session.beginTransaction();
+EmployeeVehicle entity = new EmployeeVehicle();
+entity.setVehicleName("Honda");
+session.save(entity);
+// session.persist(entity);
+session.getTransaction().commit();
+session.close();
+Result:
+
+select nextval ('hibernate_sequence') // This is for vehicle Id generated : 36
+insert into Employee_Vehicle ( Vehicle_Name, Vehicle_Id) values ( Honda, 36)
+Note the result is same when you get an already persisted object and save it
+
+EmployeeVehicle entity =  (EmployeeVehicle)session.get(EmployeeVehicle.class, 36);
+entity.setVehicleName("Toyota");
+session.save(entity);    -------> **instead of session.update(entity);**
+// session.persist(entity);
+Repeat the same using persist(entity) and will result the same with new Id ( say 37 , honda ) ;
+
+Example 2 : Dealing with Detached Object
+
+// Session 1 
+// Get the previously saved Vehicle Entity 
+Session session = factory.openSession();
+session.beginTransaction();
+EmployeeVehicle entity = (EmployeeVehicle)session.get(EmployeeVehicle.class, 36);
+session.close();
+
+// Session 2
+// Here in Session 2 , vehicle entity obtained in previous session is a detached object and now we will try to save / persist it 
+// (i) Using Save() to persist a detached object 
+Session session2 = factory.openSession();
+session2.beginTransaction();
+entity.setVehicleName("Toyota");
+session2.save(entity);
+session2.getTransaction().commit();
+session2.close();
+Result : You might be expecting the Vehicle with id : 36 obtained in previous session is updated with name as "Toyota" . But what happens is that a new entity is saved in the DB with new Id generated for and Name as "Toyota"
+
+select nextval ('hibernate_sequence')
+insert into Employee_Vehicle ( Vehicle_Name, Vehicle_Id) values ( Toyota, 39)
+Using persist to persist detached entity
+
+// (ii) Using Persist()  to persist a detached
+// Session 1 
+Session session = factory.openSession();
+session.beginTransaction();
+EmployeeVehicle entity = (EmployeeVehicle)session.get(EmployeeVehicle.class, 36);
+session.close();
+
+// Session 2
+// Here in Session 2 , vehicle entity obtained in previous session is a detached object and now we will try to save / persist it 
+// (i) Using Save() to persist a detached
+Session session2 = factory.openSession();
+session2.beginTransaction();
+entity.setVehicleName("Toyota");
+session2.persist(entity);
+session2.getTransaction().commit();
+session2.close();
+Result:
+
+Exception being thrown : detached entity passed to persist
+So, it is always better to use Persist() rather than Save() as save has to be carefully used when dealing with Transient object .
+
+Important Note : In the above example , the pk of vehicle entity is a generated value , so when using save() to persist a detached entity , hibernate generates a new id to persist . However if this pk is not a generated value than it is result in a exception stating key violated.
+
+Aspect Oriented:
+>>Aspect:- Module of code for a cross cutting concern.
+>>Advice:- What action is taken and when it should be applied.
+>>Join Point:- When to apply code during program execution.
+>>PointCut:- A predicate expression for where advice should be applied.
+SpringAop uses AspectJs pointcut expression language.We will start with execution pointcuts which applies to execution of methods.
+--->> execution(modifiers-pattern? return-type-pattern? declaring-type-pattern? method-name-pattern(param-pattern) throws-pattern?)
+<<>>Create a pointcut declaration and apply it to multiple advices.
+
+Example::-->
+@Aspect
+@Component
+public class MyDemoLoggingAspect{
+
+@Pointcut("execution(* com.mohit.dao.*.*(..))")
+private void forDaoPackage(){}
+
+@Before("forDaoPackage()") 
+public void beforeAddAccountAdvice(){
+
+}
+
+}
+
+Combining Pointcut expression:-> AND(&&),OR(||),NOT(!) works like an "if" statement execution happens only if it evaluates to true.
+Example : All methods in a package Except getter/setter methods.
+
+@Aspect
+@Component
+@Order(1)
+public class MyDemoLoggingAspect{
+
+@Pointcut("execution(* com.mohit.dao.*.*(..))")
+private void forDaoPackage(){}
+@Pointcut("execution(* com.mohit.dao.*.get*(..))")
+private void getter(){}
+@Pointcut("execution(* com.mohit.dao.*.set*(..))")
+private void setter(){}
+@Pointcut("forDaoPackage() && !(getter() || setter())") 
+private void forDaoPackageNoGetterSetter(){}
+
+@Before("forDaoPackageNoGetterSetter()")
+public void beforeAddAccountAdvice(){
+
+}
+
+}
+
+Advantages:- Reusable modules,Resolve code tangling,Resolve code scatter,Applied selectively based on configuration.
+Disadvantages:- Too many aspects and app flow is hard to follow, Minor performance cost for aspect execution(run-time weaving).
+--> Before advice:- run before the method.
+--> After finally advice:- run after the method (finally).
+--> After returning advice:- run after the method (sucess execution).
+--> After throwing advice:- run after method (if exception thrown).
+--> Around advice :- run before and after the method.
+
+* any modifier(public , private , protected) ; * any return type ; any class having methodname starting with processCreditCard and no arguments
+Modifier is optional so you don't have to list it.
+@Before("execution(* * processCreditCard*())") ---> @Before("execution(* processCreditCard*())")
+
+@Before("execution(* com.mohit.dao.*.*(..))")  ---> match any method in the package for all classes in the package having multiple arguments.
+##############################%%%%%%%%%%%%%%%%$$$$$$$$$$$$$$$$$$$$4
+Parameter Pattern Wildcards ->
+
+a]() -> matches a method with no arguments.
+b](*) -> matches a method with one argument of any type.
+c](..) -> matches a method with 0 or more arguments of any type.
+
+### Ordering Aspects --->> Refactor (place advices in separate aspects.) Add @Order annotation to aspects.
+Guarantees order of when aspects are applied, Lower numbers have higher precedence.
+
+Aop read method arguments with joinpoints, JoinPoint has metadata about method call.
+
+@Aspect
+@Component
+@Order(2)
+public class MyDemoLoggingAspect{
+
+
+@Before("com.mohit.dao.aspect.AopExpression.forDaoPackageNoGetterSetter()")
+public void beforeAddAccountAdvice(JoinPoint theJoinPoint){
+//display method signature
+
+MethodSignature methodSig = (MethodSignature) theJoinPoint.getSignature();
+System.out.println("Method :: "+methodSig);
+
+//get arguments
+Object[] args =  theJoinPoint.getArgs();
+ for(Object tempArg : args){
+ 
+ if(tempArg instanceof Account){
+ 
+ //downcast and println
+ Account theAccount = (Account) tempArg;
+ 
+ }
+ }
+
+}
+
+}
+
+<<<<<<<<<<<<<<<>>>>>>>>>>><<<<>>>>--------------------------------------------------------------------------------<<<<<<<<<>>>>>>>>>>>>><<<<<<<<<<<>>>>>>>>>
+
+[]@AfterReturning(pointcut="execution(* com.mohit.dao.AccountDao.findAccounts(..))",returning="result")
+public void afterReturningFindAccountsAdvice(JoinPoint theJoinPoint,List<Account> result){
+
+String method = theJoinPoint.getSignature().toShortString();
+
+}
+
+[]@AfterThrowing(pointcut="execution(* com.mohit.dao.AccountDao.findAccounts(..))",throwing="theExc")
+public void afterReturningFindAccountsAdvice(JoinPoint theJoinPoint,Throwable theExc){
+
+String method = theJoinPoint.getSignature().toShortString();
+
+}
+Note: If you want to stop the exception propagation , then use the @Around advice.
+
+[]@After("execution(* com.mohit.dao.AccountDao.findAccounts(..))")
+public void afterFinallyFindAccountsAdvice(JoinPoint theJoinPoint){
+
+String method = theJoinPoint.getSignature().toShortString();
+
+}
+
+Around Advice::-->> Combination of both @Before and @After but gives you more fine grained control.
+When using @Around advice you will get a reference to a "proceeding join point".
+[] @Around("execution(* com.mohit.dao.AccountDao.findAccounts(..))")
+public Object afterGetFortune(ProceedingJoinPoint theProceedingJoinPoint) throws Throwable{
+// get begin timestamp
+long begin = System.currentTimeMillis();
+//now lets execute the method
+Object result= theProceedingJoinPoint.proceed();
+//get end timestamp
+long end = System.currentTimeMillis();
+
+long duration = end - begin;
+return result;
+
+}
+
+For an exception thrown from proceeding join point , you can handle/swallow/stop the exception or you can simply rethrow exception. 
+@Around("execution(* com.mohit.dao.AccountDao.findAccounts(..))")
+public Object afterGetFortune(ProceedingJoinPoint theProceedingJoinPoint) throws Throwable{
+
+Object result=null;
+try{
+ 
+ result= theProceedingJoinPoint.proceed();
+
+ }catch(Exception exc){
+ result ="Nothing exciting here.Move along";
+ }
+return result;
+
+}
+*************************************************************************************************************************************************************
+//AbstractAnnotationConfigDispatcherServletInitializer,getServletConfigClasses,getRootConfigClasses-->"DemoAppConfig.class",getServletMappings-->"/".
+//Spring Security Webapp Initializer AbstractSecurityWebApplicationInitializer. @Configuration , @EnableWebSecurity public class DemoSecurityConfig extends WebSecurityConfigurerAdapter {
+protected void configure(AuthenticationManagerBuilder auth) throws Exception{
+UserBuilder users = User.withDefaultPasswordEncoder();
+auth.inMemoryAuthentication().withUser(users.username("john").password("test123").roles("EMPLOYEE")).withUser(users.username("john").password("test123").roles("MANAGER")).withUser(users.username("john").password("test123").roles("ADMIN"));
+
+}
+
+}
+User Login is based on a web browser session, any change to jsp page will be reflected to the loggedin user.
+spring security provides both  basic and form based authentication, form based authentication provides with a session which is created on the server and the cookie which is in your browser whereas for basic authentication we keep sending a basic autherization header as a part of the request.
+In application.properties spring.security.user.name=user , spring.security.user.password=password
+In Spring5 we can use custom spring database configuration to avoid unnecessary tables configuration.
+DROP DATABASE  IF EXISTS `spring_security_demo_plaintext`;
+
+CREATE DATABASE  IF NOT EXISTS `spring_security_demo_plaintext`; --> for bcrypt we will use spring_security_demo_bcrypt
+USE `spring_security_demo_plaintext`;
+--
+-- Table structure for table `users`
+--
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users` (
+  `username` varchar(50) NOT NULL,
+  `password` varchar(50) NOT NULL,
+  `enabled` tinyint(1) NOT NULL,
+  PRIMARY KEY (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+--
+-- Inserting data for table `users`
+--
+INSERT INTO `users` 
+VALUES 
+('john','{noop}test123',1),
+('mary','{noop}test123',1),
+('susan','{noop}test123',1);
+--
+{noop}--encoding algorithm id , signifies store data as plain password.
+-- Table structure for table `authorities`
+--
+DROP TABLE IF EXISTS `authorities`;
+CREATE TABLE `authorities` (
+  `username` varchar(50) NOT NULL,
+  `authority` varchar(50) NOT NULL,
+  UNIQUE KEY `authorities_idx_1` (`username`,`authority`),
+  CONSTRAINT `authorities_ibfk_1` FOREIGN KEY (`username`) REFERENCES `users` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+--
+-- Inserting data for table `authorities`
+--
+INSERT INTO `authorities` 
+VALUES 
+('john','ROLE_EMPLOYEE'),
+('mary','ROLE_EMPLOYEE'),
+('mary','ROLE_MANAGER'),
+('susan','ROLE_EMPLOYEE'),
+('susan','ROLE_ADMIN');
+
+Spring Security defines a framework for security. Implemented using servlet filters in the background.Servlet filters are used to pre-process/post-process web requests servlet filters can route web requests based on security logic. 
+# ==============================================================
+# = Spring Security / Queries for AuthenticationManagerBuilder
+# ==============================================================
+spring.queries.users-query=select email, password, active from user where email=?
+spring.queries.roles-query=select u.email, r.role from user u inner join user_role ur on(u.user_id=ur.user_id) inner join role r on(ur.role_id=r.role_id) where u.email=?
+
+
+
+    @Value("${spring.queries.users-query}")
+    private String usersQuery;
+
+    @Value("${spring.queries.roles-query}")
+    private String rolesQuery;
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth)
+            throws Exception {
+        auth.
+                jdbcAuthentication()
+                .usersByUsernameQuery(usersQuery)
+                .authoritiesByUsernameQuery(rolesQuery)
+                .dataSource(dataSource)
+                .passwordEncoder(bCryptPasswordEncoder);
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+
+        http.
+                authorizeRequests()
+                .antMatchers("/").permitAll()
+                .antMatchers("/login").permitAll()
+                .antMatchers("/registration").permitAll()
+                .antMatchers("/admin/**").hasAuthority("ADMIN").anyRequest()
+                .authenticated().and().csrf().disable().formLogin()
+                .loginPage("/login").failureUrl("/login?error=true")// ---> need to create controller for /login page. //.loginProcessingUrl("/authenticateTheUser") ---> no controller request mapping required for it,we get this for free handled by spring security features, Spring security filters will read form data and authenticate the user. 
+                .defaultSuccessUrl("/admin/home")
+                .usernameParameter("email")
+                .passwordParameter("password")
+                .and().logout()
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                .logoutSuccessUrl("/").and().exceptionHandling()
+                .accessDeniedPage("/access-denied");
+    }
+<style>
+.failed{
+     color:red;
+ }
+</style>
+	
+<c:if test="${param.error != null}">
+<i class="failed">Sorry you entered invalid username & password</i>
+</c:if>
+
+no need to make controller for logout as spring security filters add it.
+<c:if test="${param.logout != null}">
+<div class="alert alert-success ">You have been Logged Out.</div>
+</c:if>
+
+<form:form> provides automatic support for security defenses , automatically adds csrf token.
+Spring Security uses the syncronizer token patttern, each request includes a session cookie and randomly generated token for request processing spring security verifies token before processing.
+If not using <form:form> tag, manually add the token
+<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+<!-- Display username and roles -->
+<p>
+   User: <security:authentication property="principal.username" />
+   <br><br>
+   Role(s): <security:authentication property="principal.authorities" />
+</p>
+
+By default spring security uses ROLE_ as prefix.It is configurable.
+Spring Security recommends using the popular bcrypt algorithm,bcrypt performs one-way encrypted hashing.Adds a random salt to the password for additional protection.Includes support to defeat brute force attack.
+In Spring5,passwords are stored using a specific format.{id}encodedPassword --> noop [plaintext password] and bcrypt [Bcrypt password hashing]
+password column must be 68 characters wide.
+
+*************************************************************************************************************************************************************
+
+Weaving:-
+Connecting aspects to target objects to create an advised objects. different types of weaving compile-time,load-time or run-time.
+Regarding performance : run-time weaving is slowest.
+
+Spring AOP framework:-
+-->Spring provides aop support, key components of spring :- caching,security,transactions etc. uses runtime weaving etc.
+simpler to use than aspectj,uses proxy pattern.can migrate to AspectJ using @Aspect annotation.
+Diasadvantages:- Only supports method-level join points, can only aspects to beans created by spring app context.Minor performance cost for aspect execution(run-time weaving).
+
+AspectJ:-
+-->Provides complete support for aop,rich support for join points: method-level,constructor,field.
+-->Support all join points, works with any pojo not just beans from app context. Faster performance compared to spring aop.Complete Aop support.
+Diasadvantages:- Compile time weaving requires extra compilation step,Aspectj pointcut syntax can become complex.
+
+
+code-weaving: compile-time,post compile-time and load-time.
+##############################################################################################################################################################
+SpringBoot Actuators::
+info.app.name=My Super Cool App
+info.app.description=A crazy fun app, yoohoo!
+info.app.version=1.0.0
+
+# Use wildcard "*" to expose all endpoints
+# Can also expose individual endpoints with a comma-delimited list
+#
+management.endpoints.web.exposure.include=*
+
+# Exclude individual endpoints with a comma-delimited list
+# management.endpoints.web.exposure.exclude=health,info
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Aws --> https://aws.amazon.com/free/
+Elastic cloud compute (EC2) ---->> Remote VM, not a prepackaged platform
+Elastic Beanstalk ---> Deploy web applications, it is a prepackaged platform.(Paas)
+Relational Database Service ---> RDS in the cloud
+Rote 53 --> Route custom domain names to your application.
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
