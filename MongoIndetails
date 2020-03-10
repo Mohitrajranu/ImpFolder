@@ -1,0 +1,783 @@
+https://medium.com/@matteocontrini/how-to-setup-auth-in-mongodb-3-0-properly-86b60aeef7e8
+
+https://docs.oracle.com/cd/E12058_01/doc/doc.1014/e12030/cron_expressions.htm
+
+https://www.freeformatter.com/cron-expression-generator-quartz.html
+Open a cmd and type cd C:\Program Files\MongoDB\Server\4.0\bin
+
+mongod --dbpath d:\mongodb\data\db
+34.80.26.185
+/var/run/mongod/
+mongod.pid
+*****************************************************************************StartupLogs***************************************************************************
+2018-09-25T11:57:08.632+0530 I STORAGE  [initandlisten] wiredtiger_open config: create,cache_size=1354M,session_max=20000,eviction=(threads_min=4,threads_max=4),
+config_base=false,statistics=(fast),
+log=(enabled=true,archive=true,path=journal,compressor=snappy),file_manager=(close_idle_time=100000),statistics_log=(wait=0),verbose=(recovery_progress),
+2018-09-25T11:57:08.898+0530 I STORAGE  [initandlisten] WiredTiger message [1537856828:898244][7964:140715135885360], txn-recover:
+ Set global recovery timestamp: 0
+2018-09-25T11:57:09.035+0530 I RECOVERY [initandlisten] WiredTiger recoveryTimestamp. Ts: Timestamp(0, 0)
+2018-09-25T11:57:09.292+0530 I CONTROL  [initandlisten]
+2018-09-25T11:57:09.293+0530 I CONTROL  [initandlisten] ** WARNING: Access control is not enabled for the database.
+2018-09-25T11:57:09.295+0530 I CONTROL  [initandlisten] **          Read and write access to data and configuration is unrestricted.
+2018-09-25T11:57:09.297+0530 I CONTROL  [initandlisten]
+2018-09-25T11:57:09.299+0530 I CONTROL  [initandlisten] ** WARNING: This server is bound to localhost.
+2018-09-25T11:57:09.300+0530 I CONTROL  [initandlisten] **          Remote systems will be unable to connect to this server.
+2018-09-25T11:57:09.302+0530 I CONTROL  [initandlisten] **          Start the server with --bind_ip <address> to specify which IP
+2018-09-25T11:57:09.305+0530 I CONTROL  [initandlisten] **          addresses it should serve responses from, or with --bind_ip_all to
+2018-09-25T11:57:09.307+0530 I CONTROL  [initandlisten] **          bind to all interfaces. If this behavior is desired, start the
+2018-09-25T11:57:09.309+0530 I CONTROL  [initandlisten] **          server with --bind_ip 127.0.0.1 to disable this warning.
+2018-09-25T11:57:09.323+0530 I CONTROL  [initandlisten]
+2018-09-25T11:57:09.325+0530 I STORAGE  [initandlisten] createCollection: admin.system.version with provided UUID: c6789cec-c81c-4367-a9bf-d8782bb6e911
+2018-09-25T11:57:09.427+0530 I COMMAND  [initandlisten] setting featureCompatibilityVersion to 4.0
+2018-09-25T11:57:09.435+0530 I STORAGE  [initandlisten] createCollection: local.startup_log with generated UUID: 32db9215-9b66-4fd5-a8af-9c8d2bd3d9db
+2018-09-25T11:57:11.319+0530 I FTDC     [initandlisten] Initializing full-time diagnostic data capture with directory 'd:/mongodb/data/db/diagnostic.data'
+2018-09-25T11:57:11.323+0530 I STORAGE  [LogicalSessionCacheRefresh] createCollection: config.system.sessions with generated 
+UUID: 4c5f0147-a9e3-4946-a66e-ae95bdec1f2b
+2018-09-25T11:57:11.323+0530 I NETWORK  [initandlisten] waiting for connections on port 27017
+2018-09-25T11:57:11.528+0530 I INDEX    [LogicalSessionCacheRefresh] build index on: config.system.sessions properties: { v: 2, key: { lastUse: 1 }, 
+name: "lsidTTLIndex", ns: "config.system.sessions", expireAfterSeconds: 1800 }
+2018-09-25T11:57:11.529+0530 I INDEX    [LogicalSessionCacheRefresh]     building index using bulk method; build may temporarily use up to 
+500 megabytes of RAM
+2018-09-25T11:57:11.556+0530 I INDEX    [LogicalSessionCacheRefresh] build index done.  scanned 0 total records. 0 secs
+2018-09-25T11:57:11.557+0530 I COMMAND  [LogicalSessionCacheRefresh] command config.$cmd command: createIndexes { createIndexes: "system.sessions", 
+indexes: [ { key: { lastUse: 1 }, name: "lsidTTLIndex", expireAfterSeconds: 1800 } ], $db: "config" } numYields:0 reslen:114 
+locks:{ Global: { acquireCount: { r: 1, w: 1 } }, Database: { acquireCount: { W: 1 } }, Collection: { acquireCount: { w: 1 } } } protocol:op_msg 234ms
+
+
+
+Open another command prompt ,
+and type cd C:\Program Files\MongoDB\Server\4.0\bin
+mongo 
+##############################################################################################################################################################
+MongoDB shell version v4.0.2
+connecting to: mongodb://127.0.0.1:27017
+MongoDB server version: 4.0.2
+Welcome to the MongoDB shell.
+For interactive help, type "help".
+For more comprehensive documentation, see
+        http://docs.mongodb.org/
+Questions? Try the support group
+        http://groups.google.com/group/mongodb-user
+Server has startup warnings:
+2018-09-25T11:48:39.411+0530 I CONTROL  [initandlisten]
+2018-09-25T11:48:39.412+0530 I CONTROL  [initandlisten] ** WARNING: Access control is not enabled for the database.
+2018-09-25T11:48:39.412+0530 I CONTROL  [initandlisten] **          Read and write access to data and configuration is unrestricted.
+2018-09-25T11:48:39.412+0530 I CONTROL  [initandlisten]
+---
+Enable MongoDB's free cloud-based monitoring service, which will then receive and display
+metrics about your deployment (disk utilization, CPU, operation statistics, etc).
+
+The monitoring data will be available on a MongoDB website with a unique URL accessible to you
+and anyone you share the URL with. MongoDB may use this information to make product
+improvements and to suggest MongoDB products and deployment options to you.
+
+To enable free monitoring, run the following command: db.enableFreeMonitoring()
+To permanently disable this reminder, run the following command: db.disableFreeMonitoring()
+##############################################################################################################################################################
+show dbs
+
+Steps for executing mongoDb commands:
+$$$$$$$$$$$$$$$$$$$$$$############################&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&************************************
+1]--------------------------------------------------------Creating database-------------------------------------------------
+ use myblogs
+switched to db myblogs
+> db.articles.insert({name: "mongoDb Intro", category:"database", tags:["nosql","db","bigdata"]})
+WriteResult({ "nInserted" : 1 })
+> db.articles.find()
+{ "_id" : ObjectId("5baa0c35b2f8cbc68fc146c9"), "name" : "mongoDb Intro", "category" : "database", "tags" : [ "nosql", "db", "bigdata" ] }
+
+db.articles.find().pretty()
+{
+        "_id" : ObjectId("5baa0c35b2f8cbc68fc146c9"),
+        "name" : "mongoDb Intro",
+        "category" : "database",
+        "tags" : [
+                "nosql",
+                "db",
+                "bigdata"
+        ]
+}
+
+2]--------------------------------------------------Creating document and saving it to Collection----------------------------------
+> var articleInfo={};
+> articleInfo.articleName="MongoDb Introduction Step By Step";
+MongoDb Introduction Step By Step
+> articleInfo.tags=["database","NoSql","Dev","DBA"];
+[ "database", "NoSql", "Dev", "DBA" ]
+> articleInfo.authorName="Maxmillan";
+Maxmillan
+> articleInfo.metaData={};
+{ }
+> articleInfo.metaData.authors=["Maxmillan","Sunil G","Bryan"];
+[ "Maxmillan", "Sunil G", "Bryan" ]
+> articleInfo.metaData.description="About Mongo Database";
+About Mongo Database
+> articleInfo.metaData.created_on= new Date();
+ISODate("2018-09-25T11:18:11.728Z")
+> db.articles.save(articleInfo);
+WriteResult({ "nInserted" : 1 })
+ db.articles.find().pretty();
+{
+        "_id" : ObjectId("5baa0c35b2f8cbc68fc146c9"),
+        "name" : "mongoDb Intro",
+        "category" : "database",
+        "tags" : [
+                "nosql",
+                "db",
+                "bigdata"
+        ]
+}
+{
+        "_id" : ObjectId("5baa1a04b2f8cbc68fc146ca"),
+        "articleName" : "MongoDb Introduction Step By Step",
+        "tags" : [
+                "database",
+                "NoSql",
+                "Dev",
+                "DBA"
+        ],
+        "authorName" : "Maxmillan",
+        "metaData" : {
+                "authors" : [
+                        "Maxmillan",
+                        "Sunil G",
+                        "Bryan"
+                ],
+                "description" : "About Mongo Database",
+                "created_on" : ISODate("2018-09-25T11:18:11.728Z")
+        }
+}
+
+P.S: in the above example,
+Database Name: myblogs
+Collection Name: articles
+Document Name: articleInfo
+
+3]------------------------------------------------------Drop a Database-------------------------------------------------
+show dbs
+admin    0.000GB
+config   0.000GB
+local    0.000GB
+myblogs  0.000GB
+> use myblogs
+switched to db myblogs
+> db.dropDatabase();
+{ "dropped" : "myblogs", "ok" : 1 }
+
+4]-------------------------------------------------------Creating a Collection--------------------------------------------
+
+> db.createCollection("articles");
+{ "ok" : 1 }
+> show collections
+articles
+> db.createCollection("blogs",{capped:true, autoIndexId:true, size: 3679000, max:1000});
+{
+        "note" : "the autoIndexId option is deprecated and will be removed in a future release",
+        "ok" : 1
+}
+> show collections
+articles
+blogs
+
+5]-----------------------------------------------------------Drop a Collection----------------------------------------------
+> use myBlogs
+switched to db myBlogs
+> show collections
+articles
+blogs
+> db.articles.drop();
+true
+> db.blogs.drop();
+true
+
+6]--------------------------------------------------------------CRUD in Mongo-------------------------------------------------
+A] Insert Operation:
+use classInfo
+switched to db classInfo
+> load("e:/MongPractice/studentInfo.js");
+true
+> show collections
+studentInfo
+> db.studentInfo.find().pretty();
+{
+        "_id" : ObjectId("5bacbc3d502583044f9abf5a"),
+        "name" : {
+                "firstName" : "John",
+                "lastName" : "Doe"
+        },
+        "class" : 6,
+        "rollNo" : 23,
+        "subjects" : [
+                "Maths",
+                "Physics",
+                "Chemistry"
+        ],
+        "attendance" : {
+                "January" : "90%",
+                "February" : "85%",
+                "March" : "98%"
+        }
+}
+
+load("e:/MongPractice/studentsInfoArray.js");
+
+B] Read by Querying
+
+db.studentsInfoCollection.find({"name.firstName":"Neha"}).pretty();/db.studentsInfoCollection.find({"name.firstName":{$eq:"Neha"}}).pretty();
+{
+        "_id" : ObjectId("5bacc243502583044f9abf5d"),
+        "name" : {
+                "firstName" : "Neha",
+                "lastName" : "Panwar"
+        },
+        "age" : 16,
+        "subjects" : [
+                "Maths",
+                "Physics",
+                "Chemistry"
+        ],
+        "attendance" : {
+                "Jan" : "100%",
+                "Feb" : "99%",
+                "Mar" : "100%"
+        }
+}
+
+db.studentsInfoCollection.find({"age":12}).pretty();/ db.studentsInfoCollection.find({"age":{$eq:12}}).pretty();
+
+{
+        "_id" : ObjectId("5bacc243502583044f9abf5f"),
+        "name" : {
+                "firstName" : "Pasha",
+                "lastName" : "Bhai"
+        },
+        "age" : 12,
+        "subjects" : [
+                "Small Business",
+                "Medium Business",
+                "Journalist"
+        ],
+        "attendance" : {
+                "Jan" : "100%",
+                "Feb" : "100%%",
+                "Mar" : "100%"
+        }
+}
+db.studentsInfoCollection.find({"age":{$lt:12}}).pretty();
+db.studentsInfoCollection.find({"age":{$gt:12}}).pretty();
+db.studentsInfoCollection.find({"age":{$gte:12}}).pretty();
+db.studentsInfoCollection.find({"age":{$lte:12}}).pretty();
+db.studentsInfoCollection.find({"age":{$ne:12}}).pretty();
+db.studentsInfoCollection.find({"subjects":{$in:["Journalist"]}}).pretty();
+db.studentsInfoCollection.find({"subjects":{$nin:["Journalist"]}}).pretty();
+db.studentsInfoCollection.find({"subjects":{$exists:true,$nin:["Journalist"]}}).pretty();
+
+C]Update Documents
+db.studentsInfoCollection.update({"name.firstName":"Pasha"},{$set:{"age":18}});
+
+db.studentsInfoCollection.update({"name.firstName":"Pasha"},{$set:{"age":24}},{upsert:true});//if it doesnot finds a matching value then it will create a new document as upsert is both update and insert.
+
+db.studentsInfoCollection.update({"name.firstName":"Pasha"},{$set:{"subjects.1":"Political Science"}});
+
+D]Delete Documents
+db.studentsInfoCollection.remove({"name.firstName":"Pasha"});
+db.studentsInfoCollection.remove({"subjects":"Journalist"});
+db.studentsInfoCollection.remove({"subjects":"Journalist"},1);
+db.studentsInfoCollection.remove();
+
+db.rajesh.shukla3100_gmail.com.distinct('agent_id__c').length;
+db.restaurants.find({"cuisine" : "American "}).count();
+-----------------------------------------------------------------------><---------------------------------------------------------------><----------------------
+db.rajesh.shukla3100_gmail.com.createIndex( { "agent_id__c":1 } );
+Explain Plan:- db.studentsInfoCollection.find({"name.firstName":"Pasha"}).explain();
+explain() takes 3 parameters "queryPlanner","executionStats,"allPlanExecutions" which are optional parameters.
+db.studentsInfoCollection.find().explain("executionStats");
+db.studentsInfoCollection.find().explain("queryPlanner");
+db.studentsInfoCollection.find().explain("allPlanexecution");
+
+db.studentsInfoCollection.createIndex({age:1});------here 1 means ascending order and -1 means descending order.
+without indexing the field age, the cursor used is basic and after indexing the cursor changes to Btree Cursor:: id field is already indexed and it uses cursorId as index.
+db.studentsInfoCollection.getIndexes();------ It will show all the created indexes on that collection.
+db.studentsInfoCollection.dropIndex({age:1}); 
+------------------------------------------------------------------------><-----------------------------------------------------------------><-------------------
+ObjectIds are created by mongodb is unique,immutable,bson dataType and 12 byte value.
+Creating your own objectId is :: db.productDetails.insert({_id:001,"prdtname":"Television"});
+to queryOnly one document , db.productDetails.find()[0]; :: db.productDetails.find()[0]._id; :: db.productDetails.find()[0]._id.getTimestamp();
+#################################################################################################################################################################
+Aggregation in mongodb:: db.collectionName.aggregate(operation to be performed);
+Example:- Group the documents based on author,get the total blogposts by each author :: 
+db.collectionName.aggregate([{$group:{_id:"$author",total_posts:{$sum:1}}}]);
+db.collectionName.aggregate([{$group:{_id:"$author",total_posts:{$sum:$likes}}}]); 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+db.studentsInfoCollection.find().sort({age:1});
+db.studentsInfoCollection.find().sort({$natural:1}).pretty();
+*****************************************************************************************************************************************************************
+db.getUsers();
+
+db.createUser(
+  {
+    user: "bizlemUser",
+    pwd: "B!ZL3M",
+    roles: [ { role: "readWrite", db: "some_db" }]
+  }
+)
+
+use some_db
+db.createUser(
+  {
+    user: "myNormalUser",
+    pwd: "xyz123",
+    roles: [ { role: "readWrite", db: "some_db" },
+             { role: "read", db: "some_other_db" } ]
+  }
+)
+
+
+creating user :: db.createUser({user:"Mohit",pwd:"Ranu",roles:[{role:"userAdmin",db:"classInfo"}]});
+Starting MongodbServer with authentication.
+Open a cmd and type cd C:\Program Files\MongoDB\Server\4.0\bin
+mongod --auth --dbpath d:\mongodb\data\db
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+natural ordering:- It sorts the document with the most updated documents in the last.
+db.learners.find().sort({$natural:1});
+Group by: {{"Name":"x","Prod":{"a":53,"b":57}},{"Name":"y","Prod":{"a":75,"b":25}}}
+db.testDb.group({key:{'Name':1},reduce:function(curr,result){result.total +=curr.Prod.a+curr.Prod.b;},initial:{total:0}});
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+Regex:-
+db.employees.find({empName:{$regex:"Mohit"}});
+db.employees.find({empName:/Mohit/});
+db.studentsInfoCollection.find({"name.firstName":{$regex:/t$/}}).pretty();--------firstname ending with t,
+db.studentsInfoCollection.find({"name.firstName":{$regex:/^M/}}).pretty();--------firstname starting with M,
+case sensitive search using options:- db.studentsInfoCollection.find({"name.firstName":{$regex:/^M/, $options:'i'}}).pretty();
+last n documents: db.studentsInfoCollection.find({name:{$regex: /^[0-9]/},'courses':{$regex:/l$/,options:'i'}},{'marks':0}).sort({$natural:-1}).limit(3);
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Map Reduce is a data processing paradigm for condensing large volumes of data into useful aggregated results.
+E.g:: db.loanDetails.insert({emp_id:101,loanId:123,loanAmount:5000,loanStatus:"Active"});
+db.loanDetails.insert({emp_id:101,loanId:124,loanAmount:6000,loanStatus:"Active"});
+db.loanDetails.insert({emp_id:101,loanId:125,loanAmount:15000,loanStatus:"Active"});
+db.loanDetails.insert({emp_id:102,loanId:1267,loanAmount:15000,loanStatus:"Active"});
+db.loanDetails.insert({emp_id:102,loanId:1268,loanAmount:25000,loanStatus:"Active"});
+db.loanDetails.insert({emp_id:101,loanId:126,loanAmount:34000,loanStatus:"Expired"});
+db.loanDetails.insert({emp_id:101,loanId:127,loanAmount:78000,loanStatus:"Active"});
+db.loanDetails.insert({emp_id:102,loanId:1269,loanAmount:78000,loanStatus:"Expired"});
+
+db.loanDetails.mapReduce(
+function(){emit(this.emp_id,this.loanAmount);},
+function(key,values){return Array.sum(values)},
+{
+query:{loanStatus:Active},
+out:"TotalLoan"
+});
+
+db.TotalLoan.find();
+
+************************************************************************************************************************************************************
+mongoimport --db mongo-exercises --collection courses --drop --file exercise-data.json --jsonArray
+https://stackoverflow.com/questions/24294273/mongodb-query-a-json-object-nested-in-an-array
+
+https://dba.stackexchange.com/questions/167719/how-to-query-nested-json-objects-in-mongodb
+
+db.test.find(
+    { "array.value": "value2" },
+    { "array.$": 1, _id : 0 }
+)
+Output
+
+{ "array" : [ { "name" : "test2", "value" : "value2" } ] }
+Using aggregation
+
+db.test.aggregate([
+    { $unwind : "$array"},
+    { $match : {"array.value" : "value2"}},
+    { $project : { _id : 0, array : 1}}
+])
+output
+
+{ "array" : { "name" : "test2", "value" : "value2" } }
+Using Java Driver
+
+    MongoClient mongoClient = new MongoClient(new ServerAddress("localhost", 27017));
+    DB db = mongoClient.getDB("mydb");
+    DBCollection collection = db.getCollection("test");
+
+    DBObject unwind = new BasicDBObject("$unwind", "$array");
+    DBObject match = new BasicDBObject("$match", new BasicDBObject(
+            "array.value", "value2"));
+    DBObject project = new BasicDBObject("$project", new BasicDBObject(
+            "_id", 0).append("array", 1));
+
+    List<DBObject> pipeline = Arrays.asList(unwind, match, project);
+    AggregationOutput output = collection.aggregate(pipeline);
+
+    Iterable<DBObject> results = output.results();
+
+    for (DBObject result : results) {
+        System.out.println(result.get("array"));
+    }
+	Iterable<DBObject> output = collection.aggregate(Arrays.asList(
+        (DBObject) new BasicDBObject("$unwind", "$views"),
+        (DBObject) new BasicDBObject("$match", new BasicDBObject("views.isActive", true)),
+        (DBObject) new BasicDBObject("$sort", new BasicDBObject("views.date", 1)),
+        (DBObject) new BasicDBObject("$limit", 200),
+        (DBObject) new BasicDBObject("$project", new BasicDBObject("_id", 0)
+                    .append("url", "$views.url")
+                    .append("date", "$views.date"))
+        )).results();
+
+// Print for demo
+for (DBObject dbObject : output)
+{
+    System.out.println(dbObject);
+}
+
+	
+	MongoCollection<Document> collection = database.getCollection("myCollection");
+
+AggregateIterable<Document> output = collection.aggregate(Arrays.asList(
+        new Document("$unwind", "$views"),
+        new Document("$match", new Document("views.isActive", true)),
+        new Document("$sort", new Document("views.date", 1)),
+        new Document("$limit", 200),
+        new Document("$project", new Document("_id", 0)
+                    .append("url", "$views.url")
+                    .append("date", "$views.date"))
+        ));
+
+// Print for demo
+for (Document dbObject : output)
+{
+    System.out.println(dbObject);
+}
+	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Mongodb Interview Questions:-
+
+Namespace in mongodb is a combination of database name and collection name(i.e., dbname.collectionName).
+Important features of mongodb:-
+
+NoSql database, faster than RDBMS,Agile,Highly Scalable,Flexible data model,Dynamic Schema or we can say schemaless as it accepts variety of documents.
+Primary Key - Foreign Key relationship in mongodb is not supported but it can be achieved by embedding documents,
+
+ObjectId is autogenerated field having unique value generated by mongodb itself, it is a 12 byte BSON :: combination of timestamp(4 byte),process-id(2 byte),counter(3 byte),machine identifier(3 byte).
+
+Deploy mongodb on 32 bit machine restricts data usage and storage upto a 2 Gb limit, whereas for a 64 bit machine there is no limit for data storage and usage.
+
+Mongodb preallocates the data file to avoid the file system fragmentation.,that's why mongodb datafiles are so large in size.
+
+Replication in mongodb:- Every Secondary nodes communicate with each other through heartbeat, In case of election(when a primary node wants to go down and a secondary node wants to come up.) we add arbiter , Arbiter are mongodb instance without any data.There can be 7 voting members and upto 43 Non voting members in a replica set. In order to be eligible for voting we need to set members[n].votes->1 and for mongodb > 3.2 we need to set priority = 1 and the state should be one of the followings ::-> Primary,Secondary,Recovering,Rollback,Arbiter.
+cfg = rs.conf();cfg.members[n].votes=0;cfg.members[n].priority=0;rs.reconfig(cfg);
+
+For Replica Set while starting mongodb server we use this command replSet,
+mongod --replSet replicaMohit --dbpath d:\mongodb\data\db1 --port 27018::: rs.status();::: rs.initiate(); mongo --port 27018
+In the primary Node add replica set by finding their hostname using command db.hostInfo();:: rs.add("hostname");
+
+**************************************************************Introduction to Shrading****************************************************************
+Shrading is a method for distributing data across multiple machines.Support deployments with large datasets and with very high throughput.
+Horizontal Scaling involves distribution of a single dataset over multiple servers.,
+Sharded cluster, where each shard is a subset of data ,mongos is equivalent to query router, it lies between the application and shards,its sole purpose is to fetch data from shards and send it to the application.
+
+#########################################################################################################################
+https://www.mkyong.com/mongodb/java-mongodb-update-document/
+
+db.Article.distinct("Comment.Reply.ip",{Comment: {$elemMatch: {"Reply.email" : "xxx"}}})
+
+db.ruleenginedata.distinct("Regex.Regex_Value",{File_Name: {$elemMatch: {"File_Name" : "N2000HZ11
+-19-0185493.jpg"}}});  
+
+
+
+
+).find({"File_Name" : "N2000HZ11
+-19-0185493.jpg"});
+
+db.Article.aggregate([
+{$unwind: "$Comment"},
+{$unwind: "$Comment.Reply"},
+{$match: {"Comment.Reply.email": "xxx"}},
+{$group: {_id: "$Comment.Reply.ip"}}
+])
+
+
+db.games.update({'_id': 73}, {$pull: {'goals': {'goal': 4}}})
+
+ BasicDBObject query = new BasicDBObject("_id", 73);
+    BasicDBObject fields = new BasicDBObject("goals", 
+        new BasicDBObject( "goal", 4));
+    BasicDBObject update = new BasicDBObject("$pull",fields);
+
+    games.update( query, update );
+	
+	https://stackoverflow.com/questions/15436542/mongodb-java-push-into-array
+	"funnelName"
+	db.FirstCategoryMails.find( { $and: [ { Category: { $eq: "Explore" } },{ updateflag: { $eq: "1" } },{ scheduleTime: { $eq: "20:17" } }  ] } ).pretty();
+	
+	
+	// { ID: "12" }
+Document query = new Document("ID", "12");
+
+// { ObjData: { $pull: { Order: "54321" } } }
+Document update = new Document("ObjData",
+        new Document("$pull",
+                new Document("Order", "54321")
+        )
+);
+
+coll.updateOne(query, update);
+
+20:30,
+
+
+String tmp = "[
+   {
+      "ID":"12",
+      "Date":"2018-02-02",
+      "ObjData":[
+         {
+            "Name":"AAA",
+            "Order":"12345",
+            "Extra1":{
+               "Temp":"3"
+            },
+            "Extra2":{
+               "Temp":"5"
+            }
+         },
+         {
+            "Name":"BBB",
+            "Order":"54321",
+            "Extra1":{
+               "Temp":"3"
+            },
+            "Extra2":{
+               "Temp":"5"
+            }
+         }
+      ]
+   }
+]"
+
+0 */5 * * * *
+
+0 0,15,30,45 0 ? * * *
+	
+	db.FirstCategoryMails.find( { $and: [ { funnelName: { $eq: "newfun24" } },{ scheduleTime: { $eq: "19:55" } },{ Category: { $eq: "Explore" } }  ] } );
+	
+#########################################################################################################################	
+The MongoDB Dataset
+If you plan to follow along with the code examples in this article, it’s important to use the same data. The dataset shown below will be used throughout this tutorial:
+
+{
+"_id" : ObjectId("5cef50eb3fd48a2c4adb0ceb"),
+"customerName" : "Purisa",
+"customer-address" : [
+{
+"type" : "primary-address"
+"street" : "#21 Easy Street",
+"city" : "Easy",
+"state" : "PH",
+"zip" : "57733",
+}
+}
+Set up access to the MongoDB deployment
+Now that we’ve confirmed all the system requirements and created our sample dataset, we can begin looking at the code. The fist step is to instantiate a MongoClient object. When we do this, we explicitly specify the hostname and the port number:
+
+MongoClient mongo = MongoClients.create("mongodb://127.0.0.1:27017");
+In this example, we’re running MongoDB locally, on the default port 27017.
+
+Set up access to the MongoDB database
+Next, we’ll access a database. You can use the command shown below to access the MongoDB database "customerDatabase" by using the getDatabase() method:
+
+MongoDatabase db = mongo.getDatabase("customerDatabase");
+Set up the access to the MongoDB collection
+Once we’ve accessed a MongoDB database, we can then access any collections available within that database. You can use the command shown below to access the "customerCollection" collection:
+
+MongoCollection<document> warColl = db.getCollection("customerCollection");
+Adding a new MongoDB document within an existing MongoDB document
+In the next example, we’ll use the MongoDB addtoset method to add a new field to an existing MongoDB document.
+
+The addToSet() accepts a string-object pair. You can see how this works in the code shown below:
+
+Document newAddress = new Document().append("type", "secondaryAddress")
+.append("street", "#24 niceton")
+.append("city","Nice");
+
+db.getCollection("customerCollection").updateOne(eq("customerName", "Purisa"),Updates.addToSet("customer-address", newAddress));
+You can that the value of newAddress is actually a composition of fields forming a single document, which will be added within a MongoDB document.
+
+After you execute this code, the results should look something like the following:
+
+"_id" : ObjectId("5cef50eb3fd48a2c4adb0ceb"),
+"customerName" : "Purisa",
+"customer-address" : [
+{
+"street" : "#21 Easy Street",
+"city" : "Easy",
+"state" : "PH",
+"zip" : "57733",
+"type" : "primary-address"
+},
+{
+"type" : "secondaryAddress",
+"street" : "#24 niceton",
+"city" : "Nice"
+}mohitraj.ranu
+]
+}
+Adding new MongoDB fields in an Existing MongoDB Document
+You can use the $set operator to replace a field with a specified value; however, in this tutorial, the MongoDB set function serves to add a new MongoDB field within the existing document if the specified field does not exist:
+
+BasicDBObject update = new BasicDBObject();
+update.put("$set", new BasicDBObject("customer-address", new BasicDBObject("corner", "#15 2Easy Street")));
+BasicDBObject listItem = new BasicDBObject("customer-address", new BasicDBObject("type","primary-address").append("corner", "#15 2Easy Street"));
+						    BasicDBObject updateQuery = new BasicDBObject("$push", listItem);
+						    table.updateOne(query, updateQuery);
+db.getCollection("customerCollection").updateOne(
+query,update);
+The code shown above will add the field corner with a value of #15 2Easy Street within the customer-address document.
+
+After executing this code, the results will look something like the following:
+
+"_id" : ObjectId("5cef50eb3fd48a2c4adb0ceb"),
+"customerName" : "Purisa",
+"customer-address" : [
+{
+"street" : "#21 Easy Street",
+"city" : "Easy",
+"state" : "PH",
+"zip" : "57733",
+"corner" : "#15 2Easy Street",
+"type" : "primary-address"
+},
+{
+"type" : "secondaryAddress",
+"street" : "#24 niceton",
+"city" : "Nice"
+}
+]
+}
+Conclusion
+If you’re a Java developer working with MongoDB, you know that adding new fields to an existing document is a common task. The examples we reviewed in this tutorial showed that there are a few different ways to add fields to a MongoDB array. Whether you choose to work with the $set operator or the addToSet() method, you’ll have no trouble adding fields in a MongoDB array using Java.
+
+Ra
+								collection.aggregate(
+								    Arrays.asList(
+								       Aggregates.unwind("$planets", new UnwindOptions().preserveNullAndEmptyArrays(true)),
+								       Aggregates.group("$surfaceType",
+								            Accumulators.addToSet("planets", 
+								                new Document("radius", "$planets.radius")
+								                    .append("surfaceType", "$planets.surfaceType")
+								            )
+								        )
+								    )
+								);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Annotations : help us to map our classes to our mongodb documents.
+
+Example
+ @Document(collection = "legosets")
+public class LegoSet{
+@Id
+private String id;
+private String name;
+private LegoSetDifficulty difficulty;
+@Indexed(direction=IndexDirection.ASCENDING)
+private String theme;
+private Collection<ProductReview> reviews = new ArrayList<>();
+@Field("delivery")
+private DeliveryInfo deliveryinfo;
+@Transient
+private int nbparts;
+//For serialization and deserialization use @PersistenceConstructor 
+
+}
+
+public interface LegoRepository extends MongoRepository<LegoSet,String> {
+    Collection<LegoSet> findAllByThemeContains(String theme);
+	Collection<LegoSet> findAllByDifficultyAndNameStartsWith(LegoSetDifficulty difficulty,String name);
+	
+	@Query("{'delivery.deliveryFee' : {$lt : ?0}}")
+	Collection<LegoSet> findAllByDeliveryPriceLessThan(int price);
+	@Query("{'reviews.rating' : {$eq : ?0}}")
+	Collection<LegoSet> findAllByGreatReviews(int rating);
+}
+
+Sort sortByThemeAsc = Sort.by("theme").ascending();
+legoSetRepository.findAllByThemeContains(theme,sortByThemeAsc);
+Collection<LegoSet> legoSets = this.legoSetRepository.findAll(sortByThemeAsc);
+
+Spring Data can provide proxy implementation of queries based on method names: findByLastname,findByAgeLessThan,findByActiveTrue.
+
+QueryDSL allows us to write queries that are type safe , no more magic strings.
+Mongo Projections, use MongoTemplate
+db.legosets.aggregate([{
+       $project:{
+	   legoSetName: "$name",
+	   avgRating: {$avg : "$reviews.rating"} 
+	   }
+}])
+
+findAllByThemeIsNot("Star Wars");
+@Query("{'delivery.inStock': true}")
+Collection<LegoSet> findAllInStock();
+
+For Full text search first annotate the field with @TextIndexed, and then use TextCriteria.
+QLegoSet query = new QLegoSet("query");
+BooleanExpression notInStockFilter = query.deliveryInfo.inStock.isFalse();
+BooleanExpression noReviews = query.reviews.isEmpty();
+Predicate bestBuysFilter = notInStockFilter.or(noReviews);
+this.legoSetRepository.findAll(bestBuysFilter);
+
+If you change the name of a field in your mongo project with changing its existing name in mongodb, then during serialization you wont get the old and new field value.
+
+Configure MongoBee for Data Migration.
+<dependency>
+<groupId>com.github.mongobee</groupId>
+<artifactId>mongobee</artifactId>
+<version>0.13</version>
+</dependency>
+
+Criteria priceZeroCriteria = new Criteria().orOperator(Criteria.where("nbParts").is(0),Criteria.where("nbParts").is(null));
+mongoTemplate.updateMulti(new Query(priceZeroCriteria),Update.update("nbParts",122),LegoSet.class);
+
+@ChangeSet(order="002",author="dan",id="insert additional payment method")
+public void insertAdditionalPaymentOption(MongoTemplate mongoTemplate){
+PaymentOptions bankTransferPayment=new PaymentOptions(PaymentType.BankTransfer,1);
+mongoTemplate.insert(bankTransferPayment);
+}
+
+Integration Testing----what should you test?
+Any methods that uses magic string (@Query) , any projections or aggregations , any query that is complex enough.
+@DataMongoTest ---> it mongo properties like template,repository to your base class.
+
+Document References(supports relationship in mongodb)
+Embedded Documents
+Example1::
+{
+"_id":"123",
+"name":"abc",
+"paymentOption":{
+"type":"CreditCard",
+"fee":0
+}
+}
+
+{
+"_id":"123",
+"name":"abc",
+"paymentOption":{
+"$ref":"PaymentOptions",
+"$id":"567"
+}
+}
+
+PaymentOptions Collection
+{
+"_id":"567",
+"type":"CreditCard",
+"fee":0
+}
+
+Spring provides eager loading and serialization by default, you cannot traverse the object tree to query based on payment options,
+{"paymentOptions.fee":0} ----------> No by default cascading operations but you can implement one using Mongo event listeners like onBeforeConvert.
