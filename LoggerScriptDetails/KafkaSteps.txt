@@ -1,3 +1,274 @@
+https://docs.spring.io/spring-kafka/reference/html/
+kafka-console-producer --broker-list 127.0.0.1:9092 --topic first_topic
+kafka-console-producer --broker-list 127.0.0.1:9092 --topic first_topic --producer-property acks=all
+Producer with keys
+kafka-console-producer --broker-list 127.0.0.1:9092 --topic first_topic --property parse.key=true --property key.seperator=,
+>key,value
+
+
+kafka-topics --zookeeper 127.0.0.1:2181 --list
+kafka-topics --zookeeper 127.0.0.1:2181 --topic topicname --describe
+kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic first_topic
+Consumer with keys
+kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic first_topic --from-beginning --property print.key=true --property key.seperator=,
+
+kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic first_topic --from-beginning
+kafka-console-consumer --bootstrap-server 127.0.0.1:9092 --topic first_topic --group groupName
+kafka-consumer-groups --bootstrap-server localhost:9092 --list
+kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group groupName
+kafka-consumer-groups --bootstrap-server localhost:9092 --group my-first-application --reset-offsets --to-earliest --execute --topic first_topic
+	
+kafka-consumer-groups --bootstrap-server localhost:9092 --group my-first-application --reset-offsets --shift-by -2 --execute --topic first_topic
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Each partition has its own leader, every partition is distributed across multiple brokers, Producers write data to topics they automatically know to which broker and partition to write to in case of broker failures producer will automatically recover the load is balanced to many brokers thanks to the number of partitions.Producers can choose to send a key with messsage if key is null data is sent round robin(broker 101,broker 102,broker 103), if a key is sent then all the messages for that key will always go to the same partition, a key is basically sent if you need message ordering for a specific field eg truck_id.Consumers read data in consumer groups each consumer within a group reads from exclusive partitions.If you have more than partitions some consumers will be inactive, Consumers will automatically use a groupCoordinator to assign a consumers to a partition.
+Kafka stores the offsets at which consumer group has been reading, the offset committed live in a kafka topic named _consumer_offsets.
+Consumers choose when to commit offsets, there are 3 delivery semantics:
+1]At most once: offsets are committed as soon as the message is received, if the processing goes wrong the message will be lost(won't be read again).
+2]At Least Once(usually preferred): offsets are committed after the message is processed,if the processing goes again message will be reaad again., This can result in duplicate processing of messages , make sure your processing  is idempotent.
+3]Exactly once:Can be achieved for kafka -> Kafka workflows using kafka stream api, For kafka external system workflows, use an idempotent consumer.
+
+Kafka Broker Discovery:: Every kafka broker is called a bootstrap server, that means you only need to connect to one broker, and you will be connected to the entire cluster. Each broker knows about all brokers , topics and partitions (metadata).
+
+
+As you wrote, Kafka guarantees ordered delivery only within a single partition. Period. If you are using multiple partitions (which is a must to have the parallelism), then it is possible that a consumer who listens on several partitions gets a message A from partition 1 before a message B from partition 2, even though message B arrived first.
+
+Now, about the differences between Kafka and JMS. In JMS, you have a queue and you have a topic. With queues, when first consumer consumes a message, others cannot take it anymore. With topics, multiple consumers receive each message but it is much harder to scale. Consumer group from Kafka is a generalization of these two concepts - it allows scaling between members of the same consumer group, but it also allows broadcasting the same message between many different consumer groups.
+
+Even more important difference is the following. Imagine that you have Kafka topic with 500 partitions and on the other hand, 500 JMS message queues. Let's also imagine that you have certain number of producers and consumers. In case of JMS, you need to configure each of them so they know which queues belong to them. What if e.g. some consumer crashes or you detect that you need to increase number of consumers? You have to reconfigure manually the whole system. This comes for free with Kafka, i.e. Kafka provides automatic rebalancing which is an extremely useful feature.
+
+Finally, Kafka is tremendously faster, mostly because of some clever disk/memory transfer techniques and because consumers take care about the messages they consumed, not the broker like in JMS. Because of this, consumer is also able to "rewind", i.e. reread the messages from e.g. 2 days ago.
+
+In Kafka the parallelism is equal to the number of partitions for a topic.
+
+For example, assume that your messages are partitioned based on user_id and consider 4 messages having user_ids 1,2,3 and 4. Assume that you have an "users" topic with 4 partitions.
+
+Since partitioning is based on user_id, assume that message having user_id 1 will go to partition 1, message having user_id 2 will go to partition 2 and so on..
+
+Also assume that you have 4 consumers for the topic. Since you have 4 consumers, Kafka will assign each consumer to one partition. So in this case as soon as 4 messages are pushed, they are immediately consumed by the consumers.
+
+If you had 2 consumers for the topic instead of 4, then each consumer will be handling 2 partitions and the consuming throughput will be almost half.
+
+To completely answer your question, Kafka only provides a total order over messages within a partition, not between different partitions in a topic.
+
+ie, if consumption is very slow in partition 2 and very fast in partition 4, them message with user_id 4 will be consumed before message with user_id 2. This is how Kafka is designed.
+
+In kafka Messages with the same key, from the same Producer, are delivered to the Consumer in order
+
+another thing on top of that is, Data within a Partition will be stored in the order in which it is written therefore, data read from a Partition will be read in order for that partition
+
+So if you want to get your messages in order across multi partitions, then you really need to group your messages with a key, so that messages with same key goes to same partition and with in that partition the messages are ordered.
+
+In a nutshell, you will need to design a two level solution like above logically to get the messages ordered across multi partition.
+When a Consumer joins a consumer group it will fetch the last committed offset so it will restart to read from 5,6,7 if before crashing it committed the latest offset(so 4). The earliest and latest values for the auto.offset.reset property is used when a consumer starts but there is no committed offset for the assigned partition.In this case you can choose if you want to re-read all the messages from the beginning(earliest) or just after the last one(latest).
+@@@@@@@@@@@@@@@@@@@@@@@@@@@ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Kafka Connect:: Simplify and improve getting data in and out of Kafka.It allows you to have a source where all its data will be put.
+
+Kafka connect source api: Ex --> Get data from a file into a kafka topic(FileStreamSourceConnector) or Get data from twitter into a kafka topic (TwitterSourceConnector).
+Kafka connect sink api: Ex --> Store the data from kafka into Elastic Search (ElasticSearchSinkConnector) or Store the data from kafka into PostgreSql(JDBCSinkConnector).
+Source Connectors to get data from common data sources.Sink connectors to publish that data in common data stores.Re-usable code only configurational changes.
+Kafka Connect Cluster has multiple loaded Connectors.Each connector is a re-usable piece of code(java jars).Connectors + User Configuration =>Tasks. A task is linked to a connector configuration. A Job configuration may spawn multiple tasks. Tasks are executed by Kafka connect Workers(Servers). A worker is a single java process. A worker can be standalone or in a cluster.
+##Configuring worker.properties in standalone mode.
+bootstrap-servers=127.0.0.1:9092
+key.converter=org.apache.kafka.connect.json.JsonConverter
+key.converter.schemas.enable=false
+value.converter=org.apache.kafka.connect.json.JsonConverter
+value.converter.schemas.enable=false
+#We always leave the internal key to JsonConverter.
+internal.key.converter=org.apache.kafka.connect.json.JsonConverter
+internal.key.converter.schemas.enable=false
+internal.value.converter=org.apache.kafka.connect.json.JsonConverter
+internal.value.converter.schemas.enable=false
+# Rest Api
+rest.port=8086
+rest.host.name=127.0.0.1
+# This Config is only for standalone workers.
+offset.storage.file.filename=standalone.offsets
+offset.flush.interval.ms=10000
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+List of available connectors:- There are many source and sink connectors , you can find them in confluent website https://www.confluent.io/hub/
+TwitterSourceConnector:
+Goal---> gather data from twitter in kafka connect distributed mode.
+Twitter------------>Kafka Connect----------->twitter topic.
+Learning:: Gather real data using https://github.com/Eneco/kafka-connect-twitter
+Create twitter app and generate access token.
+Go to connect Ui and apply the configuration.
+#The name which you give to the kafka connector.It is used for offset management, groupId and so on.
+name=source-twitter-distributed
+#It actually tells kafka connect what class to run as source connector.
+connector.class=com.enco.trading.kafka.connect.twitter.TwitterSourceConnector
+#No of task you run in parallel to complete your job.
+tasks.max=1
+topic=demo-3-twitter
+key.converter=org.apache.kafka.connect.json.JsonConverter
+key.converter.schemas.enable=true
+value.converter=org.apache.kafka.connect.json.JsonConverter
+value.converter.schemas.enable=true
+#Twitter connector specific configuration 
+twitter.consumerkey=9jT77YU0Orhgqsg
+twitter.consumersecret=6utru27yi2g
+twitter.token=1jvhnvk17816bvx
+twitter.secret=thf12468gwsy87
+track.terms=programming,java,kafka,scala,usa,rihana
+language=en 
+1.create topic
+# Kafka command lines tools
+docker run --rm -it --net=host landoop/fast-data-dev bash
+kafka-topics --create --topic demo-3-twitter --zookeeper 127.0.0.1:2181 --partitions 3 --replication-factor 1
+kafka-console-consumer --topic demo-3-twitter --bootstrap-server 127.0.0.1:9092
+
+We can consider elastisearch instance to sink the data , they will serve as our sink for first connector, elasticsearch is an easy way to store json data and search across it.
+
+ElasticSearchSinkConnector Distributed Mode
+Goal: Start an elasticSearch instance using docker , sink a topic with multiple partitions to elasticsearch , run in distributed mode with multiple tasks 
+
+Kafka Twitter Topic ------------------> ElasticSearchSinkConnector ----------------->ElasticSearch.
+
+Learn about the tasks.max parameter , understand how sink connectors work.
+
+docker-compose.yml
+docker-compose up kafka-cluster elasticsearch postgres
+
+version: '2'
+services: 
+  #This is our kafka cluster.
+  kafka-cluster:
+       image: landoop/fast-data-dev: latest
+       environment:
+          ADV_HOST: 127.0.0.1
+          RUNTESTS: 0 # disable run tests so the cluster starts faster.
+       ports:
+         - 2181:2181  #ZooKeeper
+		 - 3030:3030  #Landoop UI
+		 - 8081-8083:8081-8083  # REST Proxy,Schema Registry, kafka connect ports
+		 - 9581-9585:9581:9585  # JMX Ports
+		 - 9092:9092
+	# This configuration allows you to start elasticsearch	 
+   elasticsearch:
+       image: itag/elasticsearch:2.4.3
+       environment:
+	     PLUGINS:appbaseio/dejavu
+		 OPTS: -Dindex.number_of_shards=1 -Dindex.number_of_replicas=0
+	   ports:
+	     - "9200:9200"
+	# This configuration allows you to start elasticSearch	 
+   postgres:
+      image: postgres:9.5-alpine
+	  environment:
+	    POSTGRES_USER: postgres
+		POSTGRES_PASSWORD: postgres
+		POSTGRES_DB: postgres
+	   ports:
+          - 5432:5432	   
+ 
+# Visualize the data at:
+http://127.0.0.1:9200/_plugin/dejavu
+Click on add query::
+Name :: High Friends Count
+Type :: kafka-connect
+Query body:: 
+{
+   "query":{
+    "range" :{
+	 "user.friends_count" :{
+	     "gt" : 500
+	 }
+	}
+   }
+}
+
+{
+   "query":{
+    "term" :{
+	 "is_retweet" : true
+	}
+   }
+}
+
+# Counting number of tweets:
+http://127.0.0.1:9200/demo-3-twitter/_count
+
+sink-elastic-twitter-distributed.properties
+
+#Basic Configuration for our connector.
+name=sink-elastic-twitter-distributed
+connector.class=io.confluent.connect.elasticsearch.ElasticsearchSinkConnector
+# We can have parallelism here so we have two tasks!
+tasks.max=2
+topics=demo-3-twitter
+key.converter=org.apache.kafka.connect.json.JsonConverter
+key.converter.schemas.enable=true
+value.converter=org.apache.kafka.connect.json.JsonConverter
+value.converter.schemas.enable=true
+#ElasticSearch connector specific configuration
+connection.url=http://elasticsearch:9200 #http://docs.confluent.io/3.1.1/connect/connect-elasticsearch/docs/configuration_options.html
+type.name=kafka-connect # table name
+key.ignore= true
+#because our keys from the twitter feed are null.
+
+********************************************************************************************************************************************************
+Kafka Connect REST Api
+apk update && apk add jq
+1. All the actions performed by landoop kafka connect UI are actually triggering REST API calls to kafka connect.
+http://docs.confluent.io/3.2.0/connect/managing.html#common-rest-examples
+1) Get Worker information ::: curl -s 127.0.0.1:8083/ | jq
+2)List connectors available on a worker ::: curl -s 127.0.0.1:8083/connector-plugins | jq
+3) Active connectors ::: curl -s 127.0.0.1:8083/connectors | jq
+4) Get information about a connector tasks and config curl -s 127.0.0.1:8083/connectors/source-twitter-distributed/tasks | jq
+5) Get connector Status curl -s 127.0.0.1:8083/connectors/file-stream-demo-distributed/status | jq
+6) Pause / Resume a connector (no response if call is successfull)
+curl -s -X PUT 127.0.0.1:8083/connectors/file-stream-demo-distributed/pause ; curl -s -X PUT 127.0.0.1:8083/connectors/file-stream-demo-distributed/resume
+7)Get connector configuration curl -s 127.0.0.1:8083/connectors/file-stream-demo-distributed | jq
+8) Delete our Connector curl -s -X DELETE 127.0.0.1:8083/connectors/file-stream-demo-distributed
+9) Create a new connector 
+curl -s -X POST -H "Content-Type: application/json" --data '{"name": "file-stream-demo-distributed","config":{"connector.class":"org.apache.kafka.connect.file.FileStreamSourceConnector",
+"key.converter.schemas.enable":"true","file":"demo-file.txt", "tasks.max":"1","value.converter.schemas.enable":"true","name": "file-stream-demo-distributed",
+"topic":"demo-2-distributed","value.converter":"org.apache.kafka.connect.json.JsonConverter","key.converter":"org.apache.kafka.connect.json.JsonConverter"}}'
+ http://127.0.0.1:8083/connectors | jq
+ 10) Update Connector Configuration
+ curl -s -X PUT -H "Content-Type: application/json" --data '{"connector.class":"org.apache.kafka.connect.file.FileStreamSourceConnector",
+"key.converter.schemas.enable":"true","file":"demo-file.txt", "tasks.max":"1","value.converter.schemas.enable":"true","name": "file-stream-demo-distributed",
+"topic":"demo-2-distributed","value.converter":"org.apache.kafka.connect.json.JsonConverter","key.converter":"org.apache.kafka.connect.json.JsonConverter"}'
+127.0.0.1:8083/connectors/file-stream-demo-distributed/config | jq
+*************************************************************************************************************************************************************
+PostgreSql is a very popular relational database.
+Start a postgresql instance using docker,run in distributed mode with multiple tasks, learn about jdbc sink connector.
+Kafka Twitter Topic --------------------------->JDBCSinkConnector--------------------------->PostgreSql
+
+^^^^^^^^^^ sink-postgres-twitter-distributed.properties ^^^^^^^^^^^^^^^^
+# basic configuration for our connector
+name=sink-postgres-twitter-distributed
+connector.class=io.confluent.connect.jdbc.JdbcSinkConnector
+# We can have parallelism here so we have two tasks!
+tasks.max=2
+topics=demo-3-twitter
+key.converter=org.apache.kafka.connect.json.JsonConverter
+key.converter.schemas.enable=true
+value.converter=org.apache.kafka.connect.json.JsonConverter
+value.converter.schemas.enable=true
+#ElasticSearch connector specific configuration
+connection.url=jdbc:postgresql://postgres:5432/postgres
+connection.user=postgres
+connection.password=postgres
+insert.mode=upsert
+#we want the  primary key to be offset + partition
+pk.mode=kafka
+pk.fields=_connect_topic,_connect_offset
+field.whitelist=id,created_at,text,lan
+auto.create=true
+auto.evolve-true.
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+Writing your own connector
+The easiest way to get started on a kafka Connect project is to use an archtype provided here:
+https://github.com/jcustenborder/kafka-connect-archtype
+We will change the kafka dependency to be 0.10.2.0 ( use the one matching the version of landloop)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
+What is Kafka Streams:- Easy data processing and transformation library within Kafka.Standard Java application no need to create a separate cluster,highly scalable,elastic and fault tolerant.Exactly Once capabilities ,One record at a time processing (no batching) works for any application size. 
+
+
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 https://www.cloudera.com/documentation/kafka/latest/topics/kafka_using.html
 
 Kafka------ Run on linux server.
@@ -45,6 +316,9 @@ docker run --rm -it \
           -e ADV_HOST=192.168.99.100 \
           landoop/fast-data-dev
 
+For organizing your docker container in a more effective manner you can use docker compose.
+		  
+docker-compose up kafka-cluster 		  
 # Kafka command lines tools
 docker run --rm -it --net=host landoop/fast-data-dev bash
 
@@ -58,7 +332,26 @@ docker run -it --rm -p 2181:2181 -p 3030:3030 -p 8081:8081 -p 8082:8082 -p 8083:
 # Terminal 3:
 docker run -it --net=host landoop/fast-data-dev bash
 kafka-topics --create --topic nifi-topic --zookeeper 127.0.0.1:2181 --partitions 3 --replication-factor 1
+connect-standalone worker.properties file-stream-demo-standalone.properties
+
+FileStreamSourceConnector Distributed mode 
+
+kafka Connect Ui will provide the list of all connector working for you.
+
 kafka-console-consumer --topic nifi-topic --bootstrap-server 127.0.0.1:9092
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Topics and partitions , Topics a particular stream of data(similar to tables in database) a topic is identified by its name. topics are split in partitions, each partition is ordered, each message within a partition gets an incremental id called offset. Offset only have a meaning for specific partition, eg:: offset 3 in partition doesn't represent the same data as offset 3 in partition 1.Order is guaranteed only within a partition not across it,data is kept only for a limited time and is immutable once written cannot be changed.
+
+Kafka cluster is composed of multiple brokers identified by their id.Each broker contains certain topic partitions,a good number to start is 3 brokers.
+
+At any time only one broker can be a leader for a given partition,only that leader can receive and serve data for partition.The other brokers will syncronize the data there each partition has one leader and multiple ISR.
+
+Producer --> send data to a broker(id) , topic name and partition.
+
+Consumer --> specify topic name and broker to connect to,and kafka will automatically take care of pulling the data from right brokers.Data is read in order for each partitions.Consumers read data in consumer groups each consumer within a group reads from exclusive partitions.kafka stores the offset at which consumer group has been reading.The offsets commit live in a kafka topic named "_consumer_offsets".
+
+When a consumer has processed data received from kafka it should be commiting offsets.If a consumer dies it will be able to read back from where it left.
+Zookeeper manages brokers, keeps a list of them it helps in performing leader election for partitions. Zookeeper usually operates in odd quorum (clusters) 3,5,7
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Configuring High Availability and Consistency for Apache Kafka
@@ -126,3 +419,181 @@ MirrorMaker setting
 abort.on.send.failure=true
 Categories: Acknowledgements | Administrators | High Availability | Kafka | MirrorMaker | Preferred Leader Election | All Categories
 ##############################################################################################################################################################
+Apache Kafka, which is a kind of Publish/Subscribe Messaging system, gains a lot of attraction today. We can see many use cases where Apache Kafka stands with Apache Spark, Apache Storm in Big Data architecture which need real-time processing, analytic capabilities.
+To integrate with other applications, systems, we need to write producers to feed  data into Kafka and write the consumer to consume the data.  However, Apache Kafka Connect which is  one of new features has been introduced in Apache Kafka 0.9, simplifies the integration between Apache Kafka and other systems. Apache Kafka Connect supports us to quickly define connectors that move large collections of data from other systems into Kafka and from Kafka to other systems. Let’s take a look at the overview of the Apache Kafka Connect:
+
+Apache Kafka Connect - Overview
+Apache Kafka Connect – Overview
+
+The Sources in Kafka Connect are responsible for ingesting the data from other system into Kafka while the Sinks are responsible for writing the data to other systems. Note that another new feature has been also introduced in Apache Kafka 0.9 is Kafka Streams. It is a client library for processing and analyzing data stored in Kafka. We can filter, transform, aggregate, the data streams. By combining the Kafka Connect with Kafka Streams, we can build prefect data pipelines.
+
+
+ 
+2. Some Apache Kafka Connectors
+Currently, there are some opensource Sources and Sinks Connectors from community as below:
+
+Connectors	References
+Apache Ignite	Source, Sink
+Elastic Search	Sink1, Sink2, Sink3
+Cassandra	Source1, Source 2, Sink1, Sink2
+MongoDB	Source
+HBase	Sink
+Syslog	Source
+MQTT (Source)	Source
+Twitter (Source)	Source, Sink
+S3	Sink1, Sink2
+Or you can find some certified Connectors from Confluent.io via this link
+
+3. Example
+3. 1. File Connectors
+I’d like to take an example from Apache Kafka 0.10.0.0 distribution and elaborate it. The example is used to demo how to use Kafka Connect to stream data from source which is  file test.txt to destination which is also a file, test.sink.txt. Note that the example will run on the standalone mode.
+
+Apache Kafka Connect Example - FileStream 
+Apache Kafka Connect Example – FileStream
+
+ 
+
+We will need to use 2 connectors:
+
+FileStreamSource reads the data from the test.txt file and publish to Kafka topic: connect-test
+FileStreamSink which will consume data from connect-test topic and write to the test.sink.txt file.
+Let’s see configuration file for the Source at kafka_2.11-0.10.0.0\config\connect-file-source.properties
+
+#The name which you give to the kafka connector.It is used for offset management, groupId and so on.
+name=local-file-source
+#It actually tells kafka connect what class to run as source connector.
+connector.class=org.apache.kafka.connect.file.FileStreamSourceConnector
+#No of task you run in parallel to complete your job.
+tasks.max=1
+file=test.txt
+topic=connect-test
+key.converter=org.apache.kafka.connect.json.JsonConverter
+value.converter=org.apache.kafka.connect.json.JsonConverter
+key.converter.schemas.enable=false
+value.converter.schemas.enable=false
+
+1
+2
+3
+4
+5
+name=local-file-source-distributed
+connector.class=org.apache.kafka.connect.file.FileStreamSourceConnector
+tasks.max=1
+file=test-distributed.txt
+topic=connect-test-distributed
+key.converter=org.apache.kafka.connect.json.JsonConverter
+value.converter=org.apache.kafka.connect.json.JsonConverter
+key.converter.schemas.enable=true
+value.converter.schemas.enable=true
+We need to define the connector.class, the maximum of tasks will we created, the file name that will be read by connector and the topic where data will be published.
+
+Here is the configuration file for the Sink at kafka_2.11-0.10.0.0\config\connect-file-sink.properties
+
+name=local-file-sink
+connector.class=FileStreamSink
+tasks.max=1
+file=test.sink.txt
+topics=connect-test
+1
+2
+3
+4
+5
+name=local-file-sink
+connector.class=FileStreamSink
+tasks.max=1
+file=test.sink.txt
+topics=connect-test
+In similar to the Source, we need to define the connector.class, the number of tasks, the destination file where the data will be written and the topic which data will be consumed.
+
+One important configuration file located at: kafka_2.11-0.10.0.0\config\connect-standalone.properties we need to define the address of the Kafka broker, the keys, values converters.
+
+bootstrap.servers=localhost:9092
+key.converter=org.apache.kafka.connect.json.JsonConverter
+value.converter=org.apache.kafka.connect.json.JsonConverter
+key.converter.schemas.enable=true
+value.converter.schemas.enable=true
+...
+1
+2
+3
+4
+5
+6
+bootstrap.servers=localhost:9092
+key.converter=org.apache.kafka.connect.json.JsonConverter
+value.converter=org.apache.kafka.connect.json.JsonConverter
+key.converter.schemas.enable=true
+value.converter.schemas.enable=true
+...
+3. 2. Run the example
+Make sure you have Apache Kafka 0.9.x or 0.10.x deployed and ready. Assume that we have an Kafka distribution at /opt/kafka_2.11-0.10.0.0. Note that we will use some basic Kafka command line below. If you’re not familiar with those, you can reference another post : Apache Kafka Command Line Interface
+
+3.2.1. Start Kafka broker
+We first should cd(change directory) to the Kafka distribution folder.
+
+cd /opt/kafka_2.11-0.10.0.0
+1
+cd /opt/kafka_2.11-0.10.0.0
+Start ZooKeeper
+
+./bin/zookeeper-server-start.sh config/zookeeper.properties &
+1
+./bin/zookeeper-server-start.sh config/zookeeper.properties &
+Start Kafka Server
+
+./bin/kafka-server-start.sh config/server.properties
+1
+./bin/kafka-server-start.sh config/server.properties
+3.2.1. Start the Source and Sink connectors
+./bin/connect-standalone.sh config/connect-standalone.properties config/connect-file-source.properties config/connect-file-sink.properties
+1
+./bin/connect-standalone.sh config/connect-standalone.properties config/connect-file-source.properties config/connect-file-sink.properties
+Note that after this command, the connector is ready for reading the content from test.txt file which should be located in the execution folder: /opt/kafka_2.11-0.10.0.0
+
+3.2.2. Start the Source connector
+Write some content to the test.txt file
+
+echo 'hello' >> test.txt
+echo 'halo' >> test.txt
+echo 'salut' >> test.txt
+1
+2
+3
+echo 'hello' >> test.txt
+echo 'halo' >> test.txt
+echo 'salut' >> test.txt
+3.2.3. Check whether the Source connector feed the test.txt content into the topic connect-test or not
+ ./bin/kafka-console-consumer.sh  --zookeeper localhost:2181 --from-beginning --topic connect-test
+1
+ ./bin/kafka-console-consumer.sh  --zookeeper localhost:2181 --from-beginning --topic connect-test
+The output on the console is:
+
+{"schema":{"type":"string","optional":false},"payload":"hello"}
+{"schema":{"type":"string","optional":false},"payload":"halo"}
+{"schema":{"type":"string","optional":false},"payload":"salut"}
+1
+2
+3
+{"schema":{"type":"string","optional":false},"payload":"hello"}
+{"schema":{"type":"string","optional":false},"payload":"halo"}
+{"schema":{"type":"string","optional":false},"payload":"salut"}
+3.2.4. Check whether the Sink Connector write content to the test.sink.txt or not
+cat test.sink.txt
+1
+cat test.sink.txt
+The output on my console:
+
+hello
+halo
+salut
+1
+2
+3
+hello
+halo
+salut
+4. Conclusions
+We have seen the overview of Apache Kafka Connect and an simple example that using FileStream connectors. We can leverage Kafka Connectors to quickly ingest data from a lot of sources, do some processing and write to other destinations. Basically, everything can be done by Apache Kafka, we don’t need to use either other libraries, frameworks like Apache Flume or custom producers. In next posts, I will introduce more about using other types of Kafka Connectors like HDFS sink, JDBC sources, etc and how to implement a Kafka Connector.
+
