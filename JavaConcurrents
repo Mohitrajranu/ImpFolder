@@ -1,0 +1,249 @@
+Factory-Design-patterns:: This pattern defines an interface for object creation.
+When a class needs to instantiate a subclass of another class , but it doesn't know which one it lets subclasses decide which class to instantiate.
+Abstract factory:: Provides an interface for creating families of related or dependent objects without specifying their concrete classes. It is factory of factories , a pattern that creates objects via abstraction.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Multithreading keypoints :
+Intrinsic Lock is the use of syncronized keyword, at object level , inside method, at class level using static syncronized, at class member variables.
+
+/*Lock lock = new ReentrantLock(); ---> timed lock acquisition
+		 * if(lock.tryLock(1, TimeUnit.SECONDS)){
+		 *    try{//...guarded code}
+		 *    finally{lock.unlock();}}
+		 * }
+		 * 
+		 * Lock lock = new ReentrantLock(); --> A reentrant lock built in a normal way is non fair, A fair lock is costly Lock lock = new ReentrantLock(true);
+		 * try{
+		 * lock.lock();
+		 * }
+		 * finally{
+		 * lock.unlock();
+		 * }
+		*/
+
+A Reentrant lock is non fair , it picks in random from the waiting threads to enter inside a guarded piece of code, A lock can have any number of threads which provided a way to park(await) and signal threads, one can have exclusive writes but parallel read operation which can be achieved through ReadWriteLock , ReadWriteLock is an interface with only two methods readLock() to get a read lock. writeLock() to get a write lock , both are instances of lock, Only one thread can hold the write lock. When the write lock is held , no one can hold the read Lock. As many threads as needed can hold the read lock.
+ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+Lock readLock = readWriteLock.readLock();
+Lock writeLock = readWriteLock.writeLock();
+Read /Write Locks ::--> Works with a single read/write lock object used to get a read lock and write lock. write operations are exclusive of other read and writes ,read operations can be made in parallel, it thus allows for superior throughput. 
+
+Map<Long, User> cache = new HashMap<>();
+try{
+writeLock.lock();
+cache.put(key,value);
+}finally{
+writeLock.unlock();
+}
+It can be used to create a thread safe cache,Write-locking the put operation protects the non-concurrent map against internal corruption, It can also be achieved with a ConcurrentHashMap. 
+
+Semaphore : It looks like a lock but allows several threads in the same block of code.A semaphore built in the normal way is non-fair, it can be made fair by passing Semaphore semaphore = new Semaphore(5,true); The acquire call is blocking until a permit is available, atmost 5 threads can execute the guarded code at the same time.
+
+Semaphore semaphore = new Semaphore(5); //permits
+try{
+   semaphore.acquire(2);
+   //guarded block of code
+}finally{
+   semaphore.release(2);
+}
+
+if(semaphore.tryAcquire()){
+//guarded block of code
+}else{}
+By default if a waiting thread is interrupted it will throw an interrupted exception,Uninterruptibility means that the thread cannot be interrupted, It can only be freed by calling its release () method. semaphore.acquireUninterruptibly() , One can reduce the number of permits but cannot increase it. One can query the semaphore for number of waiting threads.
+
+The barrier: to have several tasks wait for each other, The Latch : to count down operations and let a task start.
+
+The barrier checks the number of times await method has been called, and compare it with the count barrier is initialized to and if it matches it open and lets the thread pass through it.
+
+CyclicBarrier barrier = new CyclicBarrier(4);
+ExecutorService service = Executors.newFixedThreadPool(4);
+Worker worker1 = new Worker(barrier,inputList1);
+Future<List<Integer>> future1 = service.submit(worker1);
+List<Integer> finalResult = new ArrayList<>(future1.get());
+finalResult.addAll(future2.get());
+
+public class Worker implements Callable<List<Integer>> {
+
+private CyclicBarrier barrier;
+private List<Integer> inputList;
+
+public void Worker(CyclicBarrier barrier,List<Integer> inputList){
+       this.barrier = barrier;
+	   this.inputList = inputList;
+} 
+
+public List<Integer> call(){
+     List<Integer> result = findPrimes(inputList);
+	 try{
+	 barrier.await();
+	 }catch (InterruptedException | BrokenBarrierException e){
+	 
+	 }
+     return result;
+}
+
+
+}
+
+---->> The await call is blocking, there are two versions:: await(),await(time,timeunit) , Once opened a barrier is normally reset , the reset method resets the barrier exceptionally, causing the waiting tasks to throw a brokenbarrier exception.
+Cyclic barrier::-> A tool to syncronize several threads between them, and let them continue when they reach a common point.A cyclic barrier closes again once opened allowing for cyclic computations, can also be reset.The thread can wait for each other on timeouts.
+Latch -->> A kind of barrier that once opened cannot be closed this is the countdown latch.
+CountDownLatch ::->> A tool to check that different threads did their task and syncronize the beginning of subsequent tasks on the last one to complete.
+Once open CountDownLatch cannot be closed again.
+
+
+public class ServiceWorker implements Callable<List<Integer>> {
+
+private CountDownLatch latch;
+private Service service;
+
+public boolean Worker{
+  this.latch = latch;
+  this.service = service;
+}
+
+public void call(){
+    service.init();
+	latch.countDown();
+}
+
+}
+
+CountDownLatch latch = new CountDownLatch(3);
+ExecutorService executor = Executors.newFixedThreadPool(4);
+ServiceWorker worker1 = new Worker(latch,dataService);
+//More workers
+Future<Boolean> future1 = executor.submit(worker1);
+//More submissions
+
+try{
+  latch.await(10,TimeUnit.SECONDS);
+  server.start();
+}catch(InterruptedException e){
+  // Error handling
+}
+
+
+Casing: Compare and Swap, It works with three parameters.
+--> a location in memory , an existing value at that location,a new value to replace this existing value.If the current value at that address is the expected value, then it is replaced by the new value and returns true. If not it returns false , All in a single,atomic assembly instruction.
+---> AtomicLong ==> Safe incrementation of a counter without syncronization.
+//Create an atomic Long
+AtomicLong counter = new AtomicLong(10L);
+//safely increment the new value.
+long newValue = counter.incrementAndGet();
+The Java API tries to apply the incrementation, The Casing tells the caling code if the incrementation failed if it did the API tries again.
+AtomicBoolean - get()and set();getAndset(value);compareAndSet(expected,value).
+AtomicInteger, AtomicLong (wrapper on a primitive) - get()and set();getAndset(value);compareAndSet(expected,value);getAndUpdate(unaryOp);updateAndGet(unaryOp),getAndIncrement(),getAndDecrement().
+AtomicReference<v> - Wrapper on a reference i.e., pointers
+Adders and Accumulators --> All the methods are built on the "modify and get" or "get and modify". Sometimes we donot need the get part at each modification.
+Thus the LongAdder and LongAccumulator classes it work as an Atomic Long, It does not return the updated value, So it can distribute the update on different cells. And merge the results on a get call.These are tailored for high concurrency.
+For Long Adder :: increment;decrement,add(long),sum();longValue();intValue(),sumThenReset().
+For the LongAccumulator :: built on a binary operator,accumulate(long),get(),intValue(),longValue(),floatValue(),doubleValue();getThenReset().
+When we need to update values or references in memory, casing may be a better solution than locking.
+##############################################################################################################################################################
+
+Api Level Concurrency::-->>
+Concurrent Lists --> There are thread safe structures Vector and Stack.They are legacy structures very poorly implemented.They should not be used.
+Copy on Write --> Exists for list and set, No Locking for read operations. Write operations create a new structure , The new structure then replaces the previous one in a syncronized way.The thread that already has a reference on the previous array will not see the modification.The new threads will see the modification. There are 2 structures CopyOnWriteArrayList , CopyOnWriteArraySet it works well when there are many reads and very few few writes.
+Example : Application Initialization.
+
+Queue(Interface for only queue) and Deque(Interface for both stack and queue):: Interfaces and ArrayBlockingQueue a bounded blocking queue built on an array. ConcurrentLinkedQueue: an unbounded blocking queue.
+---> Adding an element to a queue that is full, it will occur for a ArrayBlockingQueue,  boolean add(E e) will throw an IllegalArgumentException instead using boolean offer(E e), boolean offer(E e ,timeout,timeunit) will return false. void put(E e) //blocks until cell becomes available.
+
+Deque can accept elements at the head of a queue :: addFirst(),offerFirst(). and in case of BlockingDeque putFirst().
+<<<<<<<<<<<>>>>>>>>>>>
+Queue :: - Returns null: poll() and peek(). - Exception : remove() and element().
+BlockingQueue: Blocks - take().
+Deque :: - Returns null: pollLast() and peekLast(). - Exception : removeLast() and getLast(). BlockingDeque : - blocks: takeLast().
+
+ConcurrentMap() : Interface redefining the javadoc two implementations --> ConcurrentHashMap : JDK 7,8 . ConcurrentSkipListMap : JDK 6, no syncronization.
+ConcurrentMap defines atomic operations - putIfAbsent(key,value) , remove(key,value) ,replace(key,value),replace(key,existingValue,newValue).
+Implementations::--> Thread-safe maps,efficient upto a certain number of threads, A number of efficient parallel special operations ConcurrenHashMap() in jdk8.
+ A hashmap is built on an array, 1) Compute a hashcode from the key. 2)decide which cell will hold the key/value pair. Each cell is called a bucket and a bucket can hold several key/value pair. 3) Check if key is there or not. 4) Update the map. In a concurrent map these steps must not be interrupted by another thread.
+>>>>>>>>>>>>><<<<<<<<<<<< 
+The only way to guard an array-based structure is to lock the array.Syncronizing the put operation would work,but it would be very inefficient to block all the map. we should allow several threads on different buckets, we should allow concurrent reads. Syncronizing parts of array for better read and write a parallelism which bring ConcurrenHashMap in picture.
+Built on a set of syncronized segments , Number of Segments = concurrency level(16 - 64k). This sets the number of threads that can use this map. The number of key/value pairs has to be greater than concurrency level.
+
+ConcurrenHashMap<Long,String> map = ..... //jdk8
+String result = map.search(10_000,(key,value) -> value.startsWith("a")?"a" : null);
+The first parameter is the parallelism threshold which will come into picture only if number of key/value is greater than 10000, we can also use serachKeys(),serachValues(),serachEntries().
+ Map Reduce :ConcurrenHashMap<Long,String> map = ..... //jdk8
+String result =map.reduce(10_000,(key,value) -> value.size(),(value1,value2) -> Integer.max(value1,value2));
+The first bifunction maps  to the element to be reduced , The second bifunction reduces two elements together.
+
+ConcurrenHashMap: Parallel for Each.
+ConcurrenHashMap<Long,String> map = ..... //jdk8
+String result =map.forEach(10_000,(key,value) -> value.removeIf(s -> s.length() > 20));
+The biConsumer is applied to all the key/value pairs of the map.Also forEachKeys(),forEachValues(),forEachEntry().
+
+ConcurrenHashMap can also be used to create concurrent hashsets.
+ Set<String> set = ConcurrenHashMap.<String>newKeySet(); //jdk8 --no parallel operation available.
+ 
+ Concurrent Skip Lists::: Another Concurrent Map. A skip list is a smart structure to create linked lists,Relies on atomic reference operations no syncronization, that can be used to create Maps and Sets. It creates a layer of accessList over LinkedList.
+ A skip list can used to implement map if keys are sorted.The skip list structure ensure fast access to any key, a skip list is not an array-based structure.
+ And there are other ways than locking to guard it. Never call size on a concurrent map or any concurrent operation.
+***************************************************************************************************************************************************************
+
+public class MovieReader{
+
+   public Set<Movie> readMovies(){
+   try(Stream<String> lines = Files.lines(Paths.get("files/movies-mpaa.txt"),StandardCharsets.ISO_8859_1)){
+   Set<Movie> movies = lines.map((String line) -> {
+   String[] elements = line.split("/");
+   String title = extractTitle(elements[0]);
+   String releaseYear = extractReleaseYear(elements[0]);
+   Movie movie = new Movie(title, Integer.valueOf(releaseYear));
+   Arrays.stream(elements).skip(1).map(MovieReader::extractActor).forEach(movie::addActor);
+   return movie;
+   }).collect(Collectors.toSet());
+   
+   return movies;
+   }
+   catch(IOException e){
+   e.printStackTrace();
+   }
+   
+   return null;
+   }
+   public void addActorsToMap(Map<Actor,Set<Movie>> map){
+   
+   Set<Movie> movies = readMovies();
+   for(Movie movie:movies){
+   for(Actor actor: movie.actors()){
+   map.computeIfAbsent(actor,a -> new HashSet<>()).add(movie);
+   }
+   }
+   }
+   
+   private static Actor extractActor(String elements){
+   String[] nameElements = elements.split(",");
+   String lastName = extractLastName(nameElements);
+   String firstName = extractFirstName(nameElements);
+   return new Actor(lastName,firstName);
+   }
+   }
+
+   public class ConcurrenHashMapParallelPatterns{
+   
+   public static void main (String[] args){
+   
+   ConcurrenHashMap<Actor, Set<Movie>> map = new ConcurrenHashMap<>();
+   MovieReader reader = new MovieReader();
+   reader.addActorsToMap(map);
+   System.out.println("# Actors = "+ map.size());
+   int maxMoviesForOneActor = map.reduce(10 ,(actor , movies) -> movies.size(),Integer::max);
+   System.out.println("# Max Movies for One Actor = "+ maxMoviesForOneActor);
+   Actor mostSeenActor = map.search(10,(actor,movies) -> movies.size() == maxMoviesForOneActor ? actor : null);
+   System.out.println("# Most Seen Actor = "+ mostSeenActor);
+   int numberOfMoviesReferences = map.reduce(10 ,(actor , movies) -> movies.size(),Integer::sum);
+   
+   }
+   
+   
+   }
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
