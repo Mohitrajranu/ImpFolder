@@ -1,0 +1,79 @@
+https://login.salesforce.com/services/oauth2/authorize?response_type=code&client_id=3MVG9YDQS5WtC11qMYVuWglNUQAQ5Y3BppSObU0XrARa3RgQn0mIAWhTkAcqyDIrI_ChHUI_q_mf1le_2_Vfn&redirect_uri=https://bluealgo.com:8083/portal/servlet/service/getTokenNRedirect
+
+bizlem@1234
+Snitch is how the nodes in a cluster know about the topology of the cluster.
+Gossip is how the nodes in a cluster communicate with each other.
+
+
+------>CQL is a cassandra based query language similar to SQL for communicating with cassandra.Thrift is a low-level api language.CQL commands are not case-sensitive.
+www.datastax.com/docs ; In cassandra database is defined as a keyspace. Within the keyspace tables can be defined. Describe Keyspaces ---gives a list of tables.
+------>DESCRIBE KEYSPACE SYSTEM; A keyspace can be defined through the create keyspace command. CREATE KEYSPACE vehicle_tracker WITH REPLICATION = {'class': 'NetworkTopologyStrategy','dc1':3,'dc2':2} or CREATE KEYSPACE vehicle_tracker WITH REPLICATION = {'class': 'SimpleStrategy','replication_factor':1}
+------>DROP KEYSPACE vehicle_tracker--- for deleteing a keyspace.A table can be created in cassandra by using the create table command. 
+
+CREATE TABLE activity(home_id text,datetime timestamp,event text,code_used text, PRIMARY KEY(home_id,datetime)) WITH CLUSTERING ORDER BY(datetime DESC). 
+datetime is clustering column indexed as it is also a part of primary key.
+
+DROP TABLE activity -- Deleting a table. the use command is for specifying which keyspace any subsequent CQL commands are for. USE home_security.The partition key is hashed by the partitioner to determine which node in the cluster will store the partition. All of the cql rows that have the same partition key value are stored in the same partition.(aka rowkey) Specifying descending causes writes to take a little longer, as cells are inserted at the start of a partition rather than added at the end, but improves read performance when descending order is needed by an application. 
+
+Although some changes can be made to an existing table, such as adding a column through the ALTER command(e.g. ALTER TABLE activity ADD status text;) changing the clustering order of a table is not an option.
+
+----> DESCRIBE TABLE activity; text ,varchar and int are cql column datatypes.A partition key is always the first column of all the three columns in a primary key.
+
+---->There are few different ways to write data to a cassandra table, including :- INSERT INTO command, COPY command, sstableloader tool.
+Insert into command is handy for writing a single row of data. eg: INSERT INTO activity (home_id,datetime,event,code_used) values ('H0146789','2019-12-13 07:32:36','alarm set','5599') --> Select command can be used to access data in a table, SELECT * from activity; 
+
+--> The copy command can be used to import data ( COPY FROM) from a .csv file to a cassandra table, or export data( COPY TO) to a .csv file, eg:-
+COPY activity (home_id,datetime,event,code_used) FROM '/home/event.csv' WITH header =true AND delimeter = '|';
+
+--->> When a data is written to a table in cassandra, it goes to both a commit log on disk(for playback in case of node failure) and to memory called memcache.
+once the memcache for a table is full it is flushed to disk as an SSTABLE. The SSTABLE for a table are stored on disk, in the location specified in cassandra.yaml file. Flush the memecache in the specific keyspace bin/nodetool flush home_security home, to restart bin/cqlsh. Using sstable2json one can view the data written in table. -->bin/sstable2json path where datafile is present.
+
+--->> Joins doesnot exist in cassandra, As cassandra is distributed database with the data organized by partition key, WHERE clause queries generally need to include a partition key. SELECT * FROM activity WHERE home_id = 'H0146789'; SELECT * FROM activity WHERE home_id = 'H0146789' and datetime < '2019-12-14' this will work as datetime column is indexed, whereas SELECT * FROM activity WHERE home_id = 'H0146789' and code_used = '5599'; this won't work as code_used is not indexed will have to create secondary index for it. By creating an index for columns beyond the partition and clustering columns , values in these other columns can be referenced in WHERE clauses. These are known as secondary indexes,For each secondary index cassandra creates a hidden table on each node in the cluster. Secondary indexes doesnot increase speed of queries in cassandra. For increasing the speed you could specifically create a table for the query.
+
+---> CREATE INDEX code_used_index on activity(code_used); 
+#######---> A composite partition key is where partition key is made up of more than one column, create table location (vehicle_id text, date text, time timestamp, latitude double, longitude double, PRIMARY KEY ((vehicle_id,date),time) );
+
+Cassandra Java Driver::
+<dependency>
+<groupId>com.datastax.cassandra</groupId>
+<artifactId>cassandra-driver-core</artifactId>
+<version>2.0.4</version>
+</dependency>
+netty-3.9.0-Final.jar,guava-16.0.1.jar,metrics-core-3.0.2.jar,slf4j-api-1.7.5.jar
+
+In order to use DataStax java Driver , the start_native_transport property needs to be set to true in cassandra.yaml file.
+The Cluster class allows java to communicate with cassandra cluster.
+
+Cluster cluster = Cluster.builder().addContactPoints("127.0.0.1","127.0.0.2").build(); 
+Session session = cluster.connect();
+String queryString = "SELECT time,latitude,longitude from vehicle_tracker.location where vehicle_id "
+ResultSet result = session.execute(queryString);
+for(Row row: result){
+row.getDate("time");
+row.getDouble("latitude");
+row.getDouble("longitude");
+}
+ if(result.isExhausted()){
+ //no data
+ }
+
+Listing more than one contact point is recommended if one contact point is down another can be used.
+#############################################################################################################################################################
+The update command can be used to update data stored in the Cassandra. UPDATE home_security.home SET phone='310-789-456' WHERE home_id='H0146789';
+When doing an update in cassandra,unlike relational databases there is no disk seek to find a record updates its data and save it. Instead an update is essentially another write.
+
+There are number of CQL commands that can be used to delete data in cassandra including DELETE,TRUNCATE AND DROP.
+Delete can be used to delete a value in a column or to delete a row or rows. Truncate can be used to delete all of rows in a table.Drop can be used to delete a table or a keyspace. 
+ex:- DELETE body from messages where sender='juju' and sent='2020-01-15'; --will replace the column value with null.
+DELETE  from messages where sender='juju' and sent='2020-01-15'; -- will delete the entire row.
+Truncate tablename; Drop table tablename;
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Whene a delete is written to Cassandra a tombstone is created marking the data for deletion.The data is not deleted immediately so that there is time for all of the nodes with replica of a data to learn about mark for deletion. If the deletion where to happen immediately while a replica node is down it would be possible for the down node to come back up and replicate the data to the node that had previously deleted it, unaware of the delete.
+The minimum amount of time that must pass before a delete can occur is set in the gc_grace_seconds property for the table. by default it is 864000(10 days), once the time is passed data is eligible for deletion. For data to actually delete compaction needs to happen. Compaction is when SSTABLES are combined to improve performance of read due to fewer number of SSTables and to reclaim disk space from deleted data.Compaction is normally done automatically although it can also be started manually by using the nodetool compact keyspace tablename. 
+TTL stands for time to live and is a way, to specify an expiration date for data that is being inserted.
+Insert Into location(vehicle_id,date,time,latitude,longitude) values ('AZWRBST567','15-01-2020','14:15:47',34.87,-111.75) USING TTL 30; --30 seconds
+TTL values are marked with tombstones once they have expired.Then once the gc_grace_period time has passed the data can be deleted through compaction.
+
+A TTL value can be updated via update command, UPDATE location USING TTL 7776000 SET latitude='',longitude='' where vehicle_id='';--90 days
+
+Minimum ram per node is 8 gb.minimum cores 4, 
