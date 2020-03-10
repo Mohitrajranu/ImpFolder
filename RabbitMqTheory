@@ -1,0 +1,143 @@
+sudo yum install java-1.8.0-openjdk-devel
+
+https://tecadmin.net/install-rabbitmq-server-on-ubuntu/
+
+
+https://tecadmin.net/install-rabbitmq-on-centos/
+
+-----------------------------RabbitMq Centos Installation--------------------
+Step 1 – Install Erlang
+First, use the following commands to add Erlang yum repository on RHEL based system. You can simply download Erlang repository package from its official website and install on your system.
+
+$ wget https://packages.erlang-solutions.com/erlang-solutions-1.0-1.noarch.rpm
+$ sudo rpm -Uvh erlang-solutions-1.0-1.noarch.rpm
+Now, you can install Erlang package on your system using the following command. This will install all of its dependencies as well.
+
+$ sudo yum install erlang erlang-nox
+Step 2 – Install RabbitMQ Server
+After installing requirements, now download the RabbitMQ rpm package as per your operating system version from its official website.
+
+CentOS/RHEL 7 & Fedora >= 19
+
+$ wget https://www.rabbitmq.com/releases/rabbitmq-server/v3.6.9/rabbitmq-server-3.6.9-1.el7.noarch.rpm
+CentOS/RHEL 6 & Fedora < 19
+
+$ wget https://www.rabbitmq.com/releases/rabbitmq-server/v3.6.9/rabbitmq-server-3.6.9-1.el6.noarch.rpm
+After downloading the RabbitMQ server package, import rabbitmq signing key and install it using the following commands.
+
+$ sudo rpm --import https://www.rabbitmq.com/rabbitmq-release-signing-key.asc
+$ sudo yum install rabbitmq-server-3.6.9-1.noarch.rpm
+Step 3 – Manage RabbitMQ Service
+After completing above installations, enable the RabbitMQ service on your system. Also, start the RabbitMQ service. Use one the below methods sysvinit for older systems or systemctl for the latest operating system.
+
+Using Init – CentOS/RHEL 6 & Fedora < 19
+$ sudo update-rc.d rabbitmq-server defaults
+$ sudo service rabbitmq-server start
+$ sudo service rabbitmq-server stop
+Uisng Systemctl – CentOS/RHEL 7 & Fedora >= 19
+$ sudo systemctl enable rabbitmq-server
+$ sudo systemctl start rabbitmq-server
+$ sudo systemctl stop rabbitmq-server
+
+ 
+Step 4 – Create Admin User in RabbitMQ
+By default rabbitmq creates a user named “guest” with password “guest”. You can also create your own administrator account on RabbitMQ server using following commands. Change password with your own password.
+
+$ sudo rabbitmqctl add_user admin password 
+$ sudo rabbitmqctl set_user_tags admin administrator
+$ sudo rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
+Step 5 – Setup RabbitMQ Web Management Console
+RabbitMQ also provides and web management console for managing the entire RabbitMQ. To enable web management console run following command on your system. The web management console helps you for managing RabbitMQ server.
+
+$ sudo rabbitmq-plugins enable rabbitmq_management
+RabbitMQ dashboard starts on port 15672. Access your server on the port to get dashboard. Use the username and password created in step 4
+
+##############################################################################################################################################
+
+-----------------------------RabbitMq Ubuntu Installation--------------------
+tep 1 – Install Erlang
+First, use the following commands to add erlang apt repository on your system. You can simply download erlang repository package from its official website and install on your system.
+
+wget https://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb
+sudo dpkg -i erlang-solutions_1.0_all.deb
+Now, you can install erlang package on your system using the following command. This will install all of its dependencies as well.
+
+sudo apt-get update
+sudo apt-get install erlang erlang-nox
+Step 2 – Install RabbitMQ Server
+After installing requirements, now enable RabbitMQ apt repository on your system. Also you need to import rabbitmq signing key on your system. Use the following commands to do this.
+
+echo 'deb http://www.rabbitmq.com/debian/ testing main' | sudo tee /etc/apt/sources.list.d/rabbitmq.list
+wget -O- https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | sudo apt-key add -
+After that update apt cache and install RabbitMQ server on your system.
+
+sudo apt-get update
+sudo apt-get install rabbitmq-server
+Step 3 – Manage RabbitMQ Service
+After completing installations, enable the RabbitMQ service on your system. Also, start the RabbitMQ service. Use one of the below methods sysvinit for older systems or systemctl for the latest operating system.
+
+Using Init –
+sudo update-rc.d rabbitmq-server defaults
+sudo service rabbitmq-server start
+sudo service rabbitmq-server stop
+Uisng Systemctl –
+sudo systemctl enable rabbitmq-server
+sudo systemctl start rabbitmq-server
+sudo systemctl stop rabbitmq-server
+Step 4 – Create Admin User in RabbitMQ
+By default rabbitmq creates a user named “guest” with password “guest”. You can also create your own administrator account on RabbitMQ server using following commands. Change password with your own password.
+
+sudo rabbitmqctl add_user admin password 
+sudo rabbitmqctl set_user_tags admin administrator
+sudo rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
+Step 5 – Setup RabbitMQ Web Management Console
+RabbitMQ also provides and web management console for managing the entire RabbitMQ. To enable web management console run following command on your system. The web management console helps you with managing RabbitMQ server.
+sudo rabbitmq-plugins enable rabbitmq_management
+sudo rabbitmq-plugins enable rabbitmq_stomp
+RabbitMQ dashboard starts on port 15672. Access your server on the port to get dashboard. Use the username and password created in step 4
+
+The above didn't work for me, so I've used the following commands:
+
+$ sudo apt-get purge -y erlang erlang-nox elixir esl-erlang
+
+# replace 'testing' with latest repo
+$ sudo vi /etc/apt/sources.list.d/rabbitmq.list
+> deb https://dl.bintray.com/rabbitmq/debian trusty main
+
+$ sudo apt-get update -qq
+$ sudo apt-get install rabbitmq-server -y
+
+*****************************************************************************************************************************************************
+
+Message is published to a queue through an exchange which is binded to the corresponding queue. Better tracking of queue and consumer traffics.
+Components interact with each other in multiple ways and forms, Method Calls,Remote Procedure Calls,Http Clients and Servers, but these are all synchronous forms of messaging.
+eg: E-Commerce site on black friday with millions of customer orders.
+Telecom operator with millions of customer messages.
+
+Messaging Protocols:: STOMP,MQTT and AMQP.
+
+Stomp: Simple Text Oriented Messaging Protocol, provides an interoperable format so that stomp clients can communicate with any stomp message broker to provide easy and widespread messaging interoperability among many languages,platforms and brokers.
+Very Simple and easy to implement HTTP -Like design , doesnot deal with concepts like queues and topics, uses a send semantic with a Destination string for where the message to deliver, however the receiver can implement queues,topics and exchanges.Consumer of messages SUBSCRIBE to these destinations.
+
+MQTT :: Message Queue Telemetry Transport, Machine to Machine "Internet of Things" Connectivity protocol, highly standardized simply publish-subscribe messaging.
+Specifically designed for resource constrained devices and low bandwidth, high latency networks such as dial up lines and satellite links,very lightweight ideal for mobile and IOT, supports thousands of concurrent device connections, compact binary packets no message properties headers compressed AWS Iot and Greengrass edge -computing solutions are designed around MQTT.
+
+AMQP :: Advance Message queuing Protocol. Reliable and Interoperable , highly standardized, Provides a wide range of features related to messaging, including reliable queuing, topic-based publish and subscribe messaging, flexible routing, transactions and security.All AMQP clients interoperate with all AMQP servers, diverse programming languages can communicate easily,
+eg:: want a real time feed of constantly updating information,want an encrypted assured transaction, want your message to be delivered when the destination comes online,want to send an enormous message while still receiving status updates over the same network connection.
+
+RabbitMQ allows multiple connection channels inside a single tcp connection in order to remove the overhead of opening a large number of tcp connections to the message broker.
+
+Exchanges:: Actual amqp elements where messages are sent at first, takes a message and routes it into one or more queues,Routing algorithm decides where to send messages from exchange,routing algorithms depends on the exchange and type and rules called bindings,bindings are simply used to bind exchanges to queues for message delivery. 4 exchange types :: Direct Exchange [(Empty String) and amq.direct] 
+Fanout Exchange(amq.fanout)
+Topic Exchange(amq.topic)
+Headers Exchange(amq.match and amq.headers in RabbitMq)
+
+Queues:: A Core element in any MQ protocol element in any mq protocol especially for RabbitMQ. Messages are routed to queues from exchanges.Queues are final destinations in rabbitmq before being received by subscribers, routing algorithms depends on the exchange type and rules called bindings.Bindings are simply used to bind exchanges to queues for message delivery.
+Properties of a queue:
+Name:- The name of a queue; Durable:- Either persist the queue to the disk or not; Exclusive:- Delete the queue if not used anymore;Auto-Delete :-Delete the queue when consumer unsubscribes.
+Topics:- Topics are simply the subject part of the messages, defined as routing_key for message grouping special formatting for better use apps.logs.error ; Optional parameters for message exchange, you can send and receive messages without any topic information, Topic exchanges are defined using topic for message delivery.
+Bindings:: Rules that exchanges use to route messages to a queue K, K has to be bound to E, May have an optional routing key attribute used by some exchange types, So the routing key acts like a filter. Example:- Queues is like your destination in Mumbai City of Maharashtra, Exchange is like Mumbai Int airport  in Mumbai City, Bindings are routes from airport to your destination, there can be zero or many ways to reach it.
+If message cannot be routed to any queue(there are no bindings for the exchange it was published to) it is either dropped or returned to the publisher, depending on message attributes the publisher has set.
+
+RabbitMQ and activeMq are centralized and support transactions, whereas kafka is distributed but requires an additional plugin implementation to become transactional.
+
