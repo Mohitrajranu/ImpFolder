@@ -1,0 +1,61 @@
+1*    The  Performance  Linked Bonus is the Maximum possible and will be determined by the organisation's and your performance against the set targets. The organization may at any time and in its sole and absolute discretion amend, suspend, vary and modify any of the terms & conditions of the Performance Linked Bonus Policy. No minimum bonus is guaranteed.
+2     HRA is @ 40 / 50% - based on the categorisation of your location as being a Metro or a Non Metro
+3     PF, ESI, Statutory Bonus & Gratuity are payable as per the respective governing Acts
+4     LTC can be claimed twice in a block of 4 years. To avail this facility, please refer to the Leave policy on conditions. You would also be expected to submit in original, all the travel bills incurred in India.
+5     If you have opted out of LTC Fuel Reimbursement & Vehicle Maintenance and Chauffer Fees the allocated amounts would be added to your special allowance and would be taxed
+6     Fuel Reimbursement & Vehicle Maintenance & Chauffer Fee Reimbursements Leave Travel and House Rent Allowances are taxable unless supported by bills / receipts in onginal / as per the Income Tax Act guidelines
+7     Insurance Coverage:  You will be covered as per Company's Group Medical Insurance  Group Personal Accident and Group Term Life policy and norms.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Splunk has two types of indexes main and _internal for data storage.Splunk transforms incoming data into events and stores it in indexes, an event is a single row of data.
+Data is specified by fields (key = value pairs) , Splunk adds default fields such as timestamp,host,source and sourcetype to all events. Splunk stores data in the form of buckets :: hot ,warm,cold,frozen,thawed($Splunk_home/var/lib/splunk/defaultdb/thaweddb/*).
+
+sudo ./splunk start --accept-license
+
+to get the ip of the machine issue the command --> ifconfig
+
+settings-->configure receiver --> add new receiver port [default 9997]
+settings-->configure heavy forwader--->Add host [give receiver ip and port]
+Add heavyforwader splunkforwader -----> sudo ./splunk add forward-server <ip>:<port> --accepy-license
+sudo ./splunk add monitor /var
+
+Basic search commands :: 1] chart / timechart :- Returns results in tabular output for charting. 2] rename :- Renames a specific field. 3] sort :- Sorts results by specified fields.
+4] stats :- Provides statistics. 5] eval :- Calculates an expression. 6] dedup :- Removes duplicates. 7] table :- builds a table with specified fields.
+
+Constructing a basic search ::= search terms | commands 
+example
+host=myhost.lcl source=hstlogs  user=* message=fail* OR LOCK* | table _time user message | rename _time AS Time user AS USER message AS Message | sort -Time
+
+Timestamp :: A default field that represent time information in an event.Most events contain timestamp incase if they don't contain then spunk attempts to assign a timestamp value to the event at index time denoted as _time. Time can be converted from Splunks default to a format of your choice using strftime(). | eval time=strftime(_time, "%H:%M")    16:34
+Time Variable :: --> %H Hour (24 hour clock) , %I (12 hour clock), %M (Minute) , %S (Seconds) , %p (AM or PM). %A --> A full day name,%d --> day in 01-31, %e --> day in 1 -31 without leading zeroes , %B --> full month name January , %b --> abbrv name Jan, %m --> Month as number (01-12) , %Y --> four digit year , %y --> two digit year.
+
+There are 3 types of modes , 
+1] Fast :: --> No field discovery except the default metadata fields, use if you know exactly which fields you need and can specify them in search string.
+2] Smart :: --> Returns best result for whatever search you are running.
+3] Verbose :: --> Discover all fields it can, use if you are not sure what fields you want to report on.
+
+Advance commands :: top --> can be used with limit , provides two additional columns count and percent columns. default 10
+ex : host=homework state=* kevel=critical | top state BY level 
+rare --> opposite of top , 
+stats --> stats <function (field) > by <fields> , some common functions :: avg,count,max,min,mean,median,sum, stdev,values,list
+ex --::> | stats avg(kbps) BY host , | stats count(failed_logins) BY user.
+host=homework state=* usr=* | stats count(usr) AS cuser BY state | sort -cuser
+
+Data Models :: settings ----> Data Models ----->New data model.
+After adding dataset , we can click on pivot and select the constructed dataset.
+
+Using chart command :: host=homework state=* usr=* | chart count(usr)  BY state | rename count(usr) AS "Number Of Users"
+
+host=homework backupduration=* domain=* | timechart avg(backupduration) BY domain
+
+Using Alert , on the search bar type ::-->> index="_internal" log_level=ERROR and save as Alert.
+
+Deployment Server and Forwader Managment. :: settings --> Forwader ---> 
+Settings---->Access Control
+Default port 389 , with ssl 636
+
+Eaach Splunk app has its own set of configuration files.
+
+Important configuration files:-
+inputs.conf ;- defines data inputs , outputs.conf :- Governs forwarding behaviour ,props.conf :- Indexer configuration,source type rules,limits.conf :- Defines limits for serch commands.
+
+lookup <lookup-table-name> <lookup-field1> OUTPUT <lookup-field2>

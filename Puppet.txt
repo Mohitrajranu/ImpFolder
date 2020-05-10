@@ -1,0 +1,36 @@
+login as centos
+ Puppet configuration on server::
+vi /etc/hosts/
+hostnamectl set-hostname abc.com
+systemctl status firewalld 
+systemctl stop firewalld
+get puppet release rpm ;; rpm -Uvh https://puppeturljkvhjklk
+rpm -qa | grep -i puppet_release
+yum repolist 
+yum list | grep -i puppet
+yum install puppet-agent.x86_64
+get the package info using, rpm -qi puppet-agent-5.x86_64
+systemctl status puppet
+systemctl start puppet 
+ get the private IP of agent ip addr and ping it from master
+Set up Puppet master and puppet agent on different servers, /etc/puppetlabs/puppet/puppet.conf ---> in puppet master conf :: certname=puppet.ex.com and server=puppet.ex.com ; In puppet agent :: certname=agent01.ec.com and server=puppet.ex.com ==> server of master so it can interact with master.
+Secure the communication between master and agent by creating a file autosign.conf in /etc/puppetlabs/puppet/ and entering agent fqdn in it.
+
+for puppet master , install puppet rpm --> yum install puppetserver.noarch
+systemctl status puppetserver
+systemctl start puppetserver
+
+Setup on aws :: create free tier account ---> console.aws.amazon.com  --------> select region ---->  Services ----> ec2 ----> launch instance ----> Community Amis ----> centos7.4 --> set up cpu and data storage , configure security ---> security group name ==> PuppetSetup , Add Rule --> All Tcp ==> anywhere. 
+
+In puppet agent add one more rule ---> Icmp Ipv4 anywhere. so that it can accept all inbound traffic.
+ Add puppet agent and puppet master hostname and ip in etc/hosts/ on both server. create soft link on puppet master ln -s /opt/puppetlabs/bin/puppet /usr/bin/puppet
+
+Start puppet on agent , check on puppet a sign request will be sent , puppet cert list --all  , and for the pending certificate request from puppet agent  issue command in puppet master
+puppet cert sign puppet-agent-01.example.com 
+ automate this process by creating autosign.conf in /etc/puppetlabs/puppet/ *.example.com
+ restart puppet service on master.
+ 
+ Issue command puppet agent -tv in agent server.
+ 
+ Open port 8140 to allow puppet agent to communicate with master.
+ 

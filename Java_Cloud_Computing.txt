@@ -1,0 +1,59 @@
+Cloud Computing Java
+A Distributed System is a system of several processes running on different computers communicating with each other through the network and are sharing a state or are working together to achieve a common goal.
+We use distributed systems everywhere , from online shopping,video on demand,share riding.
+Problems of a centralized system is with the increase in user base, Performance and storage is limited as there is no vertical scalability.Single point of failure, loss of money and trust, high latency results in poor user experience as user from other continents will face problem like slow page load.
+
+Node:: A process running on a dedicated machine.
+Cluster:: Collection of computer/nodes connected to each other, the nodes in a cluster are working on the same task and typically running the same code.
+There is a master node which distributes tasks evenly to other worker nodes and also collect results from them.
+Arriving to an agreement on a leader on in a large cluster of nodes is even harder. by default each node knows only about itself,service registry and discovery is required. Failure detection mechanism is necessary to trigger automatic leader reelection in cluster.
+
+Apache Zookeeper 
+A high performance coordination service designed specifically for distributed systems.Provides an abstraction layer for higher level distributed algorithms.It is a distributed system in itself and provides high availability and reliability. It provides an abstraction and data model similar to tree and each element in that tree is called znode.
+Znodes Properties
+Hybrid between a file and directory.Znodes can store ant data inside like a file, but can also have children znodes like a directory.2 types of znodes::--
+1.Persistent :: persists between sessions, using it we can store data in between sessions as it can be deleted only explicitly.
+2.Ephermal :: is deleted when session ends, Using an ephermal znode we can detect that a process died or disconnected from zookeeper service. 
+
+For leader election each nodes get itself register under election node and start creating their own children znodes, one with smallest number in its znode is elected as leader.
+When a node detects that its znode has the lowest sequence number, it becomes leader. When a node detects that its znode doesn't have lowest sequence number it becomes the follower.
+Zookeeper guarantees a monotonically increasing sequence number for each node that requests a sequence suffixed znode.
+
+./zkCli.sh in bin directory, ls / to get all the znodes created. create /parent "some parent data" , create /parent/child "some child data". ls /parent , get /parent.
+modify znode ---> set /parent "some new data", delete znode rmr /parent
+Zookeeper Threading Model :: --> Applications start code in the main method is executed on the main thread.
+When Zookeeper object is created two additional threads are created :: Event thread and IO thread.
+
+IO Thread :: 
+Handles all the network communcation with Zookeeper Servers, Handles Zookeeper requests and responses, Responds to pings, Session Management and Session Timeouts.
+
+Event Thread ::
+Manages zookeeper events -->> Connection (KeeperState.SyncConnected) and Disconnection (KeeperState.Disconnected).
+Custom znode Watchers and Triggers we subscribe to. , Events are executed on Event thread in order of arrival from zookeeper.
+********************************************************************************************************************************************************************************
+<plugin>
+<artifactId>maven-assembly-plugin</artifactId>
+<executions>
+<execution>
+<phase>package</phase>
+<goals>
+<goal>single</goal>
+</goals>
+</execution>
+</executions>
+<configuration>
+<archive>
+<manifest><mainClass>LeaderElection</mainClass></manifest>
+</archive>
+<descriptorRefs>
+<descriptorRef>jar-with-dependencies</descriptorRef>
+</descriptorRefs>
+</configuration>
+</plugin>
+mvn package
+*******************************************************************************************************************************************************************************
+The Herd Effect :: A large number of nodes waiting for an event ,when the event happens all nodes get notified and they all wake up.Only one node can succeed,
+Indicates bad design, can negatively impact the performance and can completely freeze the cluster. To overcome this  each node only looks after its immediate ephermal znode.
+Fault Tolerant ensure cluster never fails, horizontal scalability ensures we can add nodes dynamically.
+Leader/Worker Architecture :: 
+Workers will register themselves with the cluster,Only the leader will register for notifications.Leader will know about the state of cluster at all times and distribute the work accordingly,if a leader dies the new leader will remove itself from the service registry and continue distributing work.

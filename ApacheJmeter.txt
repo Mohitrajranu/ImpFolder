@@ -1,0 +1,18 @@
+https://davidzych.com/migrating-from-svn-to-git/
+Apache Jmeter:: Start jmeter.bat,
+New Features in jmeter 4 :: Workbench dropped,Json Assertion,Test Plan Auto Save,java9 support,black GUI,boundary extractor.
+New Features in jmeter5 :: Multipart/form-data in put,delete requests.Xpath2.0 is supported,restart jmeter with file restart.
+Load testing :: At what point application performance will start to degrade, If application is supposed to work on 100 users then we perform load testing from 90 - 110 users.
+Stress testing :: At what point application will break,it is performed in abnormal conditions like if application is designed for 100 users we will apply much more users than 100.
+Volume Testing :: Application is tested against heavy database size , we keep constant number of users but keep increasing database size.
+Endurance testing :: Load testing for a longer period of time , Spike testing - where we conduct stress testing with a sudden increase in users.
+Test Plan :: A group of test cases basically a test suite. Right click on TestPlan ---> Add --->Threads(users)-->Thread Groups, we can have many Thread Groups(testcases) in a test plan.
+Different type of Test Steps in Jmeter :: 
+Samplers are used to send requests to server, Once the Thread group is created right click on it and Add --> Samplers --> , select Http request from the samplers list.
+Listener  are used to view result or Generate Report. 
+Assertions :-> compare actual with expected, are used to apply validations on the response coming from the server. eg Duration assertions time taken for the response.
+Timers :-> Apply some delay in the execution eg constant timers.
+Controller or logiccontroller -> Control execution flow like executing a request 100 times.
+Config Element :: before running some testcases if some configuration needs to be done like getting data from a csv file.
+Preprocessor :: Any configuration before sending request to the server can be achieved using preprocessor which just runs before a sampler.
+Postprocessor :: Tasks performed on the response we received from the server.
