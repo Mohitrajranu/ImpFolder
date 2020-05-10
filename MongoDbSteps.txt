@@ -1,5 +1,8 @@
 https://medium.com/@matteocontrini/how-to-setup-auth-in-mongodb-3-0-properly-86b60aeef7e8
 
+https://docs.oracle.com/cd/E12058_01/doc/doc.1014/e12030/cron_expressions.htm
+
+https://www.freeformatter.com/cron-expression-generator-quartz.html
 Open a cmd and type cd C:\Program Files\MongoDB\Server\4.0\bin
 
 mongod --dbpath d:\mongodb\data\db
@@ -412,6 +415,41 @@ Using Java Driver
     for (DBObject result : results) {
         System.out.println(result.get("array"));
     }
+	Iterable<DBObject> output = collection.aggregate(Arrays.asList(
+        (DBObject) new BasicDBObject("$unwind", "$views"),
+        (DBObject) new BasicDBObject("$match", new BasicDBObject("views.isActive", true)),
+        (DBObject) new BasicDBObject("$sort", new BasicDBObject("views.date", 1)),
+        (DBObject) new BasicDBObject("$limit", 200),
+        (DBObject) new BasicDBObject("$project", new BasicDBObject("_id", 0)
+                    .append("url", "$views.url")
+                    .append("date", "$views.date"))
+        )).results();
+
+// Print for demo
+for (DBObject dbObject : output)
+{
+    System.out.println(dbObject);
+}
+
+	
+	MongoCollection<Document> collection = database.getCollection("myCollection");
+
+AggregateIterable<Document> output = collection.aggregate(Arrays.asList(
+        new Document("$unwind", "$views"),
+        new Document("$match", new Document("views.isActive", true)),
+        new Document("$sort", new Document("views.date", 1)),
+        new Document("$limit", 200),
+        new Document("$project", new Document("_id", 0)
+                    .append("url", "$views.url")
+                    .append("date", "$views.date"))
+        ));
+
+// Print for demo
+for (Document dbObject : output)
+{
+    System.out.println(dbObject);
+}
+	
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Mongodb Interview Questions:-
 
@@ -471,3 +509,275 @@ db.games.update({'_id': 73}, {$pull: {'goals': {'goal': 4}}})
     games.update( query, update );
 	
 	https://stackoverflow.com/questions/15436542/mongodb-java-push-into-array
+	"funnelName"
+	db.FirstCategoryMails.find( { $and: [ { Category: { $eq: "Explore" } },{ updateflag: { $eq: "1" } },{ scheduleTime: { $eq: "20:17" } }  ] } ).pretty();
+	
+	
+	// { ID: "12" }
+Document query = new Document("ID", "12");
+
+// { ObjData: { $pull: { Order: "54321" } } }
+Document update = new Document("ObjData",
+        new Document("$pull",
+                new Document("Order", "54321")
+        )
+);
+
+coll.updateOne(query, update);
+
+20:30,
+
+
+String tmp = "[
+   {
+      "ID":"12",
+      "Date":"2018-02-02",
+      "ObjData":[
+         {
+            "Name":"AAA",
+            "Order":"12345",
+            "Extra1":{
+               "Temp":"3"
+            },
+            "Extra2":{
+               "Temp":"5"
+            }
+         },
+         {
+            "Name":"BBB",
+            "Order":"54321",
+            "Extra1":{
+               "Temp":"3"
+            },
+            "Extra2":{
+               "Temp":"5"
+            }
+         }
+      ]
+   }
+]"
+
+0 */5 * * * *
+
+0 0,15,30,45 0 ? * * *
+	
+	db.FirstCategoryMails.find( { $and: [ { funnelName: { $eq: "newfun24" } },{ scheduleTime: { $eq: "19:55" } },{ Category: { $eq: "Explore" } }  ] } );
+	
+#########################################################################################################################	
+The MongoDB Dataset
+If you plan to follow along with the code examples in this article, it’s important to use the same data. The dataset shown below will be used throughout this tutorial:
+
+{
+"_id" : ObjectId("5cef50eb3fd48a2c4adb0ceb"),
+"customerName" : "Purisa",
+"customer-address" : [
+{
+"type" : "primary-address"
+"street" : "#21 Easy Street",
+"city" : "Easy",
+"state" : "PH",
+"zip" : "57733",
+}
+}
+Set up access to the MongoDB deployment
+Now that we’ve confirmed all the system requirements and created our sample dataset, we can begin looking at the code. The fist step is to instantiate a MongoClient object. When we do this, we explicitly specify the hostname and the port number:
+
+MongoClient mongo = MongoClients.create("mongodb://127.0.0.1:27017");
+In this example, we’re running MongoDB locally, on the default port 27017.
+
+Set up access to the MongoDB database
+Next, we’ll access a database. You can use the command shown below to access the MongoDB database "customerDatabase" by using the getDatabase() method:
+
+MongoDatabase db = mongo.getDatabase("customerDatabase");
+Set up the access to the MongoDB collection
+Once we’ve accessed a MongoDB database, we can then access any collections available within that database. You can use the command shown below to access the "customerCollection" collection:
+
+MongoCollection<document> warColl = db.getCollection("customerCollection");
+Adding a new MongoDB document within an existing MongoDB document
+In the next example, we’ll use the MongoDB addtoset method to add a new field to an existing MongoDB document.
+
+The addToSet() accepts a string-object pair. You can see how this works in the code shown below:
+
+Document newAddress = new Document().append("type", "secondaryAddress")
+.append("street", "#24 niceton")
+.append("city","Nice");
+
+db.getCollection("customerCollection").updateOne(eq("customerName", "Purisa"),Updates.addToSet("customer-address", newAddress));
+You can that the value of newAddress is actually a composition of fields forming a single document, which will be added within a MongoDB document.
+
+After you execute this code, the results should look something like the following:
+
+"_id" : ObjectId("5cef50eb3fd48a2c4adb0ceb"),
+"customerName" : "Purisa",
+"customer-address" : [
+{
+"street" : "#21 Easy Street",
+"city" : "Easy",
+"state" : "PH",
+"zip" : "57733",
+"type" : "primary-address"
+},
+{
+"type" : "secondaryAddress",
+"street" : "#24 niceton",
+"city" : "Nice"
+}mohitraj.ranu
+]
+}
+Adding new MongoDB fields in an Existing MongoDB Document
+You can use the $set operator to replace a field with a specified value; however, in this tutorial, the MongoDB set function serves to add a new MongoDB field within the existing document if the specified field does not exist:
+
+BasicDBObject update = new BasicDBObject();
+update.put("$set", new BasicDBObject("customer-address", new BasicDBObject("corner", "#15 2Easy Street")));
+BasicDBObject listItem = new BasicDBObject("customer-address", new BasicDBObject("type","primary-address").append("corner", "#15 2Easy Street"));
+						    BasicDBObject updateQuery = new BasicDBObject("$push", listItem);
+						    table.updateOne(query, updateQuery);
+db.getCollection("customerCollection").updateOne(
+query,update);
+The code shown above will add the field corner with a value of #15 2Easy Street within the customer-address document.
+
+After executing this code, the results will look something like the following:
+
+"_id" : ObjectId("5cef50eb3fd48a2c4adb0ceb"),
+"customerName" : "Purisa",
+"customer-address" : [
+{
+"street" : "#21 Easy Street",
+"city" : "Easy",
+"state" : "PH",
+"zip" : "57733",
+"corner" : "#15 2Easy Street",
+"type" : "primary-address"
+},
+{
+"type" : "secondaryAddress",
+"street" : "#24 niceton",
+"city" : "Nice"
+}
+]
+}
+Conclusion
+If you’re a Java developer working with MongoDB, you know that adding new fields to an existing document is a common task. The examples we reviewed in this tutorial showed that there are a few different ways to add fields to a MongoDB array. Whether you choose to work with the $set operator or the addToSet() method, you’ll have no trouble adding fields in a MongoDB array using Java.
+
+Ra
+								collection.aggregate(
+								    Arrays.asList(
+								       Aggregates.unwind("$planets", new UnwindOptions().preserveNullAndEmptyArrays(true)),
+								       Aggregates.group("$surfaceType",
+								            Accumulators.addToSet("planets", 
+								                new Document("radius", "$planets.radius")
+								                    .append("surfaceType", "$planets.surfaceType")
+								            )
+								        )
+								    )
+								);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Annotations : help us to map our classes to our mongodb documents.
+
+Example
+ @Document(collection = "legosets")
+public class LegoSet{
+@Id
+private String id;
+private String name;
+private LegoSetDifficulty difficulty;
+@Indexed(direction=IndexDirection.ASCENDING)
+private String theme;
+private Collection<ProductReview> reviews = new ArrayList<>();
+@Field("delivery")
+private DeliveryInfo deliveryinfo;
+@Transient
+private int nbparts;
+//For serialization and deserialization use @PersistenceConstructor 
+
+}
+
+public interface LegoRepository extends MongoRepository<LegoSet,String> {
+    Collection<LegoSet> findAllByThemeContains(String theme);
+	Collection<LegoSet> findAllByDifficultyAndNameStartsWith(LegoSetDifficulty difficulty,String name);
+	
+	@Query("{'delivery.deliveryFee' : {$lt : ?0}}")
+	Collection<LegoSet> findAllByDeliveryPriceLessThan(int price);
+	@Query("{'reviews.rating' : {$eq : ?0}}")
+	Collection<LegoSet> findAllByGreatReviews(int rating);
+}
+
+Sort sortByThemeAsc = Sort.by("theme").ascending();
+legoSetRepository.findAllByThemeContains(theme,sortByThemeAsc);
+Collection<LegoSet> legoSets = this.legoSetRepository.findAll(sortByThemeAsc);
+
+Spring Data can provide proxy implementation of queries based on method names: findByLastname,findByAgeLessThan,findByActiveTrue.
+
+QueryDSL allows us to write queries that are type safe , no more magic strings.
+Mongo Projections, use MongoTemplate
+db.legosets.aggregate([{
+       $project:{
+	   legoSetName: "$name",
+	   avgRating: {$avg : "$reviews.rating"} 
+	   }
+}])
+
+findAllByThemeIsNot("Star Wars");
+@Query("{'delivery.inStock': true}")
+Collection<LegoSet> findAllInStock();
+
+For Full text search first annotate the field with @TextIndexed, and then use TextCriteria.
+QLegoSet query = new QLegoSet("query");
+BooleanExpression notInStockFilter = query.deliveryInfo.inStock.isFalse();
+BooleanExpression noReviews = query.reviews.isEmpty();
+Predicate bestBuysFilter = notInStockFilter.or(noReviews);
+this.legoSetRepository.findAll(bestBuysFilter);
+
+If you change the name of a field in your mongo project with changing its existing name in mongodb, then during serialization you wont get the old and new field value.
+
+Configure MongoBee for Data Migration.
+<dependency>
+<groupId>com.github.mongobee</groupId>
+<artifactId>mongobee</artifactId>
+<version>0.13</version>
+</dependency>
+
+Criteria priceZeroCriteria = new Criteria().orOperator(Criteria.where("nbParts").is(0),Criteria.where("nbParts").is(null));
+mongoTemplate.updateMulti(new Query(priceZeroCriteria),Update.update("nbParts",122),LegoSet.class);
+
+@ChangeSet(order="002",author="dan",id="insert additional payment method")
+public void insertAdditionalPaymentOption(MongoTemplate mongoTemplate){
+PaymentOptions bankTransferPayment=new PaymentOptions(PaymentType.BankTransfer,1);
+mongoTemplate.insert(bankTransferPayment);
+}
+
+Integration Testing----what should you test?
+Any methods that uses magic string (@Query) , any projections or aggregations , any query that is complex enough.
+@DataMongoTest ---> it mongo properties like template,repository to your base class.
+
+Document References(supports relationship in mongodb)
+Embedded Documents
+Example1::
+{
+"_id":"123",
+"name":"abc",
+"paymentOption":{
+"type":"CreditCard",
+"fee":0
+}
+}
+
+{
+"_id":"123",
+"name":"abc",
+"paymentOption":{
+"$ref":"PaymentOptions",
+"$id":"567"
+}
+}
+
+PaymentOptions Collection
+{
+"_id":"567",
+"type":"CreditCard",
+"fee":0
+}
+
+Spring provides eager loading and serialization by default, you cannot traverse the object tree to query based on payment options,
+{"paymentOptions.fee":0} ----------> No by default cascading operations but you can implement one using Mongo event listeners like onBeforeConvert.
