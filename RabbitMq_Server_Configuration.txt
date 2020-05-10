@@ -106,3 +106,38 @@ $ sudo vi /etc/apt/sources.list.d/rabbitmq.list
 
 $ sudo apt-get update -qq
 $ sudo apt-get install rabbitmq-server -y
+
+*****************************************************************************************************************************************************
+
+Message is published to a queue through an exchange which is binded to the corresponding queue. Better tracking of queue and consumer traffics.
+Components interact with each other in multiple ways and forms, Method Calls,Remote Procedure Calls,Http Clients and Servers, but these are all synchronous forms of messaging.
+eg: E-Commerce site on black friday with millions of customer orders.
+Telecom operator with millions of customer messages.
+
+Messaging Protocols:: STOMP,MQTT and AMQP.
+
+Stomp: Simple Text Oriented Messaging Protocol, provides an interoperable format so that stomp clients can communicate with any stomp message broker to provide easy and widespread messaging interoperability among many languages,platforms and brokers.
+Very Simple and easy to implement HTTP -Like design , doesnot deal with concepts like queues and topics, uses a send semantic with a Destination string for where the message to deliver, however the receiver can implement queues,topics and exchanges.Consumer of messages SUBSCRIBE to these destinations.
+
+MQTT :: Message Queue Telemetry Transport, Machine to Machine "Internet of Things" Connectivity protocol, highly standardized simply publish-subscribe messaging.
+Specifically designed for resource constrained devices and low bandwidth, high latency networks such as dial up lines and satellite links,very lightweight ideal for mobile and IOT, supports thousands of concurrent device connections, compact binary packets no message properties headers compressed AWS Iot and Greengrass edge -computing solutions are designed around MQTT.
+
+AMQP :: Advance Message queuing Protocol. Reliable and Interoperable , highly standardized, Provides a wide range of features related to messaging, including reliable queuing, topic-based publish and subscribe messaging, flexible routing, transactions and security.All AMQP clients interoperate with all AMQP servers, diverse programming languages can communicate easily,
+eg:: want a real time feed of constantly updating information,want an encrypted assured transaction, want your message to be delivered when the destination comes online,want to send an enormous message while still receiving status updates over the same network connection.
+
+RabbitMQ allows multiple connection channels inside a single tcp connection in order to remove the overhead of opening a large number of tcp connections to the message broker.
+
+Exchanges:: Actual amqp elements where messages are sent at first, takes a message and routes it into one or more queues,Routing algorithm decides where to send messages from exchange,routing algorithms depends on the exchange and type and rules called bindings,bindings are simply used to bind exchanges to queues for message delivery. 4 exchange types :: Direct Exchange [(Empty String) and amq.direct] 
+Fanout Exchange(amq.fanout)
+Topic Exchange(amq.topic)
+Headers Exchange(amq.match and amq.headers in RabbitMq)
+
+Queues:: A Core element in any MQ protocol element in any mq protocol especially for RabbitMQ. Messages are routed to queues from exchanges.Queues are final destinations in rabbitmq before being received by subscribers, routing algorithms depends on the exchange type and rules called bindings.Bindings are simply used to bind exchanges to queues for message delivery.
+Properties of a queue:
+Name:- The name of a queue; Durable:- Either persist the queue to the disk or not; Exclusive:- Delete the queue if not used anymore;Auto-Delete :-Delete the queue when consumer unsubscribes.
+Topics:- Topics are simply the subject part of the messages, defined as routing_key for message grouping special formatting for better use apps.logs.error ; Optional parameters for message exchange, you can send and receive messages without any topic information, Topic exchanges are defined using topic for message delivery.
+Bindings:: Rules that exchanges use to route messages to a queue K, K has to be bound to E, May have an optional routing key attribute used by some exchange types, So the routing key acts like a filter. Example:- Queues is like your destination in Mumbai City of Maharashtra, Exchange is like Mumbai Int airport  in Mumbai City, Bindings are routes from airport to your destination, there can be zero or many ways to reach it.
+If message cannot be routed to any queue(there are no bindings for the exchange it was published to) it is either dropped or returned to the publisher, depending on message attributes the publisher has set.
+
+RabbitMQ and activeMq are centralized and support transactions, whereas kafka is distributed but requires an additional plugin implementation to become transactional.
+
