@@ -1,0 +1,164 @@
+<listener>
+ <listener-class>our.package.MongoConnectionServlet</listener-class>
+</listener>
+
+public class MongoConnectionServlet implements ServletContextListener {
+
+    public void contextInitialized(ServletContextEvent sce) {
+       MongoDbCache.getInstance();
+    }
+
+    public void contextDestroyed(ServletContextEvent sce) {
+       MongoDbCache.getInstance().destroyConnection();
+    }
+
+}
+
+npm WARN deprecated core-js@2.6.11: core-js@<3
+
+############################################################################################################################################################
+Redis :: Redis is an open source in-memory data structure store, used as database , cache, messagebroker. Nosql key/value store like mongodb.Mongodb is disk based where as redis is memory-based.Redis is used for caching.It is similar to Memcache in that data is stored in memory.Memcached uses volatile cache, therefore the data does not get persisted and is lost with a restart. Redis uses built-in persistance and will not disappear with restart.
+....>>> the datatype that redis allows is one of its best features, String;Hashes;List;Sets;SortedSets;Bitmaps;Hyperlogs;Geospatial,indexes. Partitioning spit data among multiple redis instances.
+
+Datatype in Redis ::
+String , List , Sets, Sorted Sets,Hashes
+
+String:: set key value ;; get key ;;; example::-->> set student Mohit , get student ---> If there is a space in between the values provide in quotes.
+
+keys * --> will list all keys
+set student:1 ranu ; get student:1 ::: set student:2 mohit ; get student:2
+String:Expire ,TTL and Exists ---------->> set student:4 raj ex 25 --> the key will expire in 25 seconds ;; ttl student:4 will return remaining time the key has before expiring.
+Set key if it does not exist set student:1 ranu redis EX 20 NX ::: set key if it already exist  set student:1 ranu redis EX 20 XX
+Exists student:4
+Append:: set testkey testvalue ;; append testkey " additional" ;; get testkey --> testvalue additional.
+strlen:: strlen testkey --> 21 
+set mykey 10 ---> incr mykey :: 11 ---> incrby mykey 10 :: 21 similarly decr and decrby works decrementing the value.
+set rangekey rangeone :: setrange rangekey 5 two -->> get rangekey >> rangetwo :: getrange rangekey 5 8 >> two {substring)
+setting multiple values at same time. :::-->> mset firstkey value1 secondkey value2 ;; mget firstkey secondkey
+
+List:: lpush --> add elements at the start of the list;; rpush --> add elements at the end off the list.
+lpush tutorials tut1 tut2 tut3 ; rpush tut4 ; lrange tutorials 0 3 --> prints elements from index 0 to 3.
+llen tutorials --> prints the length of the list. 
+lset tutorials 2 "tutorialseries" --> updates the element at the index 2 of the list.
+lpop --> removes the first element in the list , rpop --> removes the last element in the list. lpop tutorials :: rpop tutorials
+ltrim key index1 index2. --> will remove every element except the element present in these indexes.
+del key --> will delete the particular list.
+
+Set:: sadd emails email1 email2 email3 ;; smembers emails ---> prints the list of elements present in the set ;; scard emails --> returns the size of the set.
+sdiff key1 key2 ---> returns element present in key1 but not in key2 ;; sdiff key2 key1 ---> returns element present in key2 but not in key1.
+sunion key1 key2 ---> joints two set together and prints the entire element present in both the set. ;; for intersection use sinter key1 key2
+spop emails --> remove random elements from the set.
+srem emails email1 email2 --> will remove the specified values from the key.
+
+Ordered Set :: Each item is stored along with the scores which determines its order.
+zadd names 10 basseum 20 ali 30 chuck
+zrange names 0 -1 --> will print element in order.
+zcard names ---> returns the no .of elements in the ordered set.
+zrange names 0 -1 withscores --> print all elements with their scores.
+ZCOUNT names -inf +inf ---> returns the no .of elements in the ordered set.
+zrank names basseum --> will return the index of the element.
+zscore names basseum --> will return the score of the element.
+zrem key member --> will remove the element from the ordered set.
+
+Hash:: hset key field value, hget key field
+hmset key field value field1 value1 .... --> to set multiple field value in hashset.
+hmget key field field1 field2
+hgetall student --> will print both key and values.
+hexists key field --> will check if particular key exist or not.
+Hkeys key --> will print all the keys.
+Hvals key --> will print all the values.
+Hlen key --> will print size
+hdel key field ---> will delete particular field from key.
+
+Redis Persistance options --> No persistance dataset[ in memory] ;; RDB [redis database file];; AOF [append only file] ;; Hybrid [RDB & AOF].
+
+RDB :: RDB makes snapshot of the dataset at specific intervals, whenever redis creates a snapshot this happens
+1.Redis forks , new child processes start in addition to the parent process.
+2. The child process begins to write dataset to a temporary file , 
+3.once the child process finishes writing to the new rdb file it replaces the old one.
+
+Commands :: --SAVE [blocks all the other clients while saving the db] ;; -BGSAVE [saves the db in background process , preffered in prod as it doesn't blocks client]
+In Redis.config file : save 30 100 , means take a snapshot every 30 seconds if 100 keys are changed.
+
+AOF:: Writes to disk for every operation an expensive task , AOF logs each write operation received by the server that will be played again at server startup restoring the original dataset.
+Durability , no data lost depends on the fsync policies :: no fsync at all, fsync at every second[default],fsync at every query.
+prevent data corruption, rewrite the AOF in background if file gets too big.
+
+https/redis.io/topics/persistance --> use hybrid approach.
+
+Redis sentinel :: It is a system designed to help managing redis instances, it helps in providing a high availability system, by monitoring , notifying and providing instances failover. Sentinel performs 3 tasks
+1. Monitoring :- check if your master and slave instances are working as expected.
+2. Notification :- Notify other programs or system administrator via an api, when something goes wrong with the monitored instances.
+3. Automatic failover :- On master failure sentinel promotes one of the slaves to master, then make the other additional slaves use the new master.
+Sentinel acts as a source of authority for clients , Clients connect to sentinels inorder to ask for the address of current redis master.
+
+create a redis-slave.conf file similar to redis.conf file ---> an edit this line --> slaveof masterIp masterPort also create a redis-sentinel.conf file, change the port.
+-->> sentinel monitor mymaster Ip port 2 ;; 2 is the no of sentinel that must agree if the master is down.--->> sentinel down-after-milliseconds mymaster 10000
+start master --> redis-server redis.conf ;;; start slave --> redis-server redis-slave.conf ;;; redis-sentinel redis-sentinel.conf;;; connect to one the sentinel using
+ redis-cli -p 26379
+
+Redis Cluster is a data shrading solution with automatic management failover , and replication. Data Shrading is a method to break big database into many smaller parts,it is the process of breaking up a DB across multiple machines to enhance the manageability , availability, performance and load balancing of an application.
+The reason for data shrading is at certain point it is provides horizontal scalabilty. Shrading allows more data to be stored in the cluster. Cluster provides data scalabilty to your application.  Communication in redis-cluster takes place through cloud-bus node to node communication.
+There are 16384 slots provided in redis cluster which are divided among multiple nodes.
+wget redis and download the tar --> extract it --> cd redis-5.0.2 --> make --> make test --> cd utils --> cd create-cluster ---> ./create-cluster start ---> ./create-cluster create
+cd ../../ 
+cd src/ --> ./redis-cli -c -p 30001  
+
+ use redis cluster if speed is your concern and larger implementation; for smaller implementation and high availability use redis sentinel.
+ 
+ Redis Transaction :: multi 
+ set num 10
+ incrby num 10
+ exec --> data is set to 20 
+ multi
+ set num 10
+ incrby num 10
+ discard --> data is not saved
+ get num --> returns 20
+ 
+ to keep check if the change which you are making is also being modified by someone else use watch.
+ watch num
+ multi
+ set num 10
+ incrby num 10
+ exec ----> parallely someone tried to modify your data  set num 20
+ nil
+ 
+ Pub/Sub Redis
+ 
+ subscribe weather ---> reading messages from the channel weather. in one of the cli
+ psubscribe weath* ---> reading message in another cli
+  
+ cli3--> publish weather "welcome to all".
+ 
+ Authentication --> set password in redis config.
+ config set requirepass jordan
+ set mykey value --> throws error
+ auth jordan
+ set mykey value --> run succesfully.
+ 
+ Redis Java Clients --> Jedis, Lettuce,Redisson
+ 
+ Redis is itself single threaded applicTION
+ Jedis is small,light,extremely fast client library in java for redis.
+ support by springdata ,jedis is painless , jedis instance is not thread safe.
+ 
+ Jedis Pool:: It is thread safe , pool is configurable,pool improve performance.
+ Redis Template :: provides methods to communicate with redis instance,it takes two parameter on redis class instantiation type of redis key and value.
+ 
+ Serializer :: data stored in redis is bytes , use serializer to convert data into string , json etc.
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+
+
+
