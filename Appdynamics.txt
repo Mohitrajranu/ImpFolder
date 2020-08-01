@@ -1,0 +1,142 @@
+Appdynamics architecture :: 
+
+                                     |-----------Application Server Agent(JVM/CLR)[Byte code injection instrumentation, business transaction data collection]
+                                     |
+Appdynamics Controller --------------<|One way HTTPS communication
+Central Management server,           |
+Administration GUI                   |
+Saas or on premise deployment		 |_ _ _ _ _ _Machine Agent [Machine statistics data collection,Distributed automated extensions]
+
+For database monitoring , Appdynamics database Agent is configured. And it requires event service up and running.
+
+The cloud setup Saas appdynamics platform runs on 443 port ; whereas the onpremise setup has controller running on port 8181(https) and 8090(http)
+Event service runs on port 9080 & 9081{admin}, for intranet application requires EUM processor on port 7002 (https) and 7001.
+
+Appdynamics continuously discovers and monitors all processing in your application environment using advanced tag,trace and learn technology across distributed transactions, Appdynamics agent (Java,php.., .Net) detects a call to service entry point, and follows the execution path for the call down the stack.The Appdynamics agent now sends collected usage metrics, code exceptions, error conditions and exit calls(calls to webservice or database) to backend systems to the controller.
+
+Key Terminologies ::
+
+App Agents :: collects performance data about application server, webpages and report the same to the controller.
+Baseline :: provides a refrence point from which the performance can be benchmarked.Appdynamics supports both static and dynamic baseline.
+Backend :: visibility into calls made to unmonitored destinations inside or outside your application infrastructure,In appdynamics databases, remote services such as webservice , message queues are known as backend.
+Business Metric :: capture data from a methods parameters executions or return values and report on the performance of the business metrics such as Total order value, revenue loss etc.
+Business Transaction :: represnts all activities around user requests,that accomplish logical user activity,such as log in, log out,add to cart , checkout etc.
+Machine Agent :: Instruments a machine to report data about hardware and the network to a controller.
+Business Application :: Models all components in an application environment that provide complete set of functionality.
+Controller :: collects, stores and calculates baselines and analyzes performance data collected by appdynamics agents.
+Entry Point :: method or operation in the application code,that begins or extend a business application.
+Nodes :: basic unit of processing , an app agent or machine agent or both instrument a node, Node belong to tiers.
+Tiers :: key service such as website or processing application.An originating tier receives the first request of business transaction.A downstream tier is a tier called from another tier.
+Flow Map :: graphical representation betwenn Nodes, tiers,backends and process flows between them.
+Health :: refers to the extent to which the application being monitored operates within the acceptable performance limits defined by health rules.
+Health rule :: select specific metrics as key to the overall health of an application and to define ranges for acceptable performance of those metrics.
+Events :: List various problems that have occured during the time range specified for the dashboard such as health rule violations,code problems,business transaction problem etc.
+Transaction Score Card :: displays status of business transaction based on threshold , specify when transaction is slow,very slow,stalled or in error status.
+Load :: number of calls or request per minute.
+Response Time :: shows the average response time for all calls made.
+Errors :: shows the no of errors that have occured
+Exceptions :: displays the number of code exceptions that have occured.
+Transaction snapshot :: set of diagnostic data for a business transaction instance, across all app servers through which the business transaction has passed, at a specific point in  time , transaction snapshot help you troubleshoot the root causes of performance problems.
+
+Appdynamics Modules ::
+Application Performance Monitoring :: focus on monitoring the runtime operation of your application, this includes code execution, visibility to call stack,
+Realtime user experience monitoring (RUM , Mobile and Web Rum):: monitors geographic location of users using your app , network connections of their connection,device usage,browser performance, mobile application crashes etc.
+Appdynamics Analytics :: gives insight of the business impact to application performances.
+Database Visibility :: gives you detailed visibility of query execution , performance of the underlying database operational activities.
+Server visibility :: infrastructure visibility , gives you insight into the underlying environment your application is running.
+Synthetic monitoring :: Uses synthetic agents to simulate user requests from distributed locations.
+Network visibility :: Monitors underlying network performance and answers.
+Service availability :: Monitoring metrics with respect to webservice, api, rpc.
+IOT :: visibility to iot enabled devices.
+Docker visibility:: insight to docker containers.
+
+Installation considerations :: no mysql instance should be running, virtual memory(swap space) should be atleast 10 gb, 20 gb preferable,user account installations must have read , write execute performance, write permission is also required to /etc/.java/.systemprefs directory. ensure netstat is installed yum install net-tools ,ensure linux libio library is installed , confgure open file descriptor limit (nofile) 65535, process limit (noproc) 8192
+view soft and hard limit , ulimit -S -n. ulimit -H -n ;; ulimit -S -u. ulimit -H -u
+/etc/security/limits.d/appdynamics.conf :: vi user hard nofile 65535 soft nofile 65535 hard nproc 8192 soft nproc 8192.
+Install, cd appdynamics , chmod 777 platform-setup...sh , ./platform-setup...sh
+
+Steps to begin monitoring::
+1] Download the java agent from http://download.appdynamics.com
+2]Extract the downloaded zip to any directory.
+3]edit the controller-info.xml under <agent_home>/<version_number>/conf ; 
+4]Modify the application java startup script with ; -javaagent:<agent_home>/javaagent.jar --> linux
+-javaagent:"c:\AppServerAgent\javaagent.jar -->windows
+5]Restart the application been monitored.
+
+https://docs.appdynamics.com/display/PRO45/Agent+Installation+by+Java+Framework
+
+Monitoring any application using appdynamics requires a few parameters::
+Controller host ip address , Controller host ip,Application Name,Tier Name,Node Name, Account Name,Account Access Key.
+
+<controller-info>
+<controller-host>192.x.y.z</controller-host>
+<controller-port>8090</controller-port>
+<application-name>ACMEOnline</application-name>
+<tier-name>InventoryTier</tier-name>
+<node-name>Inventory1</node-name>
+</controller-info>
+
+Open (or create if it doesn't already exist) the setenv.sh (Linux) or setenv.bat (Windows) file. For Tomcat 6 and later, you can put the file in the CATALINA_BASE/bin directory. For previous versions of Tomcat, put the file in the CATALINA_HOME/bin directory
+Add the -javaagent argument to the file as a Catalina environment variable, as follows:
+
+On Linux:
+
+export CATALINA_OPTS="$CATALINA_OPTS -javaagent:<agent_home>/javaagent.jar"
+Replace <agent_home> with the full path to the Java Agent JAR file.
+For example:
+
+export CATALINA_OPTS="$CATALINA_OPTS -javaagent:/home/appserver/appagent/javaagent.jar"
+On Windows:
+
+set CATALINA_OPTS=%CATALINA_OPTS% -javaagent:"Drive:<agent_home>\javaagent.jar"
+For example
+
+set CATALINA_OPTS=%CATALINA_OPTS% -javaagent:C:\appagent\javaagent.jar
+Restart the application server. The application server must be restarted for the changes to take effect.
+
+Infrastructure visibility is based on the machine agent. It helps you identify CPU utilization ,Disk IOs,Network Packet Loss,Memory utilization issues,Network latency,JVM crash,system or server failures etc.
+CPU busy/idle times, disk and partition reads/writes, and network interface utilization(Machine Agents).
+Packet loss, round trip times,connection setup/teardown errors,TCP window size issues,and retransmission timeouts (Network visibility additional license required).[Network Agent]
+Disk/cpu/memory utilization and machine availability (srver visibility additional license required).(Machine Agent)
+
+Download Machine Agent Binaries and extract to the local folder, edit the controller-info.xml under <agent_home>/<version_number>/conf ; 
+if agent is licensed for server monitoring, set this flag to true.
+<sim-enabled>true</sim-enabled>.
+
+On getting started wizard , select servers. and then download it , Start the machine agent jar as MACHINE_AGENT_HOME/jre/bin/java -jar MACHINE_AGENT_HOME/machineagent.jar.
+ps -ef|grep machine
+
+Appdynamics Database Monitoring :: visibility of the application performance from browser to the database.
+Database Metrics :: 
+Hardware resources :- Metrics collected by hardware monitoring , 
+KPI :- Key performance Indicators
+Server statistics :- Database system statistics as reported by the database.
+
+Visibility provided by database monitoring :: sql & stored procedures, Execution plans,wait states,Resource consumption,Database objects,Schema statistics,User sessions,Data files,Change events .
+
+Problems solved with database monitoring :: Slow database response time,Database load issues,Unpredictable performance spikes,locking problems,Internal database contention.
+Note :: Appdynamics Database monitoring supports agentless monitoring,
+heap space = No of database instances monitored * 512 + 1024 mb.
+Appdynamics Event service must be running.
+
+https://docs.appdynamics.com/display/PRO45/Configure+Oracle+Collectors
+
+Download database agent binaries , unzip and modify controller-info.xml , to include controller-host,port and access key.
+start agent , ./start-dbagent -Xms<min heap size> -Xmx<max heap size> &
+
+Now create database collector.--> Database ---> configuration --> first option is collector.
+
+
+What to know to setup alert::
+
+Baselines :: Every appdynamics agent send performance metric to the controller which uses, machine learning mechanisms to create baselines for each performance metric like response time , cpu etc.
+Health Rules :: In health rules you specify parameters that you consider to be normal or abnormal for your monitored environment, health rule leverages on baseline to establish performance thresholds when this threshold is exceeded they trigger events.
+Policies :: Policies are setup to different health rules together,and determine actions you want appdynamics to perform, when these health rules are violated like send sms, emails.
+Alert :: Since appdynamics uses baselines to benchmark normal behaviour, when there is deviation from this normal behaviour, Alerts are triggered.
+
+Creating Health Rules, Select the alert and response tab ; Click on the health rules ;
+
+Setup Infrastructure policy :: Select policy from alert & response tab, create policy. Setup action.
+
+Dashboard setup and creation :: Create dashboard 
+

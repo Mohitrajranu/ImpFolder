@@ -1,0 +1,181 @@
+Kstream :: Ordered sequences of messages ,unbounded data streams , inserts data , All Inserts similar to log 
+Use Kstream when topic is not log compacted , data is partial information.
+Ktable :: Unbounded , Upserts data :: Inserts or Update based on key .Delete on null value. Parallel with log compacted topic .
+Use Ktable when topic is log compacted, data is self sufficient.
+
+You can read a topic as a KStream , KTable or GlobalKtable
+
+KStream<String,Long> wc = builder.stream(Serdes.String(),/* Key serde */
+Serdes.Long(),/* Value serde */
+"wc-inp-topic" /* input topic*/
+)
+
+KTable<String,Long> wc = builder.table(Serdes.String(),/* Key serde */
+Serdes.Long(),/* Value serde */
+"wc-inp-topic" /* input topic*/
+)
+
+GlobalKTable<String,Long> wc = builder.globalTable(Serdes.String(),/* Key serde */
+Serdes.Long(),/* Value serde */
+"wc-inp-topic" /* input topic*/
+)
+
+You can write any KStream,KTable back to kafka, If you write a KTable back to kafka , think about creating a log compacted topic. 
+To :: Terminal operation --> write records to a topic 
+stream.to("topic-input") ;; table.to("topic-input")
+
+Through :: write to topic and get stream / table from topic , 
+KStream<String,Long> ns = stream.through("user-clicks-topic")
+KTable<String,Long> nt = table.through("table-topic")
+
+
+ 
+
+Stateless means that the result of a transformation only depends on the data-point you process.example :: multiply by 2 is a stateless operation as it doesnot memory of past to be achieved . Stateful means that the result of a transformation also depends on an external information - the state. example :: a count operation is stateful because your app needs to know about what happened since it started running in order to know the computation result. 
+
+Log Compaction :: keep latest value and delete the older, based on record key , useful if we need latest snapshot, keep order, doesnot change offset and not duplication validator.
+Log Compaction can be a huge improvement in performance when dealing with Ktables , because eventually records get discarded. This mean less read to get to final state (less time to recover).
+
+Log compaction guarantees that any consumer reading from head of the log will still see all the messages sent to the topic. Offset of a message is immutable (it never changes) , offsets are just skipped if a message is missing. Deleted records can still be seen by customers for a period of delete.retention.ms, it doesn't prevent you from reading as well as pushing duplicates from / to kafka. Log compaction can fail from time to time , it is an optimization and combination thread might crash.Make sure you assign enough memory to it.
+--config cleanup.policy=compact , --config min.cleanable.dirty.ratio=.5, --config segment.ms=1000.
+
+
+
+Map :: affects both keys and values , trigger re-partitions , for kstream only.
+MapValues :: takes one record and produces one record, does not change key affect only value. Doesn't trigger repartition , intermediate operation. available both for Kstream and Ktable.
+
+stream.filter :: Inverse of filterNot. stream.filter((key,value) -> value > 0)
+stream.filterNot ::  takes one record and produce one or zero record, does not change key or value ,Doesn't trigger repartition , intermediate operation. available both for Kstream and Ktable.
+
+stream.branch :: split stream based on predicates , evaluate predicate in order, record only placed on first match, drop unmatched records, returns array of streams , intermediate operation available for kstream only.
+
+KStream <String,Long> [] branches =  stream.branch(
+(key,value) -> value > 100,
+(key,value) -> value > 10
+)
+
+stream.selectKey :: takes one record and produces one record, Set/replace record key possible to change key datatype, trigger repartition , value doesn't change intermediate operation available for kstream only.
+
+stream.selectKey((key,value) -> key.substring(0,1)) // use first letter of the key as new key.
+
+flatMapValues :: takes one record and produces zero or more record does not change key affect only value. Doesn't trigger repartition , intermediate operation. available for kstream only.
+flatMap:: takes one record and produces zero or more record change kay and value , trigger repartition available for kstream only.
+
+stream.groupByKey :: Group records by existing key.
+stream.groupBy :: groups record by new key. triggers repartition , allows you to perform more aggregations within a KTable.
+//Group the table by new key and type. null values are treated as delete operation and null keys are ignored
+KGroupedTable<String,Integer> groupedTable = table.groupBy((key,value) -> KeyValue.pair(value,value.length()), Serdes.String(), Serdes.Integer());
+
+KGroupedStream are obtained by calling groupBy/groupByKey on the stream. both null keys and values are ignored.
+
+KGroupedStreamAggregate needs an initializer,an adder, a serde,and a state store name (name  of your aggregation).
+
+KTable<byte[],Long> aggregatedstream = groupedStream.aggregate(()->0L,(aggKey , newValue, aggValue) -> aggValue + newValue.length(),Serdes.Long() /**serde for value**/,statestorename);
+
+KGroupedTableAggregate , needs an initializer,an adder and subtractor for delete operation, a serde,and a state store name (name  of your aggregation).
+KTable<byte[],Long> aggregatedstream = groupedStream.aggregate(()->0L,(aggKey , newValue, aggValue) -> aggValue + newValue.length(),(aggKey , oldValue, aggValue) -> aggValue - oldValue.length(),Serdes.Long() /**serde for value**/,statestorename);
+
+Reduce similar to aggregate but the result type has to be same as input.
+
+KTable<byte[],Long> aggregatedstream = groupedStream.reduce(()->0L,(aggKey , newValue, aggValue) -> aggValue + newValue.length(),Serdes.Long() /**serde for value**/,statestorename);
+
+KTable<byte[],Long> aggregatedstream = groupedStream.reduce(()->0L,(aggKey , newValue, aggValue) -> aggValue + newValue.length(),(aggKey , oldValue, aggValue) -> aggValue - oldValue.length(),Serdes.Long() /**serde for value**/,statestorename);
+
+streams.forEach :: Terminal operation , takes one record produces none, produces side Effect Not Tracked by kafka , Kstream and Ktable
+stream.peek :: Intermediate operation Produce unchanged stream , produces side Effect Not Tracked by kafka , Kstream 
+stream.print(Printed.toSysout()) :: Termainal operation print each record.
+stream.to(output-topic) :: Termainal operation , write stream to destination topic.
+stream.through(output-topic) :: Intermediate operation, write stream to destination topic  , continue record processing , kstream.
+table.toStream :: convert ktable to stream. A table can be considered a snapshot at a point in time of the latest value, for each key in stream.
+
+Transform a KStream to Ktable :: Can be considered as a changelog of a table where each data record in the stream captures state change of the table.
+Write back to kafka and read as table. 
+stream.to("int-topic") ;; KTable<String,String> kt = builder.table("int-topic")
+
+2 way :: chain a groupByKey() and Aggreagtion such as count , reduce,aggregate
+KTable<String,String> kt= streams.groupByKey().count().
+
+Kafka Stream Configuration :: commit.interval.ms --> default 30 seconds 
+State Store :: See existing information and connect it, kept in state store . Key-Value data storage ; Accessed from processor . Kafka Stream State Stores :: Inmemory , Persistent (disk based) uses changelog topic for fault tolerance.
+
+Peek allows you to introduce side effect operation to KStream and get Kstream as result., A side effect could be printing the stream to console, stats collection.
+
+KStream<byte[],Long> streamop= stream.peek((key,value)->sysout(key and value))
+
+TransformedValue does not trigger repartition , Transformer leverage low level producer api.
+
+
+
+
+groupByKey().aggregate( () -> 0 , (aggKey , newValue, aggValue) -> aggValue + newValue) aggregate record based on key., 
+
+
+stream.mapValues() is stateless operation, so we need to use value Transformer.
+stream.transformValues() , 
+class y implements ValueTransformerSupplier<value, TransformedValue>{
+
+public ValueTransformer<value, TransformedValue> get(){}
+
+}.transformValues(new y());
+
+TimestampExtractor ::
+Extract transaction time from payload, use it as record timestamp. Built in timestamp Extractor (FYI) 
+FailOnInvalidTimestamp,LogAndSkipOnInvalidTimestamp,UsePreviousTimeOnInvalidTimestamp,WallclockTimestampextractor.
+
+Windowing :: Group records for same key,time-based and session-based.
+Tumbling-Time window :- windows are created per record key for a specified time interval , Hopping-Time window :: data record can belong to more than one window.,Sliding-Time window,Session Based window, Custom window.
+
+Join :: can only happen when the data is co-partitioned , otherwise the joins won't be doable and kafka stream will fail at runtime.
+
+Co-partition :- combinations => Kstream /Kstream ; Ktable /Ktable : Kstream /Ktable :: Left and Right side must have same number of partition
+
+GlobalKtable : - no need of copartition , fetch / copy all data from all partitions of certain topic . Consume memory / disk on kafka stream instance , relatively small data almost static.can join stream to GlobalKtable.
+If your KTable data is reasonably small and can fit on each of your Kafka Streams apllication you can read it as GlobalKTable. With GlobalKTable you can join any stream to your table , even if the data doesn't have same number of partitions.That's because table data lives on every streams application instance. 
+
+
+
+https://www.confluent.io/blog/crossing-streams-joins-apache-kafka/
+
+https://kafka.apache.org/11/documentation/streams/developer-guide/testing.html
+
+Java 8 lambda functions :: 
+In Java 7 
+stream.filter(new Predicate(){
+
+public boolean test(String key,Long value){
+return value >0;
+}
+});
+
+In Java 8 using lambda function.
+
+stream.filter((key,value) -> value > 0);
+The types of key and value are inferred at compile time.
+
+Word Count Stream App Typology.
+1. Stream from kafka   <null,"Kafka Kafka Streams">
+2. MapValues lowercase <null,"kafka kafka streams">
+3. FlatMapValues split by space <null,"streams"> <null,"streams"> <null,"streams">
+4. SelectKey to apply key , <kafka,"kafka"> <kafka,"kafka"> <streams,"streams">
+5. GroupByKey before aggregation ( <kafka,"kafka"> <kafka,"kafka"> ), ( <streams,"streams"> )
+6. Count occurences in each group 
+7. To in order to write data back to the topics
+
+Running a kafka streams may eventually create internal intermediary topics :: 
+Repartitioning Topics :: In case you start transforming the key of your stream , a repartitioning will happen at some processor.
+Changelog Topics :: In case you perform aggregations, kafka streams will save compacted data in these topics.
+
+Streams marked for repartition :: As soon as an operation can possibly change the key , the stream will be marked for repartition. repartition is done seamlessly but adds performance cost. 
+
+Internal topics are managed by kafka streams are used by kafka streams to save / restore state and repartition data. Are prefixed by application.id parameter. and should never be deleted or published.
+
+
+Exactly Once ---> The ability to guarantee that data processing on each message will happen only once, and that pushing the message back to kafka will also happen effectively only once.(Kafka will de-dup) .
+The Producers are now idempotent (if the same message is sent twice or more due to retries, kafka will make sure to keep only one copy of it.)
+
+Cases when it is not acceptable to have atleast once, getting the exact count by key for a stream, Summing up bank transactions to compute a persons bank balance; any operation that is not idempotent and any financial computation.
+Cases when it is acceptable to have atleast once , operation on time windows ; approximate operations (counting the no of times an IP hits a web page to detect attacks and web scrapping).
+Idempotent operations such as min, max.
+
+To enable exactly once in kafka streams just add one line of code,
+props.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG,StreamsConfig.EXACTLY_ONCE)

@@ -1,0 +1,54 @@
+Apache Nifi::
+Automate the flow of data between systems; eg JSON -> Database,FTP -> Hadoop,Kafka -> ElasticSearch, etc.
+Drag and Drop Interface; Focus on configuration of processors(i.e. what matters only to the user) ; scalable across a cluster of machines ; Guaranteed Delivery/No data loss
+Data buffering / back pressure /prioritization Queuing/Latency  vs Throughput.
+
+FlowFile :: Its basically the data , comprised of two elements,
+Content -> the data itself and attributes -> key value pairs associated with the data.
+Gets persisted to disk after creation.
+
+Processor ::  Applies a set of transformations and rules in flowfiles to generate new flowfiles.
+Any processor can process any flowfile.
+Processors are passing flow file references to each other to advance the data processing, they are all running in parallel different threads.
+
+Connector :: Its basically queue of flow files yet to be processed by  processor 2.Define rules how flow files are prioritized,can define backpressure to aviod overflow in the system.
+
+https://nifi.apache.org/docs/nifi-docs/html/getting-started.html#downloading-and-installing-nifi
+
+Add processor by clicking on the popup and drag it to the center of the screen.
+
+Filter Getfile , select it  then right click on it and select configure, set properties .
+Similarly Create PutFile Processors, and connect these two processors using Connection , 
+
+FlowFile Topology :: A flowfile has two components ,
+Attributes :: These are the metadata from the flowfile. Contain information about the content eg , when was it created where it is from what data does it represent.
+Content :: That's the actual content of the flowfile , eg it's the actual content of the file you would read using Getfile.
+
+A processor can :: update,add or remove attributes ; change content.
+
+Download template from site and import it inside Nifi blow by clicking upload option in generate nifi flow.
+Now from the top menu you can select the uploaded templates. You can configure the flow by right click on the selected flow.
+
+Nifi supports the use of attributes using expression language, Right click on any flow and select data provenance option.
+You can configure LogAttribute or Routeattribute for unmatched value.
+Create Processor Group Json To MongoDb.
+Create processor GetFile and connect to the other processor PutMongo.
+
+Apache Nifi to Apache Kafka
+::-- > Apache Nifi can be an alternative to kafka connect framework
+Apache Nifi is useful for building data pipelines , by only configuration just using a mere drag & drop, 
+
+# Short instructions for Mac / Linux
+# download NiFi at: https://nifi.apache.org/download.html
+# Terminal 1:
+bin/nifi.sh run
+# install docker for mac / docker for linux
+# Terminal 2:
+docker run -it --rm -p 2181:2181 -p 3030:3030 -p 8081:8081 -p 8082:8082 -p 8083:8083 -p 9092:9092 -e ADV_HOST=127.0.0.1 -e RUNTESTS=0 landoop/fast-data-dev
+# Terminal 3:
+docker run -it --net=host landoop/fast-data-dev bash
+kafka-topics --create --topic nifi-topic --zookeeper 127.0.0.1:2181 --partitions 3 --replication-factor 1
+kafka-console-consumer --topic nifi-topic --bootstrap-server 127.0.0.1:9092
+
+GenericFlow File ----> Publish kafka 0.10 ;; Cosumer kafka --> log attribute.
+

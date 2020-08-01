@@ -1,0 +1,2 @@
+Apache Flink :: 
+Flink is a true processing framework, flinks stream is based on windowing and checkpointing, flink is implemented in java and has its own automatic memory manager , rarely gets out of memory. Flink uses controlled cyclic dependency graph as its execution engine.

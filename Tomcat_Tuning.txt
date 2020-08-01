@@ -1,0 +1,226 @@
+Tomcat Components::
+1] Catalina :: Basic Container that follows Jsp servlet specifications.Executes servlet lifecycle methods like :- init(),service(),destroy().
+2]Jasper :: Jsp parser engine that converts jsps to servlets.
+3]Coyote :: Represents connector component, listens to TCP/IP ports to transmit web requets to container and end user, plays important role in integration to other web servers in providing static content. also supports in ssl.
+4]Cluster :: plays an important role in distributed mode , supports load balancing.
+
+In server.xml, there is a field tag <Host> which has attribute autodeploy=true to disable it you can set it false and for every deployment you will require tomcat restart.
+
+Security in tomcat through SSL::
+keytool -genkey -keyalg RSA -alias myKey -keystore e:\demokey\demoKey.jks
+
+In server.xml In connector tab add SSlConfig , certificateKeystoreFile,type,certificateKeystorePassword.
+
+in webapps-->manager-->WED-INF-->web.xml
+
+Add Security Constraint , for url-pattern --> /html/*
+<user-data-constraint>
+<transport-guarantee>CONFIDENTIAL</transport-guarantee>
+</user-data-constraint>
+
+
+Virtual Hosting in shared environment , edit hosts file :: c:/windows/system32/drivers/etc/hosts
+127.0.0.1 www.website1.com
+127.0.0.1 www.website2.com
+127.0.0.1 www.website3.com
+
+
+Create folder similar to webapps-- like website1-webapp , website2-webapp,website3-webapp inside tomcat folder.
+In server.xml ,
+
+<Host name="www.website1.com" appBase="website1-webapp" unpackWARs="true" autoDeploy="true" >
+</Host>
+<Host name="www.website2.com" appBase="website2-webapp" unpackWARs="true" autoDeploy="true" >
+</Host>
+<Host name="www.website3.com" appBase="website3-webapp" unpackWARs="true" autoDeploy="true" >
+</Host>
+
+Cluster Setup :: Create directory Instance1,Instance2 and Instance3 outside tomcat ... copy conf logs webapps work folder inside the respective instance folders. change port inside server.xml for connector,shutdown and ajp port.
+
+create a script file , startup-instance.sh ---->
+#!/bin/bash 
+
+export CATALINA_HOME=/usr/binaries/tomcat9
+export CATALINA_BASE=/usr/binaries/instance1
+
+cd $CATALINA_HOME/bin
+./startup.sh
+
+Setting Nginx Load balancer 
+Inside conf --> nginx.conf --> I http tag
+
+http {
+     upstream tomcat_servers{
+	 server 127.0.0.1:8180;
+	 server 127.0.0.1:8280;
+	 server 127.0.0.1:8380;
+	 
+	 }
+}
+	 now inside server tag  set request forward
+	 
+	 server {
+	 listen   80;
+	 server_name localhost;
+	 
+	 location / {
+	 proxy_pass http://tomcat_servers
+	 
+	 }
+	 
+	 
+	****************************************************************************
+	Using Apache as loadbalancer 
+	
+	Inside bin of apache , start command-prompt --> httpd -k install
+	Install mod_jk connector for communication between tomcat and apache server.
+	tomcat_connector/jk/binaries/windows/
+	
+	httpd-2.4x.zip --> download connector.
+	copy mod_jk.sso from the downloaded folder to the Apache folder inside modules.
+	
+	In httpd.conf file at the end of </IfModule> tag.
+	
+	LoadModule jk_module modules/mod_jk.so
+	JkWorkersFile conf/workers.properties
+	
+	JkLogLevel info
+	JkLogFile logs/mod_jk.log
+	
+	JkMount /* lb 
+	
+	create workers.properties file 
+	
+	worker.list  = lb
+	
+	worker.tomcat1.type=ajp13
+	worker.tomcat1.host=192.0.0.10
+	worker.tomcat1.port=8009
+	
+	worker.tomcat2.type=ajp13
+	worker.tomcat2.host=192.0.0.10
+	worker.tomcat2.port=8009
+	
+	worker.lb.type = lb
+	worker.lb.balance_workers=tomcat1,tomcat2
+	
+	
+	now go to tomcat directory , inside server.xml 
+	 <Connector port="8009" protocol="AJP/1.3" address="0.0.0.0"  redirectPort="8443" secretRequired="false" />
+	 
+	 <Engine name="Catalina" defaultHost="localhost" jvmRoute="tomcat1">
+	
+	
+	
+	Configuring Sticky Session on nginx :: nginx.exe -s stop
+	in config directory edit nginx.conf, add iphash which will maintain a hashtable of clientId and serverIP which served the request first time to the client , henceforth all the request from the client will go to that same server which served its request for the first time.
+	
+	http {
+     upstream tomcat_servers{
+	 server 127.0.0.1:8180;
+	 server 127.0.0.1:8280;
+	 server 127.0.0.1:8380;
+	 ip_hash;
+	 }
+}
+	
+	Apache server will have a default implementation for sticky session no need to configure anything extra for that. 
+
+	Session Replication solves the drawback which we get in sticky session:
+	
+	There are Tomcat Classes which handles the session repliction across the nodes:
+	Standard Manager :: Updates the entire session object across all the nodes, heavy weight.
+	Persistent Manager :: Updates the entire session object in the Flatfiles/Db, and every node will lookup from there.
+	Delta Manager :: Updates only the most changes of the session object instead of entire session object.
+	BackUp Manager :: Updates the delta to the backup nodes.
+	
+	DNS multicast routing :: To dynamically add or remove cluster from the node.
+	Unicast ;; Single sender and Single recipients.
+	Broadcast :: One sender many recipients.
+	Multicast ;; many to many subscribing to multicast IP.
+	
+	Inginx.conf remove ip_hash added for sticky session.
+	
+	
+	In server.xml need to define a cluster for session replication.
+	All the communication in the cluster will happen through a channel.
+	 <Engine name="Catalina" defaultHost="localhost" jvmRoute="tomcat1">
+	<Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster" channelSendOptions="8">
+
+          <Manager className="org.apache.catalina.ha.session.DeltaManager"
+                   expireSessionsOnShutdown="false"
+                   notifyListenersOnReplication="true"/>
+
+          <Channel className="org.apache.catalina.tribes.group.GroupChannel">
+            <Membership className="org.apache.catalina.tribes.membership.McastService"
+                        address="228.0.0.4"
+                        port="45564"
+                        frequency="500"
+                        dropTime="3000"/>
+            <Receiver className="org.apache.catalina.tribes.transport.nio.NioReceiver"
+                      address="auto"
+                      port="4000" <!-- no need to change in horizontal clustering -->
+                      autoBind="100"
+                      selectorTimeout="5000"
+                      maxThreads="6"/>
+
+            <Sender className="org.apache.catalina.tribes.transport.ReplicationTransmitter">
+              <Transport className="org.apache.catalina.tribes.transport.nio.PooledParallelSender"/>
+            </Sender>
+
+            <Interceptor className="org.apache.catalina.tribes.group.interceptors.TcpFailureDetector"/>
+            <Interceptor className="org.apache.catalina.tribes.group.interceptors.MessageDispatchInterceptor"/>
+          </Channel>
+
+          <Valve className="org.apache.catalina.ha.tcp.ReplicationValve" filter=""/>
+          <Valve className="org.apache.catalina.ha.session.JvmRouteBinderValve"/>
+          <ClusterListener className="org.apache.catalina.ha.session.ClusterSessionListener"/>
+ </Cluster>
+	
+Now yo will have to make changes to your application , go to webapps in web.xml add tag <distributable/> before web-app closing tag, so that the appplication becomes part of the cluster.
+
+JNDI :: A hashtable for key value ;; Used for storing configuration parameter outside the application.
+
+In context.xml we can create a Jndi Resource like this for getting db parameters;
+
+<Resource
+name="jdbc/Usersdb"
+auth="Container"
+type="javax.sql.Datasource"
+maxActive="100"
+maxIdle="30"
+maxWait="1000"
+driverClassName=
+url=
+username=
+password=
+/>
+
+In web.xml add this to access database resource ,
+<resource-ref>
+    <description>DB Connection</description>
+    <res-ref-name>jdbc/UsersDB</res-ref-name>
+    <res-type>javax.sql.DataSource</res-type>
+    <res-auth>Container</res-auth>
+  </resource-ref>
+  
+  
+  
+  Catalina loglevels are defined as SEVERE the topmost level ; severe>warning>info>fine>finer>finest.
+  Now if i want to write something inside a file i will need to first select a handler, 
+  handlers = 1catalina.org.apache.juli.AsyncFileHandler, 2localhost.org.apache.juli.AsyncFileHandler, 3manager.org.apache.juli.AsyncFileHandler, 4host-manager.org.apache.juli.AsyncFileHandler, java.util.logging.ConsoleHandler,5demoapp.org.apache.juli.AsyncFileHandler
+  
+  
+5demoapp.org.apache.juli.AsyncFileHandler.level = FINE
+5demoapp.org.apache.juli.AsyncFileHandler.directory = ${catalina.base}/logs
+5demoapp.org.apache.juli.AsyncFileHandler.prefix = demoapp.
+5demoapp.org.apache.juli.AsyncFileHandler.maxDays = 90
+com.demoapp.handlers = 5demoapp.org.apache.juli.AsyncFileHandler
+
+
+You can also do sub level logging customization.
+
+we can use valve tag to act as interceptor to track the request before it reached container and is managed in the server.xml,
+<Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+               prefix="localhost_access_log" suffix=".txt"
+               pattern="%h %l %u %t &quot;%r&quot; %s %b" />

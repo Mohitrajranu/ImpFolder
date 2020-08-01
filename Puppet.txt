@@ -34,3 +34,90 @@ puppet cert sign puppet-agent-01.example.com
  
  Open port 8140 to allow puppet agent to communicate with master.
  
+ Puppet cms :: puppet --help, puppet resource --help,puppet resource --types
+ Puppet DSL (Domain Specific Language) <Resource Type> { <TITLE> : 
+<Attribute> => <Value>, <Attribute> => <Value>, <Attribute> => <Value>}
+
+Puppet Resource Type
+puppet resource --types | grep -i user
+Puppet Describe
+puppet describe <resource-name> 
+puppet describe user
+
+Check ---> puppet parser validate 
+Test ---> puppet apply -noop
+Run ---> puppet apply
+
+puppet help| more
+
+cd /var/temp/demo/
+cat demouser.pp
+user { "mohit":
+ ensure => "present",    
+}
+puppet apply demouser.pp
+user will be created , if not present. 
+userdel mohit
+id mohit 
+grep -i mohit /etc/passwd
+create file.
+demofile.pp
+file { "/var/tmp/testfile":
+  ensure  => "present",
+  owner   => "mohit",
+  group   => "mohit",
+  mode    => "0777",
+  content =>  "hello "
+}
+
+Install a package
+package { "telnet":
+   ensure => "installed",
+}
+
+rpm -qa | grep -i telnet
+
+puppet describe service | more
+service {"nfs":
+     ensure => "running",
+}
+systemctl status nfs
+
+ensure both directory and file are present.
+file { "/var/tmp/testdir":
+   ensure => "directory",
+}
+
+file { "/var/tmp/testdir":
+   ensure => "directory",
+}
+#Definition of a class.
+class ntpdemo{
+
+package { "ntp":
+   ensure => "present",
+}
+
+file { "/etc/ntp.conf":
+   ensure => "present",
+   content => "",
+}
+service { "ntpd":
+   ensure => "running",
+}
+}
+include ntpdemo
+
+Manifest Puppet
+
+check ---> puppet parser validate ;; test ---> puppet agent -tv --noop ;; Run ---> puppet agent -tv
+cd /etc/puppetlabs/code/environments/production/manifests
+touch site.pp ---> write the above ntpdemo code inside this file. and restart puppetmaster ---> issue the above command in Agent server.
+Node definitions ---> To control the hosts on which the class should run.
+ Write the above code in ntpdemo.pp 
+ in site.pp write ---> we can have multiple hosts comma seperated
+ node 'abc.com'{
+   include ntpdemo
+ }
+
+

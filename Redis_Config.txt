@@ -1,0 +1,43 @@
+Step-by-step Guide
+At the time of this post, Redis server is supported on Ubuntu 16.04 with pre-built release, so you don’t have to build Redis from source anymore.
+Let’s get started by quickly issuing the pretty familiar command,
+$ sudo apt-get update && sudo apt-get install redis-server -y
+You might want to omit the -y option in order to examine what packages will be installed on your machine.
+That’s all done for installation. Next step is to config the server.
+If you want to start Redis manually, this command comes handy for quick testing.
+$ redis-server &
+But for production, you might not want to do like above. Redis is installed as a service so you can activate Redis through service command:
+$ service redis-server start
+Okay that works! Furthermore, to automatically restart Redis server on system reboot, you will need to update the system daemon config:
+$ update-rc.d redis-server enable
+$ update-rc.d redis-server defaults
+Additional tip: Redis, by default, binds itself to 127.0.0.1, if you want to change the address, just update the “bind” key in the config file “/etc/redis/redis.conf”
+bind 10.10.100.10
+Alrighty! That’s all to it!
+
+Redis can be started without a configuration file using a built-in default configuration. But to make any extra parameter changes you can use its configuration file that is: /etc/redis/redis.conf. Edit the Redis configuration file in a text editor to make changes
+
+sudo vim /etc/redis/redis.conf
+Update the following values in Redis configuration file according to your requirement. You can increase max memory limit as per available on your server.
+
+maxmemory 256mb
+maxmemory-policy allkeys-lru
+The above configuration tells Redis to remove any key using the LRU algorithm when the max memory of 256mb is reached. Save the configuration file and restart the Redis service:
+service redis-server restart
+Now, if you need to use Redis from PHP application, you also need to install Redis PHP extension on your Ubuntu system. Run below command to install:
+
+sudo apt-get install php-redis
+Step 5 – Test Connection to Redis Server
+Use redis-cli tool to verify the connection between the Redis server.
+
+redis-cli
+
+127.0.0.1:6379> ping
+PONG
+127.0.0.1:6379>
+Few more examples of redis-cli command line tool. You can find more details about redis-cli here.
+
+redis-cli info
+redis-cli info stats
+redis-cli info server
+

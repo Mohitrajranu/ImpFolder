@@ -1,0 +1,127 @@
+package com.abc.model;
+
+import java.util.List;
+
+public class Email {
+
+    private String from;
+    private List<String> to;
+    private List<String> cc;
+    private List<String> bcc;
+    private String subject;
+    private String message;
+
+    public Email() {}
+
+    public Email(String from, List<String> to, List<String> cc, List<String> bcc) {
+        this.from = from;
+        this.to = to;
+        this.cc = cc;
+        this.bcc = bcc;
+    }
+
+    public Email(String from, List<String> to, List<String> cc, List<String> bcc, String subject, String message) {
+        this.from = from;
+        this.to = to;
+        this.cc = cc;
+        this.bcc = bcc;
+        this.subject = subject;
+        this.message = message;
+    }
+
+    public String getFrom() {
+        return from;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public List<String> getTo() {
+        return to;
+    }
+
+    public void setTo(List<String> to) {
+        this.to = to;
+    }
+
+    public List<String> getCc() {
+        return cc;
+    }
+
+    public void setCc(List<String> cc) {
+        this.cc = cc;
+    }
+
+    public List<String> getBcc() {
+        return bcc;
+    }
+
+    public void setBcc(List<String> bcc) {
+        this.bcc = bcc;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}
+ EmailServiceImpl.java
+package com.abc;
+
+import com.abc.model.Email;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import javax.ws.rs.core.MediaType;
+
+@Service
+public class EmailServiceImpl implements EmailService {
+
+    static final Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
+
+    @Value("${email.mailgun.apiKey}")
+    private String mailgunApiKey;
+
+    @Value("${email.mailgun.host}")
+    private String mailgunHost;
+
+    @Override
+    public boolean send(Email email) {
+        Client client = Client.create();
+        client.addFilter(new HTTPBasicAuthFilter("api", mailgunApiKey));
+
+        WebResource webResource = client.resource("https://api.mailgun.net/v2/" + mailgunHost +  "/messages");
+
+        MultivaluedMapImpl formData = new MultivaluedMapImpl();
+        formData.add("from", email.getFrom());
+        formData.add("to", email.getTo().get(0));
+        formData.add("subject", email.getSubject());
+        formData.add("html", email.getMessage());
+
+        ClientResponse clientResponse = webResource.type(MediaType.APPLICATION_FORM_URLENCODED).post(ClientResponse.class, formData);
+        String output = clientResponse.getEntity(String.class);
+
+        logger.info("Email sent successfully : " + output);
+        return true;
+
+    }
+}
