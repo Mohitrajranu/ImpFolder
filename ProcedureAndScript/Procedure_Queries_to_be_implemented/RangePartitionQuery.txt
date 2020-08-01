@@ -1,0 +1,65 @@
+Load balancing :XML request via JMS 
+
+ sshpass -p dbillse@123  scp -r  AsyncreqRetry.java.java mbas@10.135.25.55:/home/mbas/BackEndProcess/src/com/btsl/process
+ 
+ Select PM.PLAN_ID as PLAN_ID , PL.VALIDITY_TYPE as VALIDITY_TYPE, PL.VALIDITY as VALIDITY, PL.GRACE_PERIOD as GRACE_PERIOD, PL.SUSPEND_PERIOD as SUSPEND_PERIOD from T_D_CNF_PLAN_LIFECYCLE PL,T_D_CNF_PLAN_MASTER PM where PL.LIFECYCLE_ID = PM.LIFECYCLE_ID and PL.VALIDITY_TYPE not in('MI','LT','SS')
+ 
+
+Validation to be done if the parameter  is optional but value getting from it is exponential, then reject it.
+
+ CREATE TABLE SK_20131015
+   (CREATE_DATETIME    DATE,
+    DATA  varchar2(30))
+   PARTITION BY RANGE(CREATE_DATETIME)
+   INTERVAL (NUMTODSINTERVAL(7,'DAY'))
+   (PARTITION P0 VALUES LESS THAN
+   (TO_DATE('23-SEP-1997','DD-MON-YYYY')));
+
+Table created.
+
+
+ insert into sk_20131015 values ( SYSDATE-20, 'A' );
+
+1 row created.
+
+ insert into sk_20131015 values ( SYSDATE-13, 'B' );
+
+1 row created.
+
+ insert into sk_20131015 values ( SYSDATE, 'x' );
+
+1 row created.
+
+ insert into sk_20131015 values ( SYSDATE+ (1/60), 'x1' );
+
+1 row created.
+
+ insert into sk_20131015 values ( SYSDATE+1, 'y' );
+
+1 row created.
+
+ insert into sk_20131015 values ( SYSDATE+7, 'z' );
+
+1 row created.
+
+
+   declare
+   spec_partition_does_not_exist exception;    pragma exception_init(spec_partition_does_not_exist, -02149); -- "Specified partition does not exist"
+   last_partition_cant_be_dropped exception;
+   pragma exception_init(last_partition_cant_be_dropped, -14758); -- "Last partition in the range section cannot be dropped"
+   l_cnt Number := 0;
+   begin
+   for d in (select trunc(sysdate)-14-level d from dual connect by level>0) loop
+          begin
+                     l_cnt := l_cnt + 1;
+             execute immediate 'alter table sk_20131015  drop partition for(date''' || to_char(d.d, 'yyyy-mm-dd') || ''')';
+         exception
+            when spec_partition_does_not_exist then null;
+            when last_partition_cant_be_dropped then exit;
+         end;
+      end loop;
+      dbms_output.put_line( l_cnt || ' iterations' );
+   end;
+   /
+
+PL/SQL procedure successfully completed.
