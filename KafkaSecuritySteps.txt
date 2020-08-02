@@ -1,0 +1,440 @@
+Kafka Security ------------->> ssh -i kafka-security.pem user@ip-address --> to your newly configure ec2 aws instance.
+uptime
+
+download kafka start zookeeper with its config zookeeper.properties
+./zookeeper-server-start.sh -daemon /config/zookeeper.properties
+ --> echo "ruok" | nc localhost:2181 ; echo 
+start kafka server --> ./kafka-server-start.sh -daemon /config/server.properties
+ create service script for zookeeper -->> vi /etc/systemd/system/zookeeper.service 
+
+[Unit]
+Description=Apache Zookeeper ServerBy=
+Documentation=http://kafka.apache.org/documentation.html
+Requires=network.target remote-fs.target
+After=network.target remote-fs.target
+[Service]
+Type=simple
+ExecStart=./zookeeper-server-start.sh -daemon /config/zookeeper.properties
+ExecStop=./zookeeper-server-stop.sh 
+[Install]
+WantedBy=multi-user.target
+
+vi /etc/systemd/system/kafka.service
+ 
+[Unit]
+Description=Apache Kafka Server(broker)
+Documentation=http://kafka.apache.org/documentation.html
+Requires=zookeeper.service
+[Service]
+Type=simple
+ExecStart=./kafka-server-start.sh -daemon /config/kafka.properties
+ExecStop=./kafka-server-stop.sh
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl enable zookeeper
+sudo systemctl enable kafka
+
+sudo systemctl status kafka
+sudo systemctl start kafka
+
+sudo journalctl -u kafka
+
+Open ports on our security groups 2181:zookeeper and 9092:Kafka plaintext adjust to your local ip in inbound rule
+
+setup your config/server.properties
+advertised.listeners=PLAINTEXT://<DNS ip>:9092
+zookeeper.connect=<DNS ip>:2181
+
+sudo systemctl restart kafka
+
+SSL in kafka works for encrypting data between brokers and clients
+Kafka client will trust the certificate of kafka broker and they can surely exchange encrypted data.
+
+Generating Certificates ::
+
+openssl req -new -newkey rsa:4096 -days 365 -x509 -subj "/CN=Kafka-Security-CA" -keyout ca-key -out ca-cert -nodes
+
+ca-cert
+ca-key
+cert-file
+
+Generating Keystore and Truststore ::
+export SRVPASS=serversecret
+
+keytool -genkey -keystore kafka.server.keystore.jks -validity 365 -storepass $SRVPASS -keypass $SRVPASS -dname "CN=public.dns.ip.com" -storetype pkcs12 
+
+keytool -list -v -keystore kafka.server.keystore.jks
+
+Generating certfile for CA to sign ::
+keytool -keystore kafka.server.keystore.jks -certreq -file cert-file -storepass $SRVPASS -keypass $SRVPASS
+
+openssl x509 -req -CA ca-cert -CAKey ca-key -in cert-file -out cert-signed -days 365 -CAcreateserial -passin pass:$SRVPASS 
+
+-->cert-signed file is created.
+keytool -printcert -v -file cert-signed
+-->Generating Truststore and adding public cert to it.
+keytool -keystore kafka.server.truststore.jks -alias CARoot -import -file ca-cert -storepass $SRVPASS -keypass $SRVPASS -noprompt
+
+keytool -keystore kafka.server.keystore.jks -alias CARoot -import -file ca-cert -storepass $SRVPASS -keypass $SRVPASS -noprompt
+keytool -keystore kafka.server.keystore.jks -alias CARoot -import -file cert-signed -storepass $SRVPASS -keypass $SRVPASS -noprompt
+
+vi config/server.properties
+listeners=PLAINTEXT://0.0.0.0:9092,SSL://0.0.0.0:9093
+advertised.listeners=PLAINTEXT://ec2-18-196-169-2.eu-central-1.compute.amazonaws.com:9092,SSL://ec2-18-196-169-2.eu-central-1.compute.amazonaws.com:9093
+
+ssl.keystore.location=/home/ubuntu/ssl/kafka.server.keystore.jks
+ssl.keystore.password=serversecret
+ssl.key.password=serversecret
+ssl.truststore.location=/home/ubuntu/ssl/kafka.server.truststore.jks
+ssl.truststore.password=serversecret
+
+ssl.client.auth=required
+-------------------------------------------------------------------------
+Restart kafka
+sudo systemctl restart kafka
+Add 9093 to firewall
+
+openssl s_client -connect dnsip:9093
+
+Now create client truststore and keystore using same ca-cert
+export CLIENTPASS=clientpass
+
+keytool -keystore kafka.client.truststore.jks -alias CARoot -import -file ca-cert -storepass $CLIENTPASS -keypass $CLIENTPASS -noprompt
+
+keytool -keystore kafka.client.keystore.jks -alias CARoot -import -file ca-cert -storepass $CLIENTPASS -keypass $CLIENTPASS -noprompt
+vi client.properties
+security.protocol=SSL
+ssl.truststore.location=/home/ssl/kafka.client.truststore.jks
+ssl.truststore.password=clientpass
+
+/kafka/bin/kafka-console-producer.sh --broker.list dns.ip:9093 --topic topicname1 --producer.config /ssl/client.properties
+
+Using SSL with your Kafka brokers and clients will affect the performance for gain of security,
+Kafka brokers need to encrypt / decrypt packet
+This will affect latency,cpu utilisation,RAM usage.
+
+In the encryption case ::
+Only the broker has signed certificates,the client were verifying the broker certificates to establish ssl connection,the client is anonymous to broker.
+In the authentication case::
+The client and brokers have signed server certificates, the client and server verify each others certificates,the client now has an IDENTITY to the broker(Apply ACLs)
+ 
+keytool -genkey -keystore kafka.client.keystore.jks -validity 365 -storepass $CLIENTPASS -keypass $CLIENTPASS -dname "CN=public.dns.ip.com" -alias my-local-pc -storetype pkcs12 
+vi client-ssl-auth.properties
+ssl.keystore.location=/home/ubuntu/ssl/kafka.client.keystore.jks
+ssl.keystore.password=serversecret
+ssl.key.password=serversecret
+ssl.truststore.location=/home/ubuntu/ssl/kafka.client.truststore.jks
+ssl.truststore.password=serversecret
+
+SASL Kerberos Authentication:: SASL stands for simple authentication and security layer,The reason it's popular is that it doesnot change application protocol and theoretically one sasl ticket can give you access to many systems.
+It implements the following protocols::
+Plain :-> Simple Username/Password ; SCRAM [modern username/password with challenge] ; GSSAPI[Kerberos authentication/Active Directory authentication].
+OAUTHBREAKER :-> for Oauth 2 support.
+
+Kerberos :: A protocol for authentication over unsecure networks, Data exchange is encrypted. Based on tickets issued to Service Principals(also a user is a service in kerberos).
+Involves a trusted 3rd-party(KDC,key distribution center).Microsoft Active Directory is the most popular implementation of kerberos.
+
+Client uses keytab to authenticate to KDC,client requests a new ticket to the Ticket Granting Server.Client access kafka using the temporary ticker obtained from KDC.
+Key characteristics:: All communication is encrypted,no passwords are being sent over wire,Tickets do expire hence keeps your servers time in sync.Only clients interact with KDC the target service/server never talks to the KDC.
+
+kerberos  is complicated and cryptic.
+
+Kerberos setup in Aws, Go -to instances --> Launch instance --> Go to Aws marketplace --> type centos --> you can use t2.micro server as for kerberos we don't require extensive resource utilisation.--> Add Tag --> Name => kerberos-server --> Configure security group , Kerberos by default uses port 88.---> Select an existing key-pair or select new key pair.
+Add private ip address of the kafka broker in security group of kerberos server for listening on port 88[inbound].
+
+now open the console -> sudo yum install -y krb5-server :: sudo vi /var/kerberos/krb5kdc/kdc.conf --> Realms are specified here :: sudo vi /var/kerberos/krb5kdc/kadm5.acl --> edit and enter */admin@KAFKA.SECURE * and save the file as it will alow admin user access to the realm.
+
+vi /etc/krb5.conf
+[logging]
+  default= FILE:/var/log/krb5lib.log
+  kdc= FILE:/var/log/krb5kdc.log
+  admin_server= FILE:/var/log/kadmind.log
+[libdefaults]
+  default_realm= KAFKA.SECURE
+  kdc_timesync= 1
+  ticket_lifetime= 24h
+[realms]
+  KAFKA.SECURE={
+  admin_server=kerberos_server_dns_ip.com,
+  kdc = kerberos_server_dns_ip.com  
+  }  
+save it and now we can create kerberos database.
+sudo /usr/sbin/kdb5_util create -s -r KAFKA.SECURE -P this-is-unsecure
+sudo kadmin.local -q "add_principal -pw this-is-unsecure admin/admin"
+sudo systemctl restart krb5kdc
+
+Add user principal to the realm with a random password
+ sudo kadmin.local -q "add_principal -randkey reader@KAFKA.SECURE"
+ sudo kadmin.local -q "add_principal -randkey writer@KAFKA.SECURE"
+ sudo kadmin.local -q "add_principal -randkey admin@KAFKA.SECURE"
+ sudo kadmin.local -q "add_principal -randkey kafka/broker_dns.ip@KAFKA.SECURE"
+ 
+ Extract principal to the keytab file ,
+ sudo kadmin.local -q "xst -kt /tmp/reader.user.keytab reader@KAFKA.SECURE"
+ sudo kadmin.local -q "xst -kt /tmp/writer.user.keytab writer@KAFKA.SECURE"
+ sudo kadmin.local -q "xst -kt /tmp/admin.user.keytab admin@KAFKA.SECURE"
+ sudo kadmin.local -q "xst -kt /tmp/kafka.service.keytab kafka/broker_dns.ip@KAFKA.SECURE"
+ 
+ Install kerberos client tool to grab ticket , transfer the keytab to your client server,
+ export DEBIAN_FRONTEND=noninteractive && sudo apt-get install -y krb5-user
+ 
+ edit your krb5.conf
+ [logging]
+  default = FILE:/var/log/krb5libs.log
+  kdc = FILE:/var/log/krb5kdc.log
+  admin_server = FILE:/var/log/kadmind.log
+
+[libdefaults]
+    default_realm = KAFKA.SECURE
+    kdc_timesync = 1
+    ticket_lifetime = 24h
+
+[realms]
+    KAFKA.SECURE = {
+      admin_server = <<KERBEROS-SERVER-PUBLIC-DNS>>
+      kdc  = <<KERBEROS-SERVER-PUBLIC-DNS>>
+      }
+	  
+kinit -kt /tmp/admin.user.keytab admin
+klist
+
+## TEST, from Kafka EC2
+```
+export DEBIAN_FRONTEND=noninteractive ; sudo apt-get install -y krb5-user
+sudo vi /etc/krb5.conf
+## replace content by krb5.conf template
+
+klist -kt /tmp/kafka.service.keytab
+kinit -kt /tmp/kafka.service.keytab kafka/<<KAFKA-SERVER-PUBLIC-DNS>>
+klist	  
+ 
+ &&&&&&&&&&&&&&&&&&&&&Kafka configuration for SASL&&&&&&&&&&
+ edit your config/server.properties add sasl support.
+ 
+listeners=PLAINTEXT://0.0.0.0:9092,SSL://0.0.0.0:9093,SASL_SSL://0.0.0.0:9094
+advertised.listeners=PLAINTEXT://<<KAFKA-SERVER-PUBLIC-DNS>>:9092,SSL://<<KAFKA-SERVER-PUBLIC-DNS>>:9093,SASL_SSL://<<KAFKA-SERVER-PUBLIC-DNS>>:9094
+zookeeper.connect=<<KAFKA-SERVER-PUBLIC-DNS>>:2181
+
+sasl.enabled.mechanisms=GSSAPI
+sasl.kerberos.service.name=kafka
+
+
+Now create a file kafka_server_jaas.conf inside config
+KafkaServer {
+    com.sun.security.auth.module.Krb5LoginModule required
+    useKeyTab=true
+    storeKey=true
+    keyTab="/tmp/kafka.service.keytab"
+    principal="kafka/<<KAFKA-SERVER-PUBLIC-DNS>>@KAFKA.SECURE";
+};
+
+sudo vi /etc/systemd/system/kafka.service
+[Unit]
+Description=Apache Kafka server (broker)
+Documentation=http://kafka.apache.org/documentation.html
+Requires=zookeeper.service
+
+[Service]
+Type=simple
+Environment="KAFKA_OPTS=-Djava.security.auth.login.config=/home/ubuntu/kafka/config/kafka_server_jaas.conf"
+ExecStart=/home/ubuntu/kafka/bin/kafka-server-start.sh /home/ubuntu/kafka/config/server.properties
+ExecStop=/home/ubuntu/kafka/bin/kafka-server-stop.sh
+
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl daemon-reload 
+
+Add 9094 port to the security group of kafka server.
+
+Add udp rule for port 88 from local computer and kafka server.
+
+sudo systemctl restart kafka
+
+# How to prepare Kafka console clients to use in kerberized env  
+
+## Create jaas file including how to use Kerberos ticket  
+use [kafka_client_jaas.conf](./kafka_client_jaas.conf) and save it under /tmp/kafka_client_jaas.conf
+KafkaClient {
+ com.sun.security.auth.module.Krb5LoginModule required
+ useTicketCache=true;
+ };
+
+## Create properties file including Kerberos details
+use [kafka_client_kerberos.properties](./kafka_client_kerberos.properties) and save it under /tmp/kafka_client_kerberos.properties
+security.protocol=SASL_SSL
+sasl.kerberos.service.name=kafka
+ssl.truststore.location=/home/gerd/ssl/kafka.client.truststore.jks
+ssl.truststore.password=clientpass
+
+## Start console-producer/-consumer
+```
+export KAFKA_OPTS="-Djava.security.auth.login.config=/tmp/kafka_client_jaas.conf"
+
+kinit -kt /tmp/admin.user.keytab admin
+
+~/kafka/bin/kafka-console-producer.sh --broker-list <<KAFKA-SERVER-PUBLIC-DNS>>:9094 --topic kafka-security-topic --producer.config /tmp/kafka_client_kerberos.properties
+```
+2nd terminal:
+```
+export KAFKA_OPTS="-Djava.security.auth.login.config=/tmp/kafka_client_jaas.conf"
+
+kinit -kt /tmp/reader.user.keytab reader
+
+~/kafka/bin/kafka-console-consumer.sh --bootstrap-server <<KAFKA-SERVER-PUBLIC-DNS>>:9094 --topic kafka-security-topic --consumer.config /tmp/kafka_client_kerberos.properties
+```
+In this course, you see we use a JAAS file and do export KAFKA_OPTS="/tmp/kafka_client_jaas.conf" 
+
+It is also possible to directly embed the jaas file as a config in the clients, and not do the export.
+
+Example:
+
+security.protocol=SASL_SSL
+sasl.kerberos.service.name=kafka
+ssl.truststore.location=/home/gerd/ssl/kafka.client.truststore.jks
+ssl.truststore.password=clientpass
+sasl.jaas.config=com.sun.security.auth.module.Krb5LoginModule required useTicketCache=true;
+=================
+
+You can also skip doing a kinit before starting your client if your jaas file is the following:
+
+KafkaClient {
+    com.sun.security.auth.module.Krb5LoginModule required
+    useKeyTab=true
+    storeKey=true
+    keyTab="/tmp/reader.user.keytab"
+    principal="reader@KAFKA.SECURE";
+};
+Or using the config as seen above:
+
+security.protocol=SASL_SSL
+sasl.jaas.config=com.sun.security.auth.module.Krb5LoginModule required useKeyTab=true storeKey=true keyTab="/tmp/reader.user.keytab" principal="reader@KAFKA.SECURE";
+
+Authorization In kafka
+ACLs(Access control lists) :: Topics --> restrict which client can read data ; Consumer Groups --> whoch client can use a specific consumer group; Cluster --> which client can create / delete topic or apply settings.
+
+There is a super user which can do anything, there is no concept of user groups,Each ACL have to be written for each client/user.
+ACLs are stored in zookeeper and added through the usage of command line. Only kafka admins should have right to create / delete topic and create Acls.
+To view the complete list of ACLs, there are two pieces of documentation that are relevant. Bookmark these links:
+
+https://kafka.apache.org/documentation/#security_authz (Kafka documentation)
+
+https://docs.confluent.io/4.0.0/kafka/authorization.html (sometimes more up-to-date than the Kafka documentation)
+
+-----------
+
+Additionally, once you're familiar with ACL and you want to manage them at scale, you can leverage the project that Stephane has created: https://github.com/simplesteph/kafka-security-manager (you can star it to bookmark it)
+
+
+Edit server.properties
+
+listeners=PLAINTEXT://0.0.0.0:9092,SSL://0.0.0.0:9093,SASL_SSL://0.0.0.0:9094
+advertised.listeners=PLAINTEXT://<<KAFKA-SERVER-PUBLIC-DNS>>:9092,SSL://<<KAFKA-SERVER-PUBLIC-DNS>>:9093,SASL_SSL://<<KAFKA-SERVER-PUBLIC-DNS>>:9094
+zookeeper.connect=<<KAFKA-SERVER-PUBLIC-DNS>>:2181
+
+authorizer.class.name=kafka.security.auth.SimpleAclAuthorizer
+super.users=User:admin;User:kafka
+allow.everyone.if.no.acl.found=false
+security.inter.broker.protocol=SASL_SSL
+
+sasl.enabled.mechanisms=GSSAPI
+sasl.kerberos.service.name=kafka
+
+ssl.keystore.location=/home/ubuntu/ssl/kafka.server.keystore.jks
+ssl.keystore.password=serversecret
+ssl.key.password=serversecret
+ssl.truststore.location=/home/ubuntu/ssl/kafka.server.truststore.jks
+ssl.truststore.password=serversecret
+
+ssl.client.auth=required
+
+sudo systemctl restart kafka
+
+# Create a topic
+```
+~/kafka/bin/kafka-topics.sh \
+--zookeeper <<KAFKA-SERVER-PUBLIC-DNS>>:2181 \
+--create \
+--topic acl-test \
+--replication-factor 1 --partitions 1
+```
+# Create ACLs
+
+1.) Allow users _reader_ and _writer_ to consumer from topic _acl-test_
+```
+~/kafka/bin/kafka-acls.sh \
+--authorizer-properties zookeeper.connect=<<KAFKA-SERVER-PUBLIC-DNS>>:2181 --add \
+--allow-principal User:reader --allow-principal User:writer \
+--operation Read \
+--group=* \
+--topic acl-test
+```
+2.) Allow user _writer_ to produce messages into topic _acl-test_
+```
+~/kafka/bin/kafka-acls.sh \
+--authorizer-properties zookeeper.connect=<<KAFKA-SERVER-PUBLIC-DNS>>:2181 --add \
+--allow-principal User:writer \
+--operation Write \
+--topic acl-test
+```
+3.) Allow ClusterAction for everyone
+```
+ Principal = User:ANONYMOUS is Allowed Operation = ClusterAction
+```
+
+Listing acls
+```
+~/kafka/bin/kafka-acls.sh \
+--authorizer-properties zookeeper.connect=<<KAFKA-SERVER-PUBLIC-DNS>>:2181 \
+--list \
+--topic acl-test
+```
+# Test consuming and producing messages
+1.) start console-producer as user _writer_
+```
+export KAFKA_OPTS="-Djava.security.auth.login.config=/tmp/kafka_client_jaas.conf"
+
+kdestroy
+kinit -kt /tmp/writer.user.keytab writer
+
+~/kafka/bin/kafka-console-producer.sh \
+--broker-list <<KAFKA-SERVER-PUBLIC-DNS>>:9094 \
+--topic acl-test \
+--producer.config /tmp/kafka_client_kerberos.properties
+```
+2.) start a console-consumer as user _reader_
+```
+export KAFKA_OPTS="-Djava.security.auth.login.config=/tmp/kafka_client_jaas.conf"
+
+kdestroy
+kinit -kt /tmp/reader.user.keytab reader
+
+~/kafka/bin/kafka-console-consumer.sh \
+--bootstrap-server <<KAFKA-SERVER-PUBLIC-DNS>>:9094 \
+--topic acl-test \
+--consumer.config /tmp/kafka_client_kerberos.properties
+```
+3.) Remove _Read_ permissions from user _reader_
+```
+~/kafka/bin/kafka-acls.sh \
+--authorizer-properties zookeeper.connect=<<KAFKA-SERVER-PUBLIC-DNS>>:2181 --remove \
+--allow-principal User:reader \
+--operation Read \
+--topic acl-test
+```
+4.) start the console-consumer again as user _reader_
+```
+export KAFKA_OPTS="-Djava.security.auth.login.config=/tmp/kafka_client_jaas.conf"
+
+kdestroy
+kinit -kt /tmp/reader.user.keytab reader
+
+~/kafka/bin/kafka-console-producer.sh \
+--broker-list <<KAFKA-SERVER-PUBLIC-DNS>>:9094 \
+--topic acl-test \
+--producer.config /tmp/kafka_client_kerberos.properties
+```
+
+
+
