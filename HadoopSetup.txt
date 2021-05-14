@@ -1,0 +1,375 @@
+https://synechron.zoom.us/j/97196616584
+
+
+https://cloudxlab.com/my-lab
+
+mohitrajranu1048
+KTYF5H6F
+
+wget https://s3.amazonaws.com/sankethadoop/wordcountnew.jar
+
+wget http://www.gutenberg.org/files/98/98-0.txt
+
+http://scala-ide.org/download/sdk.html
+
+
+listing root directory
+hadoop fs -ls /
+listing default to home directory
+hadoop fs -ls
+hadoop fs -ls /user/ranu
+create a directory in hdfs
+hadoop fs -mkdir hadoop-test1
+copy from local fs to hadoop
+hadoop fs -copyFromLocal /ranu/test/xyz.csv hadoop-test1
+copy to local fs from hdfs
+hadoop fs -copyToLocal hadoop-test1 /usr/abc.csv
+move a file from one folder to another
+hadoop fs -mv hadoop-test1/dwp-payments.csv hadoop-test3
+check replication
+hadoop fs -ls hadoop-test3
+change or set replication factor
+hadoop fs -Ddfs.replication=2 -cp hadoop-test2/dwp-payments-april.csv hadoop-test2/test_with_rep5.csv
+hadoop fs -ls hadoop-test2
+hadoop fs -ls hadoop-test2/test_with_rep5.csv
+changing permissions
+hadoop fs -chmod 777 hadoop-test2/test_with_rep5.csv
+File System check - rquires admin priveleges
+
+sudo -u hdfs hdfs fsck /usr/ubuntu/hadoop-test2 -files -blocks -locations
+
+vi /etc/hadoop/conf/hdfs-site.xml
+It list property to where the blocks will be physically stored in local system
+
+HDFS Read & Write :: 
+A hadoop cluster has 2 types of node ::--> 
+In a cluster you can have only one namenode but multiple datanodes.
+Namenode[master] => HDFS metadata(list of block locations for a particular file , who created them and when created/modified) and block locations,
+suppose a client wants to read a data from hdfs then hdfs fetches list of block locations from namenode , if the replication factor is 3 then 3 datalocations will be returned ,
+hdfs will also sort the data locations based on the proximity(Node Proximity --> Nodes that are on the same rack) of the client 
+
+Write operation::
+While writing to hdfs , client requests block location from namenode which checks if the client has necessary write permissions , the block location are provided on the basis Replica 
+Placement strategy , for replication factor 3  first node will be on the same rack  as client , the other two node will be on different rack say rack2.
+
+
+Datanode[slave] => Stores actual blocks
+
+
+
+
+1. Create directory "mrinput" on hdfs
+
+hadoop fs -mkdir mrinput
+
+
+2. Move the book file to HDFS in above directory
+hadoop fs -moveFromLocal 98.txt mrinput
+
+3. Execute the below command
+hadoop jar wordcountnew.jar wordcountnew <SRC File> mroutput
+hadoop jar wordcountnew.jar wordcountnew mrinput/98-0.txt mroutput
+
+4. Download the output in linux
+hadoop fs -cat mroutput/part-r-00000
+5. View the content of file (processed file)
+
+hadoop fs -ls /apps/hive/warehouse
+
+wget https://s3.amazonaws.com/sankethadoop/All_States_PinCode.csv
+
+create database <USERNAME>;
+
+use <USERNAME>;
+
+show tables;
+
+CREATE TABLE temp_India (
+OFFICE_NAME STRING,
+OFFICE_STATUS STRING,
+PINCODE INT,
+TELEPHONE STRING,
+TALUK STRING,
+DISTRICT STRING,
+STATE STRING,
+POSTAL_DIVISION STRING,
+POSTAL_REGION STRING,
+POSTAL_CIRCLE STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+LOAD DATA LOCAL INPATH '/home/cloudera/data/All_States_PinCode.csv' INTO TABLE temp_India;
+
+select * from temp_india limit 1;
+
+CREATE TABLE India (
+OFFICE_NAME STRING,
+OFFICE_STATUS STRING,
+PINCODE INT,
+TELEPHONE STRING,
+TALUK STRING,
+DISTRICT STRING,
+POSTAL_DIVISION STRING,
+POSTAL_REGION STRING,
+POSTAL_CIRCLE STRING
+)
+PARTITIONED BY (STATE STRING)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+SET hive.exec.dynamic.partition = true;
+SET hive.exec.dynamic.partition.mode = nonstrict;
+
+INSERT OVERWRITE TABLE India PARTITION (STATE)
+SELECT
+OFFICE_NAME ,
+OFFICE_STATUS ,
+PINCODE ,
+TELEPHONE ,
+TALUK ,
+DISTRICT ,
+POSTAL_DIVISION ,
+POSTAL_REGION ,
+POSTAL_CIRCLE ,
+STATE
+FROM temp_India;
+
+-m 1 --> table doesnot have primary key , mapper > 1 requires primary key in the table.
+
+spark-shell
+
+aNotepad.com - free online notepad
+Home
+Features
+About
+Register/Login
+commands
+Share
+
+ 
+  // VALUES are immutable constants. You can't change them once defined.
+  val hello: String = "Hello!"                    //> hello  : String = Hello!
+  println(hello)                                  //> Hello!
+  
+  // Notice how Scala defines things backwards from other languages - you declare the
+  // name, then the type.
+  
+  // VARIABLES are mutable
+  var helloThere: String = hello                  //> helloThere  : String = Hello!
+  helloThere = hello + " There!"
+  println(helloThere)                             //> Hello! There!
+  
+  
+  // One key objective of functional programming is to use immutable objects as often as possible.
+  // Try to use operations that transform immutable objects into a new immutable object.
+  // For example, we could have done the same thing like this:
+  val immutableHelloThere = hello + "There!"      //> immutableHelloThere  : String = Hello!There!
+  println(immutableHelloThere)                    //> Hello!There!
+  
+  // Some other types
+  val numberOne : Int = 1                         //> numberOne  : Int = 1
+  val truth : Boolean = true                      //> truth  : Boolean = true
+  val letterA : Char = 'a'                        //> letterA  : Char = a
+  val pi : Double = 3.14159265                    //> pi  : Double = 3.14159265
+  val piSinglePrecision : Float = 3.14159265f     //> piSinglePrecision  : Float = 3.1415927
+  val bigNumber : Long = 1234567890l              //> bigNumber  : Long = 1234567890
+  val smallNumber : Byte = 127                    //> smallNumber  : Byte = 127
+  
+  // String printing tricks
+  // Concatenating stuff with +:
+  println("Here is a mess: " + numberOne + truth + letterA + pi + bigNumber)
+                                                  //> Here is a mess: 1truea3.141592651234567890
+  
+  // printf style:
+  println(f"Pi is about $piSinglePrecision%.3f")  //> Pi is about 3.142
+  println(f"Zero padding on the left: $numberOne%05d")
+                                                  //> Zero padding on the left: 00001
+                                                  
+  // Substituting in variables:
+  println(s"I can use the s prefix to use variables like $numberOne $truth $letterA")
+                                                  //> I can use the s prefix to use variables like 1 true a
+  // Substituting expressions (with curly brackets):
+  println(s"The s prefix isn't limited to variables; I can include any expression. Like ${1+2}")
+                                                  //> The s prefix isn't limited to variables; I can include any expression. Like
+                                                  //|  3
+                                                 
+  // Using regular expressions:
+  val theUltimateAnswer: String = "To life, the universe, and everything is 42."
+                                                  //> theUltimateAnswer  : String = To life, the universe, and everything is 42.
+                                                  //| 
+  // Go and look for first number in the string
+  // \d+ means look for integers and .* means the first interger in row
+  val pattern = """.* ([\d]+).*""".r              //> pattern  : scala.util.matching.Regex = .* ([\d]+).*
+  val pattern(answerString) = theUltimateAnswer   //> answerString  : String = 42
+  val answer = answerString.toInt                 //> answer  : Int = 42
+  println(answer)                                 //> 42
+    
+  // Dealing with booleans
+  val isGreater = 1 > 2                           //> isGreater  : Boolean = false
+  val isLesser = 1 < 2                            //> isLesser  : Boolean = true
+  val impossible = isGreater & isLesser           //> impossible  : Boolean = false
+  
+  val picard: String = "Picard"                   //> picard  : String = Picard
+  val bestCaptain: String = "Picard"              //> bestCaptain  : String = Picard
+  val isBest: Boolean = picard == bestCaptain     //> isBest  : Boolean = true
+  
+  // EXERCISE
+  // Write some code that takes the value of pi, doubles it, and then prints it within a string with
+  // three decimal places of precision to the right.
+  // Just write your code below here; any time you save the file it will automatically display the results!
+  
+}
+
+ 
+// Flow control
+  
+  // If / else syntax
+  if (1 > 3) println("Impossible!") else println("The world makes sense.")
+                                   
+  
+  if (1 > 3) {
+  	println("Impossible!")
+  } else {
+  	println("The world makes sense.")
+  }                                              
+  
+  // Matching - like switch in other languages and _ refers to default:
+  val number = 3                                
+  number match {
+  	case 1 => println("One")
+  	case 2 => println("Two")
+  	case 3 => println("Three")
+  	case _ => println("Something else")
+ 	}                                        
+ 	
+ 	// For loops - <- is a range operator
+ 	for (x <- 1 to 4) {
+ 		val squared = x * x
+ 		println(squared)
+ 	}                                        
+                                                  
+  // While loops
+  var x = 10                                   
+  while (x >= 0) {
+  	println(x)
+  	x -= 1
+  }                                               
+                                                  
+  x = 0
+  do { println(x); x+=1 } while (x <= 10)      
+                                                  
+                                                  
+   // Expressions
+   // "Returns" the final value in a block automatically
+      {val x = 10; x + 20}                          
+                                                
+	 println({val x = 10; x + 20})            
+	 
+	 // EXERCISE
+	 // Write some code that prints out the first 10 values of the Fibonacci sequence.
+	 // This is the sequence where every number is the sum of the two numbers before it.
+	 // So, the result should be 0, 1, 1, 2, 3, 5, 8, 13, 21, 34
+	 
+	   
+}
+
+pyspark
+sparkR
+
+
+1. Install a JDK (Java Development Kit) from http://www.oracle.com/technetwork/java/javase/downloads/index.html . Keep track of where you installed the JDK; you’ll need that later.
+
+2. Download a pre-built version of Apache Spark from https://spark.apache.org/downloads.html
+
+3. If necessary, download and install WinRAR so you can extract the .tgz file you downloaded. http://www.rarlab.com/download.htm
+
+4. Extract the Spark archive, and copy its contents into C:\spark after creating that directory. You should end up with directories like c:\spark\bin, c:\spark\conf, etc.
+
+5. Move winutils.exe (Download from - https://s3.amazonaws.com/sankethadoop/winutils.exe) into a C:\winutils\bin folder that you’ve created. (note, this is a 64-bit application. If you are on a 32-bit version of Windows, you’ll need to search for a 32-bit build of winutils.exe for Hadoop.)
+
+6. Open the the c:\spark\conf folder, and make sure “File Name Extensions” is checked in the “view” tab of Windows Explorer. Rename the log4j.properties.template file to log4j.properties. Edit this file (using Wordpad or something similar) and change the error level from INFO to ERROR for log4j.rootCategory
+
+7. Right-click your Windows menu, select Control Panel, System and Security, and then System. Click on “Advanced System Settings” and then the “Environment Variables” button.
+
+8. Add the following new USER variables:
+a. SPARK_HOME c:\spark
+b. JAVA_HOME (the path you installed the JDK to in step 1, for example C:\Program Files\Java\jdk1.8.0_101)
+c. HADOOP_HOME c:\winutils
+
+9. Add the following paths to your PATH user variable: %SPARK_HOME%\bin; %JAVA_HOME%\bin
+
+10. Close the environment variable screen and the control panels.
+
+11. Install the latest Scala IDE from http://scala-ide.org/download/sdk.html
+
+12. Test it out!
+a. Open up a Windows command prompt in administrator mode.
+b. Enter cd c:\spark and then dir to get a directory listing.
+c. Look for a text file we can play with, like README.md or CHANGES.txt
+d. Enter spark-shell
+e. At this point you should have a scala> prompt. If not, double check the steps above.
+f. Enter val rdd = sc.textFile(“README.md”) (or whatever text file you’ve found)
+g. Enter rdd.count()
+h. You should get a count of the number of lines in that file! Congratulations, you just ran your first Spark program!
+i. Hit control-D to exit the spark shell, and close the console window
+j. You’ve got everything set up! Hooray!
+
+ 
+ built.sbt
+name := "RatingsCounter"
+
+version := "1.0"
+
+scalaVersion := "2.11.8"
+
+libraryDependencies ++= Seq(
+"org.apache.spark" %% "spark-core" % "2.1.1" % "provided"
+)
+
+project/build.properties
+sbt.version=1.2.8
+
+RatingsCounter.scala
+import org.apache.spark._
+import org.apache.spark.SparkContext._
+import org.apache.log4j._
+//count number of movies for each rating
+object RatingsCounter {
+
+//main func
+def main(args: Array[String]) {
+
+//set log level
+//Logger.getLogger("org").setLevel(Level.ERROR)
+
+//create SparkContext
+//val sc = new SparkContext("local[*]","RatingsCounter")
+val conf = new SparkConf().setAppName("RatingsCounter")
+val sc = new SparkContext(conf)
+//load data
+val lines = sc.textFile("hdfs://cxln1.c.thelab-240901.internal:8020/user/sanketthodge8502/sparkdata/u.data")
+
+//extract 3rd column
+val ratings = lines.map(x => x.toString().split("\t")(2))
+
+//count
+val results = ratings.countByValue()
+
+//sorting
+val sortedresults = results.toSeq.sortBy(_._1)
+
+//print output
+sortedresults.foreach(println)
+} }
+
+sbt
+
+compile
+
+package
+
+spark-submit <PATH TO JAR RECEIVED AFTER EXECUTING PREVIOUS COMMAND>
+
