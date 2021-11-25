@@ -1,0 +1,7 @@
+GraphQL :: Graph query language developed by google , it is an open source data query and manipulation language for API.
+Like SQL we use query to fetch data , you have flexiblity which data to fetch. Query to fetch data and mutation to alter the data.
+GraphQL Query:: used to fetch the data , you can compare it with GET REST APIs,GraphQLQueryResolver Interface is used.
+GraphQL Mutation:: used to alter the data i.e., Create,Update or Delete.You can compare it with post,put and delete rest apis, GraphQLMutationResolver Interface is used.
+GraphQL Schema:: Schema provides flexiblity to consumers that which attributes they want in response,  it has .graphqls file extension. Define which attributes are there in your class with data type. Schema is a contract between consumer and provider on how to get and alter the data for the application.
+Schema is a collection of GraphQl types . Query and mutation are root types in schema i.e., entrypoint for the application.
+GraphQL Vs REST APIs :: 
