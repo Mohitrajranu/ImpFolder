@@ -1,2 +1,20 @@
-Apache Flink :: 
+Apache Flink :: open source stream processing framework for distributed,high performing , always available data streaming applications
 Flink is a true processing framework, flinks stream is based on windowing and checkpointing, flink is implemented in java and has its own automatic memory manager , rarely gets out of memory. Flink uses controlled cyclic dependency graph as its execution engine.
+It also provides support for batch processing , grapgh processing,iterative processing.
+Flink gives low latency and high throughput applications. Robust,fault-tolernce, application can restart from exactly same point where it failed.
+Flink has rich set of libraries for graph processing,Machine learning,String handling,relational apis etc.
+Flink's application state is rescalable,possible to add resources while app is running.also maintains exactly-once semantics.
+
+Zeeplin[Interactive Data Analysis]
+
+Other Libraries[Relational--> TABLE ,Graph Processing--> GELLY,Machine Learning-->FLINK ML]
+
+Abstraction[Dataset{Batch Processing} DataStream{Stream processing}]
+
+Engine(Flink Runtime)
+
+Deploy[Local JVM ] [Cluster {Standalone/Yarn}]	 [Cloud{GCE/EC2}]
+
+Storage [Files{local,hdfs,s3}] [Databases{MongoDb,Hbase}] [Streams{Kafka,Flume,RabbitMq}]
+
+Datsets are Immutable , does not support individual operations , Stores list of it dependencies like ds2 is dependent on ds1.
