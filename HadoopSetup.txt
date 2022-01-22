@@ -12,20 +12,169 @@ wget http://www.gutenberg.org/files/98/98-0.txt
 
 http://scala-ide.org/download/sdk.html
 
+hadoop fs -cp /user/saurzcode/dir1/abc.txt /user/saurzcode/dir2
 
+
+
+
+1. Create a directory in HDFS at given path(s).
+1
+Usage:
+2
+hadoop fs -mkdir <paths>
+
+3
+Example:
+4
+create a directory in hdfs
+hadoop fs -mkdir hadoop-test1
+hadoop fs -mkdir /user/saurzcode/dir1 /user/saurzcode/dir2
+2.  List the contents of a directory.
+1
+Usage :
+2
+hadoop fs -ls <args>
+3
+Example:
+4
+hadoop fs -ls /user/saurzcode
 listing root directory
 hadoop fs -ls /
 listing default to home directory
 hadoop fs -ls
 hadoop fs -ls /user/ranu
-create a directory in hdfs
-hadoop fs -mkdir hadoop-test1
+3. Upload and download a file in HDFS.
+Upload:
+
+hadoop fs -put:
+
+Copy single src file, or multiple src files from local file system to the Hadoop data file system
+
+1
+Usage:
+2
+hadoop fs -put <localsrc> ... <HDFS_dest_Path>
+3
+Example:
+4
+hadoop fs -put /home/saurzcode/Samplefile.txt  /user/saurzcode/dir3/
+Download:
+
+hadoop fs -get:
+
+Copies/Downloads files to the local file system
+
+1
+Usage:
+2
+hadoop fs -get <hdfs_src> <localdst>
+3
+Example:
+4
+hadoop fs -get /user/saurzcode/dir3/Samplefile.txt /home/
+4. See contents of a file
+Same as unix cat command:
+
+1
+Usage:
+2
+hadoop fs -cat <path[filename]>
+3
+Example:
+4
+hadoop fs -cat /user/saurzcode/dir1/abc.txt
+5. Copy a file from source to destination
+This command allows multiple sources as well in which case the destination must be a directory.
+
+1
+Usage:
+2
+hadoop fs -cp <source> <dest>
+3
+Example:
+4
+hadoop fs -cp /user/saurzcode/dir1/abc.txt /user/saurzcode/dir2
+6. Copy a file from/To Local file system to HDFS
+copyFromLocal
+
+1
+Usage:
+2
+hadoop fs -copyFromLocal <localsrc> URI
+3
+Example:
+4
+hadoop fs -copyFromLocal /home/saurzcode/abc.txt  /user/saurzcode/abc.txt
 copy from local fs to hadoop
 hadoop fs -copyFromLocal /ranu/test/xyz.csv hadoop-test1
+
+Similar to put command, except that the source is restricted to a local file reference.
+
+copyToLocal
+
+1
+Usage:
+2
+hadoop fs -copyToLocal [-ignorecrc] [-crc] URI <localdst>
+Similar to get command, except that the destination is restricted to a local file reference.
 copy to local fs from hdfs
 hadoop fs -copyToLocal hadoop-test1 /usr/abc.csv
+7. Move file from source to destination.
+Note:- Moving files across filesystem is not permitted.
+
+1
+Usage :
+2
+hadoop fs -mv <src> <dest>
+3
+Example:
+4
+hadoop fs -mv /user/saurzcode/dir1/abc.txt /user/saurzcode/dir2
+
 move a file from one folder to another
 hadoop fs -mv hadoop-test1/dwp-payments.csv hadoop-test3
+8. Remove a file or directory in HDFS.
+Remove files specified as argument. Deletes directory only when it is empty
+
+1
+Usage :
+2
+hadoop fs -rm <arg>
+3
+Example:
+4
+hadoop fs -rm /user/saurzcode/dir1/abc.txt
+Recursive version of delete.
+
+1
+Usage :
+2
+hadoop fs -rmr <arg>
+3
+Example:
+4
+hadoop fs -rmr /user/saurzcode/
+9. Display last few lines of a file.
+Similar to tail command in Unix.
+
+1
+Usage :
+2
+hadoop fs -tail <path[filename]>
+3
+Example:
+4
+hadoop fs -tail /user/saurzcode/dir1/abc.txt
+10. Display the aggregate length of a file.
+1
+Usage :
+2
+hadoop fs -du <path>
+3
+Example:
+4
+hadoop fs -du /user/saurzcode/dir1/abc.txt
+
 check replication
 hadoop fs -ls hadoop-test3
 change or set replication factor
@@ -55,6 +204,36 @@ Placement strategy , for replication factor 3  first node will be on the same ra
 
 Datanode[slave] => Stores actual blocks
 
+MapReduce::
+Distributed programming model for large data sets , MapReduce is not a programming language .Hadoop implements mapreduce .MapReduce System(Hadoop) -> Manage communications, data 
+transfers parallel execution across distributed servers.
+MapReduce is basically carried out in 3 phase:
+Map phase --> Input split -->Mappers--> stores data in key value pair
+Dataset is divided in to multiple parts - Input Splits, Each mapper process an input split.Each mapper can be called multiple times depending on the content of input split.
+Mapper will emit key value pairs as output, there will be one or more mapper in a MapReduce job.
+
+Shuffle phase --> Aggregated the data from multiple source to a final target system.
+Reduce phase --> Reducers--> Result
+Reduce function will take key value pairs from multiple map functions as input and reduce them to output, keys are grouped with values.Reduce function is called once per key and its values.
+There could be 0,1 or more Reduce function for a mapReduce job.
+It is advisable to have more than one reducers if you are dealing with multiple mappers.It is important to understand that partitioning happens across all the mappers in the map phase.
+Combiner is a mini reducer that runs at map phase. You can use your reducer class as combiner only if your final output with and without combiner is going to remain same.
+InputFormat :: Validate inputs ; Input files into logical inputSplits; RecordReader implementation to extract logical records.
+OutputFormat :: Validate output specifications [checks if the directory exists or not, will throw error if directory is already there] ; RecordWriter implementation to write output
+files of the job.
+Writable :: A serializable object which implements a simple,efficient,serialization protocol. Fast,Compact & Effective
+
+create an executable jar and copy it to haddop cluster.
+Hdfs input location :: /users/hirw/input/stocks
+HDFS output location (relative to user):
+output/mapReduce/stocks
+hadoop fs -rm -r output/mapReduce/stocks
+
+submit job: hadoop jar 
+haddop jar /hive-starterkit/mapReduce/stocks/MaxClosePrice.jar com.hirw.maxcloseprice.MaxClosePrice /users/hirw/input/stocks output/mapReduce/stocks 
+view results
+haddop fs -cat output/mapReduce/stocks/part-1-00000
+
 
 
 
@@ -76,7 +255,71 @@ hadoop fs -cat mroutput/part-r-00000
 
 hadoop fs -ls /apps/hive/warehouse
 
+Apache Pig::
+Client tool developed at yahoo, same implementation phases as MapReduce program.
+Pig Latin
+Simple to use dataflow language, instruction to process data given by the user.Pig analyze,optimize the instructions and construct and submit MR jobs.
+PIG Latin instructions :: Load -> Filter ->Group->Aggregate(avg,max)->Store
+
+Philosophy 1:: Pig eats anything(Metadata or not,Structured or not)
+Philosophy 2:: Pigs fly[Designed with Big Data performance requirements in mind]
+Philosophy 3:: Pigs are domestic Animals(Designed to be easily controlled and modified by users).
+Philosophy 4:: Pigs live Anywhere(Pig authors envision pig to work on any distributed processing frameworks similar to hadoop in future)
+
+To interact with pig you need a grunt shell , simply type pig and it will take you the grunt shell in console.
+/**************Hadoop In Real World**************/
+Hadoop In Real World *** http://www.hadoopinrealworld.com
+Pig Latin - Loading & Projecting Datasets
+/**************Hadoop In Real World**************/
+
+### LOADING A DATASET ###
+
+grunt> stocks = LOAD '/user/hirw/input/stocks' USING PigStorage(',') as (exchange:chararray, symbol:chararray, date:datetime, open:float, high:float, low:float, close:float,
+volume:int, adj_close:float);
+
+delimeter is ',' which is denotated using pigStorage and every column of the stock file is taken into consideration along with there datatype
+### STRUCTURE ###
+To know the structure of relation we just created above , we will use the describe command desc
+grunt> DESC stocks;
+
+### PROJECT AND MANIPULATE FEW COLUMNS FROM DATASET ###
+
+grunt> projection = FOREACH stocks GENERATE symbol, SUBSTRING($0, 0, 1) as sub_exch, close - open as up_or_down;
+
+### PRINT RESULT ON SCREEN ###
+
+grunt> DUMP projection;
+
+### STORE RESULT IN HDFS ###
+
+grunt> STORE projection INTO 'output/pig/simple-projection';
+
+### LOAD 1 - WITH NO COLUMN NAMES AND DATATYPES ###
+
+grunt> stocks = LOAD '/user/hirw/input/stocks' USING PigStorage(',');
+describe stocks --> will ask for schema , you can run projection command to generate schems explicitly.
+
+### LOAD 2 - WITH COLUMN NAMES BUT NO DATATYPES ###
+
+grunt> stocks = LOAD '/user/hirw/input/stocks' USING PigStorage(',') as (exchange, symbol, date, open, high, low, close, volume, adj_close);
+describe stocks --> will generate schema with default datatype as bytearray.
+### LOAD 3 - WITH COLUMN NAMES AND DATATYPES ###
+
+grunt> stocks = LOAD '/user/hirw/input/stocks' USING PigStorage(',') as (exchange:chararray, symbol:chararray, date:datetime, open:float, high:float, low:float, close:float,
+volume:int, adj_close:float);
+
+### TO LOOK UP STRUCTURE OF THE RELATION ###
+
+grunt> DESCRIBE stocks;
+
+### WHEN COLUMN NAMES ARE NOT AVAILABLE ###
+
+grunt> projection = FOREACH stocks GENERATE $1 as symbol, SUBSTRING($0, 0, 1) as sub_exch, $6 - $3 as up_or_down;
+
+
+
 wget https://s3.amazonaws.com/sankethadoop/All_States_PinCode.csv
+
 
 create database <USERNAME>;
 
