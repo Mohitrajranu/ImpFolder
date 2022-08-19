@@ -272,7 +272,16 @@ Hadoop In Real World *** http://www.hadoopinrealworld.com
 Pig Latin - Loading & Projecting Datasets
 /**************Hadoop In Real World**************/
 
-### LOADING A DATASET ###
+What will be the datatype of the columns when you don’t specify a schema loading your dataset? 
+ByteArray.
+Assume you have a Pig relation with 10 columns. What happens when you load a dataset with 12 columns in each row?
+Pig will load the dataset with no issues.
+Assume you have a Pig relation with 10 columns. What happens when you load a dataset with only 4 columns in each row?
+Pig will load the dataset with no issues.
+What is the class you would extend to create a custom LOAD function of your own?
+LoadFunc
+
+### LOADING A DATASET ### specifying schema is not required for laoding data.
 
 grunt> stocks = LOAD '/user/hirw/input/stocks' USING PigStorage(',') as (exchange:chararray, symbol:chararray, date:datetime, open:float, high:float, low:float, close:float,
 volume:int, adj_close:float);
@@ -621,9 +630,213 @@ filter_empty_divs = FILTER cgrp BY (IsEmpty(group));
 limit10 = LIMIT filter_empty_divs 10;
 DUMP limit10;
 
+-Register datafu library
+REGISTER '/hirw-workshop/pig/songs/datafu-0.0.4.jar';
+DEFINE haversineMiles datafu.pig.geo.HaversineDistInMiles();
 
+songs = LOAD '/user/hirw/input/songs' AS (artist_familiarity:double, artist_lat:double, artist_long:double, artist_name:chararray, song_hotness:double, song_title:chararray);
+
+--keep only clean records and only less familiar artists with great songs
+less_popular = FILTER songs BY (artist_familiarity IS NOT NULL and artist_familiarity < 0.5) AND
+    (song_hotness IS NOT NULL and song_hotness > 0.5) AND (artist_lat IS NOT NULL) AND (artist_long IS NOT NULL);		
+	
+grp_less_popular = GROUP less_popular BY (artist_familiarity, artist_lat, artist_long, artist_name);
+
+--an artist might have more than one song, this will avoid duplicates	
+avg_song_hotness = FOREACH grp_less_popular GENERATE group.artist_familiarity, group.artist_lat, group.artist_long, group.artist_name, AVG(less_popular.song_hotness) AS avgsong_hotness;
+
+only_hot_song_artists = FILTER avg_song_hotness BY avgsong_hotness > 0.5;
+
+part1 = FOREACH only_hot_song_artists GENERATE
+        CONCAT('[', (chararray) artist_lat), artist_long, CONCAT('"', CONCAT((chararray) artist_name, '"')),
+		artist_familiarity, CONCAT((chararray)avgsong_hotness, '],');
+		
+STORE part1 INTO 'output/songs/part1' using PigStorage(',');
+
+--project the artists again to cross the dataset
+only_hot_song_artists2 = FOREACH only_hot_song_artists GENERATE artist_familiarity as artist_familiarity2, artist_lat as artist_lat2, artist_long as artist_long2, artist_name as artist_name2, avgsong_hotness as avgsong_hotness2;
+
+--cross both datasets
+crossed = CROSS only_hot_song_artists, only_hot_song_artists2;
+
+--remove records with same artists on both sides
+only_different = FILTER crossed BY artist_name != artist_name2 AND artist_lat != artist_lat2 AND artist_long != artist_long2;
+
+--use haversineMiles to calculate the distance between two artists
+distance = FOREACH only_different GENERATE only_hot_song_artists::artist_lat as artist_lat, only_hot_song_artists::artist_long as artist_long, only_hot_song_artists::artist_name as artist_name, only_hot_song_artists::artist_familiarity as artist_familiarity, only_hot_song_artists::avgsong_hotness as avgsong_hotness,
+haversineMiles(only_hot_song_artists::artist_lat, only_hot_song_artists::artist_long, only_hot_song_artists2::artist_lat2, only_hot_song_artists2::artist_long2) as distance;
+
+--group and calculate the average distance between artists
+group_artist = GROUP distance BY artist_lat..avgsong_hotness;
+avg_distance = FOREACH group_artist GENERATE FLATTEN(group), AVG(distance.distance) AS distanceAvg;
+
+--order and pick the remote artist
+desc_order = ORDER avg_distance BY distanceAvg DESC;
+top1 = LIMIT desc_order 1;
+
+part2 = FOREACH top1 GENERATE
+        CONCAT('[', (chararray) artist_lat), artist_long, CONCAT('"', CONCAT((chararray) artist_name, '"')),
+		artist_familiarity, CONCAT((chararray)avgsong_hotness, '],');
+
+STORE part2 INTO 'output/songs/part2' using PigStorage(',');
+
+/**************Hadoop In Real World**************/
+Hadoop In Real World *** http://www.hadoopinrealworld.com
+Wikipedia - Page Ranking
+/**************Hadoop In Real World**************/
+
+--Register the jar
+REGISTER /hirw-workshop/pig/wikipedia/PageRankPig-0.0.1.jar;
+--Use PageRankLoad function with the LOAD operator
+records = LOAD '/user/ubuntu/input/pagerank' USING com.hirw.pagerankpig.PageRankLoad() AS (page:chararray, links:bag{});
+records = FILTER records BY page IS NOT NULL;
+--Calculate the no of links and points per page
+no_of_links_points_per_page = FOREACH records GENERATE page, COUNT(links) as no_of_links, (float)1/COUNT(links) as points;
+page_link_mapping = FOREACH records GENERATE page as page, FLATTEN(links) as link;
+--Remove any backlinks which does not have a page reference in the dataset
+remove_links_not_pages = JOIN no_of_links_points_per_page BY page, page_link_mapping BY link;
+only_good_pages = FOREACH remove_links_not_pages GENERATE page_link_mapping::page AS page, page_link_mapping::link as link;
+--Join links to pages and group
+joinResult = JOIN no_of_links_points_per_page BY page, only_good_pages BY page;
+groupResult = GROUP joinResult BY only_good_pages::link;
+result = FOREACH groupResult GENERATE group as page, SUM(joinResult.no_of_links_points_per_page::points) as rank;
+ordered = ORDER result BY rank desc;
+STORE ordered INTO 'output/pagerankpig';
+
+
+Apache Pig Assignment
+
+City of Chicago Employee Dataset
+
+Input (HDFS)- /user/hirw/input/employee-pig/employee_dataset_chicago
+
+Column Delimiter – Comma (,)
+
+Position
+
+Column Value
+
+Data Type
+
+1
+
+Employee Id
+
+INT
+
+2
+
+Employee Name
+
+(First Name <space> Last Name)
+
+CHARARRAY
+
+3
+
+Position Title
+
+CHARARRAY
+
+4
+
+Department Id
+
+INT
+
+5
+
+Employee Annual Salary
+
+FLOAT
+
+Sample Record
+
+1512,ACCURSO MARY K,ASST ADMINISTRATIVE SECRETARY I,43,21548.8
+
+
+City of Chicago Department Dataset
+
+Input (HDFS) - /user/hirw/input/employee-pig/department_dataset_chicago
+
+Column Delimiter – Semicolon (;)
+
+Position
+
+Column Value
+
+Data Type
+
+1
+
+Department Id
+
+INT
+
+2
+
+Department Name
+
+CHARARRAY
+
+3
+
+Address
+
+MAP[]
+
+3 keys – street, city, state
+
+Sample Record
+
+56;BOARD OF ETHICS;[street#226 S Wabash Ave,city#Chicago,state#IL]
+
+City of Chicago Bonus Dataset
+
+Input Location - /user/hirw /input/employee-pig/employee_bonus_chicago
+
+Column Delimiter – Comma (,)
+
+Position
+
+Column Value
+
+Data Type
+
+1
+
+Employee Id
+
+INT
+
+2
+
+Bonus
+
+FLOAT
+
+Sample Record
+
+2281,25000.50
+
+Create a relation with employee dataset with schema (column names and datatype) and name it employee. Once created, describe the relation.
+Select the columns from the employee relation
+Create a relation with department dataset with schema (column names and datatype) and name it departments. Once created, describe the relation.
+Select the columns from the department relation
+Create a relation with bonus dataset with schema (column names and datatype) and name it bonus. Once created, describe the relation.
+Select the columns from the bonus relation
+Join employee and department dataset to display Department Name and Department Address (as 3 separate columns – street, city and state) for each row in employee.
+Display all the employees who received bonus. The result should not display any employees who did not receive a bonus.
+Display the average bonus by department.
+Display the number of employees in each department using a nested FOREACH.
+Word count problem in PIG
 wget https://s3.amazonaws.com/sankethadoop/All_States_PinCode.csv
 
+
+https://stackoverflow.com/questions/21876837/not-able-to-apply-dynamic-partitioning-for-a-huge-data-set-in-hive
+
+https://developer.twitter.com/en/docs/authentication/oauth-1-0a/obtaining-user-access-tokens
+https://developer.twitter.com/en/docs/twitter-api/v1/data-dictionary/object-model/tweet
 
 create database <USERNAME>;
 
